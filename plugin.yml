@@ -1,0 +1,67 @@
+name: UhcTools
+main: com.martinbrook.uhctools.UhcTools
+version: 0.1
+description: Useful commands for UHC matches
+commands:
+ tp:
+  description: Teleportation functions
+  usage: /tp | /tp player | /tp player destinationplayer | /tp x y z | /tp player x y z
+ tpall:
+  description: Teleports all non-creative players to you
+  usage: /tpall 
+ butcher:
+  description: Butchers hostile mobs
+  usage: /butcher
+ tpd:
+  description: Teleports to the last death point
+  usage: /tpd
+ tpl:
+  description: Teleports to the last logout location
+  usage: /tpl
+ tpn:
+  description: Teleports to the last notification
+  usage: /tpn
+ heal:
+  description: Heals a player
+  usage: /heal player
+ healall:
+  description: Heals all players
+  usage: /healall
+ feed:
+  description: Feeds a player
+  usage: /feed player
+ feedall:
+  description: Feeds all players
+  usage: /feedall
+ clearinv:
+  description: Clears a player's inventory
+  usage: /clearinv player
+ clearinvall:
+  description: Clears all players' inventories
+  usage: /clearinvall
+ renew:
+  description: Feeds, heals and clearinvs a player
+  usage: /renew player
+ renewall:
+  description: Renews all players
+  usage: /renewall
+ cdmatch:
+  description: Starts the match countdown
+  usage: /cdmatch seconds
+ cdpvp:
+  description: Starts the PvP countdown
+  usage: /cdpvp seconds
+ cdwb:
+  description: Starts a world border countdown
+  usage: /cdwb newradius seconds
+ kill:
+  description: Command disabled
+  usage: /kill
+ notify:
+  description: Sends a private notification message to an admin
+  usage: /notify Message
+  alias: n
+ n:
+  description: Sends a private notification message to an admin
+  usage: /n Message
+  alias: notify
