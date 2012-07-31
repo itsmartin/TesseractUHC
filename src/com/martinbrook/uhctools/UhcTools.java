@@ -1,5 +1,11 @@
 package com.martinbrook.uhctools;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+
 import org.bukkit.ChatColor;
 
 import org.bukkit.Chunk;
@@ -23,7 +29,6 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 
-
 public class UhcTools extends JavaPlugin {
 	public Server server;
 	public World world;
@@ -37,6 +42,8 @@ public class UhcTools extends JavaPlugin {
 	private String countdownEvent;
 	private String countdownEndMessage;
 	private UhcToolsListener l;
+	private ArrayList<String> chatScript;
+	private Boolean chatMuted = false;
 	
 	public void onEnable(){
 		l = new UhcToolsListener(this);
@@ -66,7 +73,7 @@ public class UhcTools extends JavaPlugin {
 			if (commandSender instanceof Player)
 				success = runCommandAsPlayer((Player) commandSender, cmd, args);
 		}
-		return success;
+		return true;
 	}
 	
 	private boolean runCommandAsOp(Player sender, String cmd, String[] args) {
@@ -82,7 +89,9 @@ public class UhcTools extends JavaPlugin {
 		} else if (cmd.equals("tpn")) {
 			response = cTpn(sender);
 		} else if(cmd.equals("tpall")) {
-			response = cTpall(sender,args);
+			response = cTpall(sender);
+		} else if(cmd.equals("tp0")) {
+			response = cTp0(sender);
 		} else {
 			success = false;
 		}
@@ -123,6 +132,16 @@ public class UhcTools extends JavaPlugin {
 			response = cCdpvp(args);
 		} else if (cmd.equals("cdwb")) {
 			response = cCdwb(args);
+		} else if (cmd.equals("cdc")) {
+			response = cCdc();
+		} else if (cmd.equals("pvpon")) {
+			response = cPvpon();
+		} else if (cmd.equals("pvpoff")) {
+			response = cPvpoff();
+		} else if (cmd.equals("chatscript")) {
+			response = cChatscript(args);
+		} else if (cmd.equals("muteall")) {
+			response = cMuteall(args);
 		} else {
 			success = false;
 		}
@@ -141,12 +160,62 @@ public class UhcTools extends JavaPlugin {
 			response = ERROR_COLOR + "The kill command is disabled. You will be healed and fed when the match begins.";
 		} else if (cmd.equals("notify") || cmd.equals("n")) {
 			response = cNotify(sender, args);
+		} else {
+			success = false;
 		}
 
 		if (response != null)
 			sender.sendMessage(response);
 		
 		return success;
+	}
+	
+	private String cCdc() {
+		cancelCountdown();
+		return OK_COLOR + "Countdown cancelled!";
+		
+	}
+	
+	private String cMuteall(String[] args) {
+		if (args.length < 1)
+			return ERROR_COLOR +"Please specify 'on' or 'off'";
+
+		if (args[0].equalsIgnoreCase("on")) {
+			setChatMuted(true);
+			return OK_COLOR + "Chat muted!";
+		}
+		if (args[0].equalsIgnoreCase("off")) {
+			setChatMuted(false);
+			return OK_COLOR + "Chat unmuted!";
+		}
+		
+		return ERROR_COLOR + "Please specify 'on' or 'off'";
+
+	}
+	
+	private String cChatscript(String[] args) {
+		if (args.length < 1)
+			return ERROR_COLOR +"Specify the chat script filename";
+		playChatScript(args[0]);
+		return OK_COLOR + "Starting chat script " + args[0];
+	}
+	
+	private String cPvpon() {
+		setPVP(true);
+		
+		return OK_COLOR + "PvP enabled";
+	}
+	
+	private String cPvpoff() {
+		setPVP(false);
+		
+		return OK_COLOR + "PvP disabled";
+	}
+	
+	public void setPVP(boolean pvp) {
+		for(World w : server.getWorlds()) {
+			w.setPVP(pvp);
+		}
 	}
 	
 	/**
@@ -379,6 +448,12 @@ public class UhcTools extends JavaPlugin {
 		return ERROR_COLOR + "Incorrect number of arguments";
 	}
 	
+	
+	private String cTp0(Player sender) {
+		sender.teleport(world.getSpawnLocation());
+		return OK_COLOR + "Teleported to spawn";
+	}
+	
 	/**
 	 * Carry out the /tpall command
 	 * 
@@ -386,7 +461,7 @@ public class UhcTools extends JavaPlugin {
 	 * @param args arguments
 	 * @return response
 	 */
-	private String cTpall(Player sender, String[] args) {
+	private String cTpall(Player sender) {
 		for (Player p : world.getPlayers()) {
 			if (p.getGameMode() != GameMode.CREATIVE) {
 				p.teleport(sender);
@@ -607,9 +682,10 @@ public class UhcTools extends JavaPlugin {
 	public void doTeleport(Player p1, Location l) {
 		//saveTpLocation(p1);
 		// Check if the location is loaded
-		Chunk chunk = world.getChunkAt(l);
-		if (!world.isChunkLoaded(chunk))
-			world.loadChunk(chunk);
+		World w = l.getWorld();
+		Chunk chunk = w.getChunkAt(l);
+		if (!w.isChunkLoaded(chunk))
+			w.loadChunk(chunk);
 		p1.teleport(l);
 		if (p1.getGameMode() == GameMode.CREATIVE)
 			p1.setFlying(true);
@@ -808,6 +884,9 @@ public class UhcTools extends JavaPlugin {
 	}
 	
 	public void countdown() {
+		if (countdown < 0)
+			return;
+		
 		if (countdown == 0) {
 			getServer().broadcastMessage(MAIN_COLOR + countdownEndMessage);
 			return;
@@ -816,10 +895,10 @@ public class UhcTools extends JavaPlugin {
 		if (countdown >= 60) {
 			if (countdown % 60 == 0) {
 				int minutes = countdown / 60;
-				getServer().broadcastMessage(ChatColor.DARK_PURPLE + countdownEvent + " in " + minutes + " minute" + (minutes == 1? "":"s"));
+				getServer().broadcastMessage(ChatColor.RED + countdownEvent + " in " + minutes + " minute" + (minutes == 1? "":"s"));
 			}
 		} else if (countdown % 15 == 0 || countdown <= 5) {
-			getServer().broadcastMessage(ChatColor.DARK_PURPLE + countdownEvent + " in " + countdown + " second" + (countdown == 1? "" : "s"));
+			getServer().broadcastMessage(ChatColor.RED + countdownEvent + " in " + countdown + " second" + (countdown == 1? "" : "s"));
 		}
 		
 		countdown--;
@@ -829,4 +908,105 @@ public class UhcTools extends JavaPlugin {
 			}
 		}, 20L);
 	}
+	
+	public void cancelCountdown() {
+		countdown = -1;
+	}
+	
+	public void playChatScript(String filename) {
+		chatScript = loadChatScript(filename);
+		if (chatScript != null)
+			continueChatScript();
+	}
+	
+	public void continueChatScript() {
+		getServer().broadcastMessage(ChatColor.GREEN + chatScript.get(0));
+		chatScript.remove(0);
+		if (chatScript.size() > 0) {
+			getServer().getScheduler().scheduleAsyncDelayedTask(this, new Runnable() {
+				public void run() {
+					continueChatScript();
+				}
+			}, 40L);
+		} else {
+			chatScript = null;
+		}
+		
+	}
+	
+	public ArrayList<String> loadChatScript(String filename) {
+		File fChat = getDataFile(filename, true);
+		
+		if (fChat == null) return null;
+		
+		ArrayList<String> lines = new ArrayList<String>();
+		try {
+			FileReader fr = new FileReader(fChat);
+			BufferedReader in = new BufferedReader(fr);
+			String s = in.readLine();
+
+			while (s != null) {
+				lines.add(s);
+				s = in.readLine();
+			}
+
+			in.close();
+			fr.close();
+			return lines;
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	/**
+	 * Initialise the data directory for this plugin.
+	 *
+	 * @return true if the directory has been created or already exists.
+	 */
+	private boolean createDataDirectory() {
+	    File file = this.getDataFolder();
+	    if (!file.isDirectory()){
+	        if (!file.mkdirs()) {
+	            // failed to create the non existent directory, so failed
+	            return false;
+	        }
+	    }
+	    return true;
+	}
+	 
+	/**
+	 * Retrieve a File description of a data file for your plugin.
+	 * This file will be looked for in the data directory of your plugin, wherever that is.
+	 * There is no need to specify the data directory in the filename such as "plugin/datafile.dat"
+	 * Instead, specify only "datafile.dat"
+	 *
+	 * @param filename The name of the file to retrieve.
+	 * @param mustAlreadyExist True if the file must already exist on the filesystem.
+	 *
+	 * @return A File descriptor to the specified data file, or null if there were any issues.
+	 */
+	private File getDataFile(String filename, boolean mustAlreadyExist) {
+	    if (createDataDirectory()) {
+	        File file = new File(this.getDataFolder(), filename);
+	        if (mustAlreadyExist) {
+	            if (file.exists()) {
+	                return file;
+	            }
+	        } else {
+	            return file;
+	        }
+	    }
+	    return null;
+	}
+	
+	public boolean isChatMuted() {
+		return chatMuted;
+	}
+	
+	public void setChatMuted(Boolean muted) {
+		chatMuted = muted;
+	}
+
 }

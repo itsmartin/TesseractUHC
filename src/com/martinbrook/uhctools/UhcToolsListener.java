@@ -3,7 +3,11 @@ package com.martinbrook.uhctools;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerChatEvent;
+import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+
+import org.bukkit.ChatColor;
 
 public class UhcToolsListener implements Listener {
 	private UhcTools t;
@@ -15,7 +19,9 @@ public class UhcToolsListener implements Listener {
 	
 	@EventHandler
 	public void onDeath(PlayerDeathEvent e) {
-		if (e.getDeathMessage().indexOf("fell out of the world") == -1)
+		String msg = e.getDeathMessage();
+		e.setDeathMessage(ChatColor.RED + msg);
+		if (msg.indexOf("fell out of the world") == -1)
 			t.setLastDeathLocation(e.getEntity().getLocation());
 	}
 	
@@ -23,4 +29,17 @@ public class UhcToolsListener implements Listener {
 	public void onQuit(PlayerQuitEvent e) {
 		t.setLastLogoutLocation(e.getPlayer().getLocation());
 	}
+	
+	@EventHandler
+	public void onPlayerChatEvent(PlayerChatEvent e) {
+		if (t.isChatMuted() && !e.getPlayer().isOp())
+			e.setCancelled(true);
+	}
+	
+	@EventHandler
+	public void onPlayerComandPreprocessEvent(PlayerCommandPreprocessEvent e) {
+		if (t.isChatMuted() && !e.getPlayer().isOp() && e.getMessage().toLowerCase().startsWith("/me"))
+			e.setCancelled(true);
+	}
+	
 }

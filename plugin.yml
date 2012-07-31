@@ -21,6 +21,9 @@ commands:
  tpn:
   description: Teleports to the last notification
   usage: /tpn
+ tp0:
+  description: Teleports to the overworld spawn point
+  usage: /tp0
  heal:
   description: Heals a player
   usage: /heal player
@@ -54,6 +57,21 @@ commands:
  cdwb:
   description: Starts a world border countdown
   usage: /cdwb newradius seconds
+ cdc:
+  description: Cancels a running countdown
+  usage: /cdc
+ chatscript:
+  description: Plays a chat script from a file, one line per second
+  usage: /chatscript filename
+ muteall:
+  description: Mutes the chat so that nobody can talk except ops
+  usage: /muteall on | off
+ pvpon:
+  description: Enables PvP
+  usage: /pvpon
+ pvpoff:
+  description: Disables PvP
+  usage: /pvpoff
  kill:
   description: Command disabled
   usage: /kill
