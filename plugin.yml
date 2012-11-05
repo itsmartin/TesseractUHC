@@ -1,6 +1,6 @@
 name: UhcTools
 main: com.martinbrook.uhctools.UhcTools
-version: 0.1
+version: 0.2
 description: Useful commands for UHC matches
 commands:
  tp:
@@ -83,3 +83,6 @@ commands:
   description: Sends a private notification message to an admin
   usage: /n Message
   alias: notify
+ match:
+  description: Start the match
+  usage: /match

@@ -142,6 +142,8 @@ public class UhcTools extends JavaPlugin {
 			response = cChatscript(args);
 		} else if (cmd.equals("muteall")) {
 			response = cMuteall(args);
+		} else if (cmd.equals("match")) {
+			response = cMatch();
 		} else {
 			success = false;
 		}
@@ -152,6 +154,11 @@ public class UhcTools extends JavaPlugin {
 		return success;
 	}
 	
+	private String cMatch() {
+		startGame();
+		return OK_COLOR + "Match started!";
+	}
+
 	private boolean runCommandAsPlayer(Player sender, String cmd, String[] args) {
 		boolean success = true;
 		String response = null; // Stores any response to be given to the sender
@@ -864,6 +871,18 @@ public class UhcTools extends JavaPlugin {
 		i.setChestplate(null);
 		i.setLeggings(null);
 		i.setBoots(null);
+	}
+	
+	public void startGame() {
+		for (Player p : world.getPlayers()) {
+			if (p.getGameMode()==GameMode.ADVENTURE) {
+				feed(p);
+				clearXP(p);
+				clearPotionEffects(p);
+				heal(p);
+				p.setGameMode(GameMode.SURVIVAL);
+			}
+		}
 	}
 	
 	/**
