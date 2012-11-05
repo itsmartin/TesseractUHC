@@ -3,7 +3,7 @@ package com.martinbrook.uhctools;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.player.PlayerChatEvent;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
@@ -31,7 +31,7 @@ public class UhcToolsListener implements Listener {
 	}
 	
 	@EventHandler
-	public void onPlayerChatEvent(PlayerChatEvent e) {
+	public void onPlayerChatEvent(AsyncPlayerChatEvent e) {
 		if (t.isChatMuted() && !e.getPlayer().isOp())
 			e.setCancelled(true);
 	}
