@@ -27,6 +27,9 @@ commands:
  tp0:
   description: Teleports to the overworld spawn point
   usage: /tp0
+ setspawn:
+  description: Sets the spawn point to your current location
+  usage: /setspawn
  gm:
   description: Toggle gamemode between CREATIVE and SURVIVAL.
   usage: /gm

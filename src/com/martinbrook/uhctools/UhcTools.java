@@ -106,6 +106,8 @@ public class UhcTools extends JavaPlugin {
 			response = cTps(sender, args);
 		} else if (cmd.equals("gm")) {
 			sender.setGameMode((sender.getGameMode() == GameMode.SURVIVAL) ? GameMode.CREATIVE : GameMode.SURVIVAL);
+		} else if (cmd.equals("setspawn")) {
+			response = cSetspawn(sender);
 		} else {
 			success = false;
 		}
@@ -203,6 +205,12 @@ public class UhcTools extends JavaPlugin {
 		return success;
 	}
 	
+	private String cSetspawn(Player sender) {
+		Location newSpawn = sender.getLocation();
+		newSpawn.getWorld().setSpawnLocation(newSpawn.getBlockX(), newSpawn.getBlockY(), newSpawn.getBlockZ());
+		return OK_COLOR + "This world's spawn point has been set to " + newSpawn.getBlockX() + "," + newSpawn.getBlockY() + "," + newSpawn.getBlockZ();
+	}
+
 	private String cCdc() {
 		cancelCountdown();
 		return OK_COLOR + "Countdown cancelled!";
