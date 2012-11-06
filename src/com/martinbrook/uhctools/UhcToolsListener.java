@@ -34,6 +34,12 @@ public class UhcToolsListener implements Listener {
 	public void onPlayerChatEvent(AsyncPlayerChatEvent e) {
 		if (t.isChatMuted() && !e.getPlayer().isOp())
 			e.setCancelled(true);
+		
+		// ops get gold text automatically
+		if (e.getPlayer().isOp()) {
+			e.setMessage(ChatColor.GOLD + e.getMessage());
+		}
+		
 	}
 	
 	@EventHandler
