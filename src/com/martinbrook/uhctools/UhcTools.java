@@ -48,6 +48,10 @@ public class UhcTools extends JavaPlugin {
 	private Boolean permaday = false;
 	private int permadayTaskId;
 	private Boolean deathban = false;
+	private ArrayList<Location> startPoints;
+	private int nextStartPoint = 0;
+	private Boolean launchingPlayers = false;
+	private ArrayList<UhcPlayer> uhcPlayers;
 	
 	public void onEnable(){
 		l = new UhcToolsListener(this);
@@ -55,6 +59,8 @@ public class UhcTools extends JavaPlugin {
 		
 		this.server = this.getServer();
 		this.world = getServer().getWorlds().get(0);
+		this.startPoints = loadStartPoints("starts.txt");
+		nextStartPoint = 0;
 	}
 	
 	public void onDisable(){
@@ -96,6 +102,8 @@ public class UhcTools extends JavaPlugin {
 			response = cTpall(sender);
 		} else if(cmd.equals("tp0")) {
 			response = cTp0(sender);
+		} else if(cmd.equals("tps")) {
+			response = cTps(sender, args);
 		} else if (cmd.equals("gm")) {
 			sender.setGameMode((sender.getGameMode() == GameMode.SURVIVAL) ? GameMode.CREATIVE : GameMode.SURVIVAL);
 		} else {
@@ -154,6 +162,16 @@ public class UhcTools extends JavaPlugin {
 			response = cPermaday(args);
 		} else if (cmd.equals("deathban")) {
 			response = cDeathban(args);
+		} else if (cmd.equals("clearstarts")) {
+			response = cClearstarts();
+		} else if (cmd.equals("loadstarts")) {
+			response = cLoadstarts();
+		} else if (cmd.equals("liststarts")) {
+			response = cListstarts();
+		} else if (cmd.equals("launch")) {
+			response = cLaunch(args);
+		} else if (cmd.equals("relaunch")) {
+			response = cRelaunch(args);
 		} else {
 			success = false;
 		}
@@ -256,6 +274,74 @@ public class UhcTools extends JavaPlugin {
 			return OK_COLOR + "Deathban disabled!";
 		} else {
 			return ERROR_COLOR + "Argument '" + args[0] + "' not understood";
+		}
+	}
+	
+	private String cClearstarts() {
+		startPoints = null;
+		nextStartPoint = 0;
+		return OK_COLOR + "Start list cleared";
+	}
+	
+	private String cLoadstarts() {
+		startPoints = loadStartPoints("starts.txt");
+		nextStartPoint = 0;
+		if (startPoints != null) {
+			return OK_COLOR.toString() + startPoints.size() + " start points loaded";
+			
+		} else {
+			return ERROR_COLOR + "Start list could not be loaded";
+		}
+	}
+	
+	private String cListstarts() {
+		if (startPoints == null)
+			return ERROR_COLOR + "There are no starts";
+
+		String response = "";
+		for (int i = 0; i < startPoints.size(); i++) {
+			response += i + ": " + startPoints.get(i).getX() + "," + startPoints.get(i).getY() + "," + startPoints.get(i).getZ() + "\n";
+		}
+		return response;
+	}
+	
+	private String cLaunch(String[] args)  {
+		if (args.length == 0) {
+			// launch all players
+			launchAll();
+			return OK_COLOR + "Launched all players";
+		} else {
+			Player p = server.getPlayer(args[0]);
+			if (p == null)
+				return ERROR_COLOR + "Player " + args[0] + " not found";
+			
+			if (p.isOp())
+				return ERROR_COLOR + "Player should be deopped before launching";
+			
+			boolean success = launch(p);
+			if (success)
+				return OK_COLOR + "Launched " + p.getDisplayName();
+			else 
+				return ERROR_COLOR + "Player could not be launched";
+		}
+	}
+	
+	private String cRelaunch(String[] args)  {
+		if (args.length == 0) {
+			return ERROR_COLOR + "Please specify player to relaunch";
+		} else {
+			Player p = server.getPlayer(args[0]);
+			if (p == null)
+				return ERROR_COLOR + "Player " + args[0] + " not found";
+			
+			if (p.isOp())
+				return ERROR_COLOR + "Player should be deopped before launching";
+			
+			boolean success = relaunch(p);
+			if (success)
+				return OK_COLOR + "Relaunched " + p.getDisplayName();
+			else 
+				return ERROR_COLOR + "Player could not be relaunched";
 		}
 	}
 	
@@ -416,6 +502,43 @@ public class UhcTools extends JavaPlugin {
 		return null;
 	}
 
+
+	/**
+	 * Carry out the /tps command
+	 * 
+	 * @param sender the sender of the command
+	 * @return response
+	 */
+	private String cTps(Player sender, String[] args) {
+		// Teleport sender to the specified start point, either by player name or by number
+		if (args.length != 1)
+			return ERROR_COLOR + "Incorrect number of arguments for /tps";
+		
+		Location destination = null;
+		
+		UhcPlayer up = this.getUhcPlayer(args[0]);
+		if (up != null) {
+			// Argument matches a player
+			destination = up.getStartPoint();
+			
+		} else {
+			try {
+				int i = Integer.parseInt(args[0]);
+				destination = startPoints.get(i);
+			} catch (Exception e) {
+				return ERROR_COLOR + "Unable to find that start point";
+			}
+		}
+		
+		
+		if (destination != null) {
+			doTeleport(sender,destination);
+			return null;
+		} else {
+			return ERROR_COLOR + "Unable to find that start point";
+		}
+	}
+	
 	private String cTp(Player sender, String[] args) {
 		
 		if (args.length == 0) {
@@ -1035,6 +1158,81 @@ public class UhcTools extends JavaPlugin {
 		
 	}
 	
+	public UhcPlayer getUhcPlayer(String name) {
+		for(UhcPlayer p : uhcPlayers) {
+			if (p.getName().equalsIgnoreCase(name)) {
+				return p;
+			}
+		}
+		
+		return null;
+	}
+
+	public UhcPlayer getUhcPlayer(Player playerToGet) {
+		return getUhcPlayer(playerToGet.getName());
+		
+	}
+	
+	/**
+	 * Launch the specified player only
+	 * 
+	 * @param p
+	 * @return success or failure
+	 */
+	public boolean launch(Player p) {
+		// Check if the player was already launched; if so, do nothing
+		UhcPlayer up = getUhcPlayer(p);
+		if (up != null)
+			if (up.isLaunched()) return false;
+		
+		// Create a new UhcPlayer for the player
+		up = new UhcPlayer(p);
+		
+		uhcPlayers.add(up);
+		
+		
+		// Get the next available start point from the list
+		try {
+			Location start = startPoints.get(nextStartPoint);
+			// Increment the start point pointer
+			nextStartPoint ++;
+			// Teleport the player to the start point
+			p.teleport(start);
+			up.setLaunched(true);
+			up.setStartPoint(start);
+			return true;
+		} catch (IndexOutOfBoundsException e) {
+			// Out of start points!
+			getServer().broadcast(ERROR_COLOR + "Not enough available start points! " + p.getDisplayName() + " not launched.", Server.BROADCAST_CHANNEL_ADMINISTRATIVE);
+			return false;
+		} 
+
+		
+	}
+	
+	/**
+	 * Re-teleport the specified player
+	 * @param p
+	 */
+	public boolean relaunch(Player p) {
+		UhcPlayer up = getUhcPlayer(p);
+		if (up == null) return false;
+		
+		return p.teleport(up.getStartPoint());
+	}
+	
+	/**
+	 * Launch all online non-op players, and set other players to be launched upon joining
+	 */
+	public void launchAll() {
+		launchingPlayers=true;
+		for(Player p : getServer().getOnlinePlayers()) {
+			if (!p.isOp()) {
+				launch(p);
+			}
+		}
+	}
+	
 	public ArrayList<String> loadChatScript(String filename) {
 		File fChat = getDataFile(filename, true);
 		
@@ -1054,6 +1252,44 @@ public class UhcTools extends JavaPlugin {
 			in.close();
 			fr.close();
 			return lines;
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	public ArrayList<Location> loadStartPoints(String filename) {
+		File fStarts = getDataFile(filename, true);
+		
+		if (fStarts == null) return null;
+		
+		ArrayList<Location> starts = new ArrayList<Location>();
+		try {
+			FileReader fr = new FileReader(fStarts);
+			BufferedReader in = new BufferedReader(fr);
+			String s = in.readLine();
+
+			while (s != null) {
+				String[] coords = s.split(",");
+				if (coords.length == 3) {
+					try {
+						double x = Double.parseDouble(coords[0]);
+						double y = Double.parseDouble(coords[1]);
+						double z = Double.parseDouble(coords[2]);
+						starts.add(new Location(world, x, y, z));
+					} catch (NumberFormatException e) {
+						server.broadcast("Bad entry in locations file: " + s, Server.BROADCAST_CHANNEL_ADMINISTRATIVE);
+					}
+					
+				}
+				
+				s = in.readLine();
+			}
+
+			in.close();
+			fr.close();
+			return starts;
 			
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -1109,5 +1345,10 @@ public class UhcTools extends JavaPlugin {
 	public void setChatMuted(Boolean muted) {
 		chatMuted = muted;
 	}
+
+	public Boolean getLaunchingPlayers() {
+		return launchingPlayers;
+	}
+
 
 }

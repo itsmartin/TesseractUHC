@@ -21,6 +21,9 @@ commands:
  tpn:
   description: Teleports to the last notification
   usage: /tpn
+ tps:
+  description: Teleports to a player's start point
+  usage: /tps start-number | playername
  tp0:
   description: Teleports to the overworld spawn point
   usage: /tp0
@@ -95,3 +98,18 @@ commands:
  deathban:
   description: Enable/disable deathban
   usage: /deathban on | off
+ clearstarts:
+  description: Clear saved start points
+  usage: /clearstarts
+ loadstarts:
+  description: Load start points from disk
+  usage: /loadstarts
+ liststarts:
+  description: List start points
+  usage: /liststarts
+ launch:
+  description: Launch all players, or a specific player
+  usage: /launch [player]
+ relaunch:
+  description: Relaunch a player
+  usage: /relaunch player  

@@ -1,10 +1,12 @@
 package com.martinbrook.uhctools;
 
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
+import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 import org.bukkit.ChatColor;
@@ -51,6 +53,15 @@ public class UhcToolsListener implements Listener {
 	public void onPlayerComandPreprocessEvent(PlayerCommandPreprocessEvent e) {
 		if (t.isChatMuted() && !e.getPlayer().isOp() && e.getMessage().toLowerCase().startsWith("/me"))
 			e.setCancelled(true);
+	}
+	
+	@EventHandler
+	public void onLogin(PlayerLoginEvent e) {
+		Player p = e.getPlayer();
+		UhcPlayer up = t.getUhcPlayer(p);
+		if (!up.isLaunched())
+			t.launch(p);
+		
 	}
 	
 }
