@@ -208,7 +208,7 @@ public class UhcTools extends JavaPlugin {
 	private String cChatscript(String[] args) {
 		if (args.length < 1)
 			return ERROR_COLOR +"Specify the chat script filename";
-		playChatScript(args[0]);
+		playChatScript(args[0], true);
 		return OK_COLOR + "Starting chat script " + args[0];
 	}
 	
@@ -982,7 +982,8 @@ public class UhcTools extends JavaPlugin {
 		countdown = -1;
 	}
 	
-	public void playChatScript(String filename) {
+	public void playChatScript(String filename, boolean muteChat) {
+		if (muteChat) this.setChatMuted(true);
 		chatScript = loadChatScript(filename);
 		if (chatScript != null)
 			continueChatScript();
@@ -998,6 +999,7 @@ public class UhcTools extends JavaPlugin {
 				}
 			}, 40L);
 		} else {
+			this.setChatMuted(false);
 			chatScript = null;
 		}
 		
