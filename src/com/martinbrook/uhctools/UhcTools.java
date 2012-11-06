@@ -239,10 +239,10 @@ public class UhcTools extends JavaPlugin {
 		
 		if (args[0].equalsIgnoreCase("off") || args[0].equals("0")) {
 			setPVP(true);
-			return OK_COLOR + "PVP enabled!";
+			return null;
 		} else if (args[0].equalsIgnoreCase("on") || args[0].equals("1")) {
 			setPVP(false);
-			return OK_COLOR + "PVP disabled!";
+			return null;
 		} else {
 			return ERROR_COLOR + "Argument '" + args[0] + "' not understood";
 		}
@@ -255,10 +255,10 @@ public class UhcTools extends JavaPlugin {
 		
 		if (args[0].equalsIgnoreCase("off") || args[0].equals("0")) {
 			setPermaday(true);
-			return OK_COLOR + "Permaday enabled!";
+			return null;
 		} else if (args[0].equalsIgnoreCase("on") || args[0].equals("1")) {
 			setPermaday(false);
-			return OK_COLOR + "Permaday disabled!";
+			return null;
 		} else {
 			return ERROR_COLOR + "Argument '" + args[0] + "' not understood";
 		}
@@ -270,10 +270,10 @@ public class UhcTools extends JavaPlugin {
 		
 		if (args[0].equalsIgnoreCase("off") || args[0].equals("0")) {
 			setDeathban(true);
-			return OK_COLOR + "Deathban enabled!";
+			return null;
 		} else if (args[0].equalsIgnoreCase("on") || args[0].equals("1")) {
 			setDeathban(false);
-			return OK_COLOR + "Deathban disabled!";
+			return null;
 		} else {
 			return ERROR_COLOR + "Argument '" + args[0] + "' not understood";
 		}
@@ -351,6 +351,9 @@ public class UhcTools extends JavaPlugin {
 		for(World w : server.getWorlds()) {
 			w.setPVP(pvp);
 		}
+
+		getServer().broadcast(OK_COLOR + "PVP has been " + (pvp ? "enabled" : "disabled") + "!", Server.BROADCAST_CHANNEL_ADMINISTRATIVE);
+
 	}
 	
 	public void setPermaday(boolean p) {
@@ -358,6 +361,9 @@ public class UhcTools extends JavaPlugin {
 		
 		this.permaday=p;
 
+		getServer().broadcast(OK_COLOR + "Permaday has been " + (permaday ? "enabled" : "disabled") + "!", Server.BROADCAST_CHANNEL_ADMINISTRATIVE);
+		
+		
 		if (permaday) {
 			this.world.setTime(0);
 			permadayTaskId = getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
@@ -377,6 +383,7 @@ public class UhcTools extends JavaPlugin {
 	
 	public void setDeathban(boolean d) {
 		this.deathban = d;
+		getServer().broadcast(OK_COLOR + "Deathban has been " + (deathban ? "enabled" : "disabled") + "!", Server.BROADCAST_CHANNEL_ADMINISTRATIVE);
 	}
 	
 	public boolean getDeathban() {
@@ -1080,6 +1087,7 @@ public class UhcTools extends JavaPlugin {
 				p.setGameMode(GameMode.SURVIVAL);
 			}
 		}
+		//TODO 
 	}
 	
 	/**
