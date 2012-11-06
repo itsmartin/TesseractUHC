@@ -944,6 +944,8 @@ public class UhcTools extends JavaPlugin {
 	}
 	
 	public void startGame() {
+		world.setTime(0);
+		butcherHostile();
 		for (Player p : world.getPlayers()) {
 			if (p.getGameMode()==GameMode.ADVENTURE) {
 				feed(p);
