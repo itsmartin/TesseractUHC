@@ -971,7 +971,7 @@ public class UhcTools extends JavaPlugin {
 		}
 		
 		countdown--;
-		getServer().getScheduler().scheduleAsyncDelayedTask(this, new Runnable() {
+		getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable() {
 			public void run() {
 				countdown();
 			}
@@ -992,7 +992,7 @@ public class UhcTools extends JavaPlugin {
 		getServer().broadcastMessage(ChatColor.GREEN + chatScript.get(0));
 		chatScript.remove(0);
 		if (chatScript.size() > 0) {
-			getServer().getScheduler().scheduleAsyncDelayedTask(this, new Runnable() {
+			getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable() {
 				public void run() {
 					continueChatScript();
 				}
