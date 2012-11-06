@@ -45,6 +45,8 @@ public class UhcTools extends JavaPlugin {
 	private ArrayList<String> chatScript;
 	private Boolean chatMuted = false;
 	private CountdownType countdownType;
+	private Boolean permaday = false;
+	private int permadayTaskId;
 	
 	public void onEnable(){
 		l = new UhcToolsListener(this);
@@ -145,6 +147,8 @@ public class UhcTools extends JavaPlugin {
 			response = cMuteall(args);
 		} else if (cmd.equals("match")) {
 			response = cMatch();
+		} else if (cmd.equals("permaday")) {
+			response = cPermaday(args);
 		} else {
 			success = false;
 		}
@@ -220,10 +224,47 @@ public class UhcTools extends JavaPlugin {
 		return OK_COLOR + "PvP disabled";
 	}
 	
+	private String cPermaday(String[] args) {
+		if (args.length < 1)
+			return OK_COLOR + "Permaday is " + (permaday ? "on" : "off");
+		
+		if (args[0].equalsIgnoreCase("off") || args[0].equals("0")) {
+			setPermaday(true);
+			return OK_COLOR + "Permaday enabled!";
+		} else if (args[0].equalsIgnoreCase("on") || args[0].equals("1")) {
+			setPermaday(false);
+			return OK_COLOR + "Permaday disabled!";
+		} else {
+			return ERROR_COLOR + "Argument '" + args[0] + "' not understood";
+		}
+	}
+	
 	public void setPVP(boolean pvp) {
 		for(World w : server.getWorlds()) {
 			w.setPVP(pvp);
 		}
+	}
+	
+	public void setPermaday(boolean p) {
+		if (p == permaday) return;
+		
+		this.permaday=p;
+
+		if (permaday) {
+			this.world.setTime(0);
+			permadayTaskId = getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
+				public void run() {
+					keepPermaday();
+				}
+			}, 1200L, 1200L);
+			
+		} else {
+			getServer().getScheduler().cancelTask(permadayTaskId);
+		}
+	}
+	
+	private void keepPermaday() {
+		this.world.setTime(0);
 	}
 	
 	/**

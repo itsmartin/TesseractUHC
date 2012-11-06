@@ -86,3 +86,6 @@ commands:
  match:
   description: Start the match
   usage: /match
+ permaday:
+  description: Enable/disable permaday
+  usage: /permaday on | off
