@@ -1087,7 +1087,9 @@ public class UhcTools extends JavaPlugin {
 				p.setGameMode(GameMode.SURVIVAL);
 			}
 		}
-		//TODO 
+		setDeathban(true);
+		setPermaday(false);
+		startCountdown(300, "PvP will be enabled", "PvP is now enabled!", CountdownType.PVP);
 	}
 	
 	/**
