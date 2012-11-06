@@ -24,6 +24,9 @@ commands:
  tp0:
   description: Teleports to the overworld spawn point
   usage: /tp0
+ gm:
+  description: Toggle gamemode between CREATIVE and SURVIVAL.
+  usage: /gm
  heal:
   description: Heals a player
   usage: /heal player

@@ -95,6 +95,8 @@ public class UhcTools extends JavaPlugin {
 			response = cTpall(sender);
 		} else if(cmd.equals("tp0")) {
 			response = cTp0(sender);
+		} else if (cmd.equals("gm")) {
+			sender.setGameMode((sender.getGameMode() == GameMode.SURVIVAL) ? GameMode.CREATIVE : GameMode.SURVIVAL);
 		} else {
 			success = false;
 		}
