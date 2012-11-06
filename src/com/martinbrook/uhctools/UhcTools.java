@@ -44,6 +44,7 @@ public class UhcTools extends JavaPlugin {
 	private UhcToolsListener l;
 	private ArrayList<String> chatScript;
 	private Boolean chatMuted = false;
+	private CountdownType countdownType;
 	
 	public void onEnable(){
 		l = new UhcToolsListener(this);
@@ -242,7 +243,7 @@ public class UhcTools extends JavaPlugin {
 		if (args.length == 2)
 			countLength = Integer.parseInt(args[1]);
 		
-		if (startCountdown(countLength, "World border will move to +/- " + radius + " x and z", "World border is now at +/- " + radius + " x and z!"))
+		if (startCountdown(countLength, "World border will move to +/- " + radius + " x and z", "World border is now at +/- " + radius + " x and z!", CountdownType.WORLD_REDUCE))
 			return OK_COLOR + "Countdown started";
 		else 
 			return ERROR_COLOR + "Countdown already in progress!"; 
@@ -257,7 +258,7 @@ public class UhcTools extends JavaPlugin {
 		if (args.length == 1)
 			countLength = Integer.parseInt(args[0]);
 		
-		if (startCountdown(countLength, "PvP will be enabled", "PvP is now enabled!"))
+		if (startCountdown(countLength, "PvP will be enabled", "PvP is now enabled!", CountdownType.PVP))
 			return OK_COLOR + "Countdown started";
 		else 
 			return ERROR_COLOR + "Countdown already in progress!"; 
@@ -272,7 +273,7 @@ public class UhcTools extends JavaPlugin {
 		if (args.length == 1)
 			countLength = Integer.parseInt(args[0]);
 		
-		if (startCountdown(countLength, "The match will begin", "Go!"))
+		if (startCountdown(countLength, "The match will begin", "Go!", CountdownType.MATCH))
 			return OK_COLOR + "Countdown started";
 		else 
 			return ERROR_COLOR + "Countdown already in progress!"; 
@@ -893,11 +894,12 @@ public class UhcTools extends JavaPlugin {
 	 * @param endMessage The message to display at the end of the countdown
 	 * @return Whether the countdown was started
 	 */
-	public boolean startCountdown(Integer countdownLength, String eventName, String endMessage) {
+	public boolean startCountdown(Integer countdownLength, String eventName, String endMessage, CountdownType type) {
 		if (countdown>0) return false;
 		countdown = countdownLength;
 		countdownEvent = eventName;
 		countdownEndMessage = endMessage;
+		countdownType = type;
 		countdown();
 		return true;
 	}
@@ -907,6 +909,13 @@ public class UhcTools extends JavaPlugin {
 			return;
 		
 		if (countdown == 0) {
+			if (countdownType == CountdownType.MATCH) {
+				this.startGame();
+			} else if (countdownType == CountdownType.PVP) {
+				this.setPVP(true);
+			} else if (countdownType == CountdownType.WORLD_REDUCE) {
+				
+			}
 			getServer().broadcastMessage(MAIN_COLOR + countdownEndMessage);
 			return;
 		}
