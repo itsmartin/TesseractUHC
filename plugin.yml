@@ -72,12 +72,9 @@ commands:
  muteall:
   description: Mutes the chat so that nobody can talk except ops
   usage: /muteall on | off
- pvpon:
-  description: Enables PvP
-  usage: /pvpon
- pvpoff:
-  description: Disables PvP
-  usage: /pvpoff
+ pvp:
+  description: Enables/disabled PvP
+  usage: /pvp on | off
  kill:
   description: Command disabled
   usage: /kill

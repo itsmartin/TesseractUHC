@@ -148,10 +148,8 @@ public class UhcTools extends JavaPlugin {
 			response = cCdwb(args);
 		} else if (cmd.equals("cdc")) {
 			response = cCdc();
-		} else if (cmd.equals("pvpon")) {
-			response = cPvpon();
-		} else if (cmd.equals("pvpoff")) {
-			response = cPvpoff();
+		} else if (cmd.equals("pvp")) {
+			response = cPvp(args);
 		} else if (cmd.equals("chatscript")) {
 			response = cChatscript(args);
 		} else if (cmd.equals("muteall")) {
@@ -235,17 +233,21 @@ public class UhcTools extends JavaPlugin {
 		return OK_COLOR + "Starting chat script " + args[0];
 	}
 	
-	private String cPvpon() {
-		setPVP(true);
+	private String cPvp(String[] args) {
+		if (args.length < 1)
+			return OK_COLOR + "PVP is " + (permaday ? "on" : "off");
 		
-		return OK_COLOR + "PvP enabled";
+		if (args[0].equalsIgnoreCase("off") || args[0].equals("0")) {
+			setPVP(true);
+			return OK_COLOR + "PVP enabled!";
+		} else if (args[0].equalsIgnoreCase("on") || args[0].equals("1")) {
+			setPVP(false);
+			return OK_COLOR + "PVP disabled!";
+		} else {
+			return ERROR_COLOR + "Argument '" + args[0] + "' not understood";
+		}
 	}
 	
-	private String cPvpoff() {
-		setPVP(false);
-		
-		return OK_COLOR + "PvP disabled";
-	}
 	
 	private String cPermaday(String[] args) {
 		if (args.length < 1)
