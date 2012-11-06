@@ -21,8 +21,13 @@ public class UhcToolsListener implements Listener {
 	public void onDeath(PlayerDeathEvent e) {
 		String msg = e.getDeathMessage();
 		e.setDeathMessage(ChatColor.RED + msg);
+		
 		if (msg.indexOf("fell out of the world") == -1)
 			t.setLastDeathLocation(e.getEntity().getLocation());
+		
+		if (t.getDeathban()) {
+			e.getEntity().setWhitelisted(false);
+		}
 	}
 	
 	@EventHandler

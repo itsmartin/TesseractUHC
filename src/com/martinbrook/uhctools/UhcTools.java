@@ -47,6 +47,7 @@ public class UhcTools extends JavaPlugin {
 	private CountdownType countdownType;
 	private Boolean permaday = false;
 	private int permadayTaskId;
+	private Boolean deathban = false;
 	
 	public void onEnable(){
 		l = new UhcToolsListener(this);
@@ -151,6 +152,8 @@ public class UhcTools extends JavaPlugin {
 			response = cMatch();
 		} else if (cmd.equals("permaday")) {
 			response = cPermaday(args);
+		} else if (cmd.equals("deathban")) {
+			response = cDeathban(args);
 		} else {
 			success = false;
 		}
@@ -241,6 +244,21 @@ public class UhcTools extends JavaPlugin {
 		}
 	}
 	
+	private String cDeathban(String[] args) {
+		if (args.length < 1)
+			return OK_COLOR + "Deathban is " + (deathban ? "on" : "off");
+		
+		if (args[0].equalsIgnoreCase("off") || args[0].equals("0")) {
+			setDeathban(true);
+			return OK_COLOR + "Deathban enabled!";
+		} else if (args[0].equalsIgnoreCase("on") || args[0].equals("1")) {
+			setDeathban(false);
+			return OK_COLOR + "Deathban disabled!";
+		} else {
+			return ERROR_COLOR + "Argument '" + args[0] + "' not understood";
+		}
+	}
+	
 	public void setPVP(boolean pvp) {
 		for(World w : server.getWorlds()) {
 			w.setPVP(pvp);
@@ -267,6 +285,14 @@ public class UhcTools extends JavaPlugin {
 	
 	private void keepPermaday() {
 		this.world.setTime(0);
+	}
+	
+	public void setDeathban(boolean d) {
+		this.deathban = d;
+	}
+	
+	public boolean getDeathban() {
+		return deathban;
 	}
 	
 	/**
