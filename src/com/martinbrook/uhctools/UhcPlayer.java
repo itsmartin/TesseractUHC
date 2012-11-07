@@ -6,7 +6,9 @@ public class UhcPlayer {
 	private String name;
 	private boolean launched = false;
 	private UhcStartPoint startPoint;
+	private int startPointIndex;
 	private int mineCount = 0;
+	private boolean dead = false;
 	
 	public UhcPlayer(Player p) {
 		this.name = p.getName();
@@ -56,6 +58,22 @@ public class UhcPlayer {
 
 	public void incMineCount() {
 		mineCount ++;
+	}
+
+	public int getStartPointIndex() {
+		return startPointIndex;
+	}
+
+	public void setStartPointIndex(int startPointIndex) {
+		this.startPointIndex = startPointIndex;
+	}
+
+	public boolean isDead() {
+		return dead;
+	}
+
+	public void setDead(boolean dead) {
+		this.dead = dead;
 	}
 
 

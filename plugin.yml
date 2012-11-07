@@ -113,6 +113,9 @@ commands:
  makestart:
   description: Create a start point at the current location
   usage: /makestart
+ listplayers:
+  description: List all players, and their start points and status
+  usage: /listplayers
  launch:
   description: Launch all players, or a specific player
   usage: /launch [player]

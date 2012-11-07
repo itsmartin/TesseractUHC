@@ -202,6 +202,8 @@ public class UhcTools extends JavaPlugin {
 			response = cSavestarts();
 		} else if (cmd.equals("liststarts")) {
 			response = cListstarts();
+		} else if (cmd.equals("listplayers")) {
+			response = cListplayers();
 		} else if (cmd.equals("launch")) {
 			response = cLaunch(args);
 		} else if (cmd.equals("relaunch")) {
@@ -216,6 +218,7 @@ public class UhcTools extends JavaPlugin {
 		return success;
 	}
 	
+
 	private String cMatch() {
 		startGame();
 		return OK_COLOR + "Match started!";
@@ -288,7 +291,7 @@ public class UhcTools extends JavaPlugin {
 		else
 			scriptFile = args[0];
 		playChatScript(scriptFile, true);
-		return OK_COLOR + "Starting chat script " + args[0];
+		return OK_COLOR + "Starting chat script";
 	}
 	
 	private String cPvp(String[] args) {
@@ -377,11 +380,33 @@ public class UhcTools extends JavaPlugin {
 		return response;
 	}
 	
+	
+	private String cListplayers() {
+		String response = "Players on server:\n";
+		
+		for (Player p : getServer().getOnlinePlayers()) {
+			UhcPlayer up = getUhcPlayer(p);
+			if (up != null) response += (up.isDead() ? ERROR_COLOR + "[D] " : OK_COLOR);
+			else if (p.isOp()) response += DECISION_COLOR;
+			else response += ERROR_COLOR;
+			
+			response += p.getName();
+			if (up != null) {
+				response += " " + (up.isLaunched() ? " (start point " + (up.getStartPointIndex()+1) + ")" : " (unlaunched)");
+			}
+			response += "\n";
+		}
+		
+		return response;
+
+	}
+
+	
 	private String cLaunch(String[] args)  {
 		if (args.length == 0) {
 			// launch all players
 			launchAll();
-			return OK_COLOR + "Launched all players";
+			return OK_COLOR + "Launching complete";
 		} else {
 			Player p = server.getPlayer(args[0]);
 			if (p == null)
@@ -1284,7 +1309,7 @@ public class UhcTools extends JavaPlugin {
 				public void run() {
 					continueChatScript();
 				}
-			}, 40L);
+			}, 30L);
 		} else {
 			this.setChatMuted(false);
 			chatScript = null;
@@ -1333,8 +1358,7 @@ public class UhcTools extends JavaPlugin {
 		// Get the next available start point from the list
 		try {
 			UhcStartPoint start = startPoints.get(nextStartPoint);
-			// Increment the start point pointer
-			nextStartPoint ++;
+
 			// Teleport the player to the start point
 			p.setGameMode(GameMode.ADVENTURE);
 			p.teleport(start.getLocation());
@@ -1342,7 +1366,11 @@ public class UhcTools extends JavaPlugin {
 			
 			up.setLaunched(true);
 			up.setStartPoint(start);
+			up.setStartPointIndex(nextStartPoint);
 			start.setUhcPlayer(up);
+
+			// Increment the start point pointer
+			nextStartPoint ++;
 			return true;
 		} catch (IndexOutOfBoundsException e) {
 			// Out of start points!

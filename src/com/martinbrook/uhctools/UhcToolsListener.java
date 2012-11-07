@@ -23,19 +23,6 @@ public class UhcToolsListener implements Listener {
 	
 	
 	@EventHandler
-	public void onDeath(PlayerDeathEvent e) {
-		String msg = e.getDeathMessage();
-		e.setDeathMessage(ChatColor.RED + msg);
-		
-		if (msg.indexOf("fell out of the world") == -1)
-			t.setLastDeathLocation(e.getEntity().getLocation());
-		
-		if (t.getDeathban()) {
-			e.getEntity().setWhitelisted(false);
-		}
-	}
-	
-	@EventHandler
 	public void onQuit(PlayerQuitEvent e) {
 		t.setLastLogoutLocation(e.getPlayer().getLocation());
 	}
@@ -83,6 +70,20 @@ public class UhcToolsListener implements Listener {
 			if (bonus != null)
 				e.getDrops().add(bonus);
 		}
+		UhcPlayer up = t.getUhcPlayer(p);
+		
+		if (up != null) up.setDead(true);
+		
+		String msg = e.getDeathMessage();
+		e.setDeathMessage(ChatColor.RED + msg);
+		
+		if (msg.indexOf("fell out of the world") == -1)
+			t.setLastDeathLocation(p.getLocation());
+		
+		if (t.getDeathban()) {
+			p.setWhitelisted(false);
+		}
+		
 	}
 
 	@EventHandler
