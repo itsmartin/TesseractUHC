@@ -7,6 +7,7 @@ public class UhcPlayer {
 	private String name;
 	private boolean launched = false;
 	private Location startPoint;
+	private int mineCount = 0;
 	
 	public UhcPlayer(Player p) {
 		this.name = p.getName();
@@ -43,6 +44,17 @@ public class UhcPlayer {
 	}
 
 
+	public int getMineCount() {
+		return mineCount;
+	}
+	
+	public void resetMineCount() {
+		mineCount = 0;
+	}
+
+	public void incMineCount() {
+		mineCount ++;
+	}
 
 
 

@@ -62,6 +62,11 @@ public class UhcTools extends JavaPlugin {
 	private Boolean killerBonusEnabled = false;
 	private int killerBonusItemID = 0;
 	private int killerBonusItemQuantity = 0;
+	private Boolean miningFatigueEnabled;
+	private int miningFatigueBlocks;
+	private int miningFatigueExhaustion;
+	private int miningFatigueDamage;
+	private int miningFatigueMaxY;
 	
 	public void onEnable(){
 		l = new UhcToolsListener(this);
@@ -88,6 +93,11 @@ public class UhcTools extends JavaPlugin {
 		killerBonusEnabled = getConfig().getBoolean("killerbonus.enabled");
 		killerBonusItemID = getConfig().getInt("killerbonus.id");
 		killerBonusItemQuantity = getConfig().getInt("killerbonus.quantity");
+		miningFatigueEnabled = getConfig().getBoolean("miningfatigue.enabled");
+		miningFatigueBlocks = getConfig().getInt("miningfatigue.blocks");
+		miningFatigueExhaustion = getConfig().getInt("miningfatigue.exhaustion");
+		miningFatigueDamage = getConfig().getInt("miningfatigue.damage");
+		miningFatigueMaxY = getConfig().getInt("miningfatigue.maxy");
 	}
 
 	@Override
@@ -219,7 +229,7 @@ public class UhcTools extends JavaPlugin {
 		String response = null; // Stores any response to be given to the sender
 
 		if (cmd.equals("kill")) {
-			response = ERROR_COLOR + "The kill command is disabled. You will be healed and fed when the match begins.";
+			response = ERROR_COLOR + "The kill command is disabled.";
 		} else if (cmd.equals("notify") || cmd.equals("n")) {
 			response = cNotify(sender, args);
 		} else {
@@ -1497,6 +1507,27 @@ public class UhcTools extends JavaPlugin {
 			return new ItemStack(killerBonusItemID, killerBonusItemQuantity);
 		else
 			return null;
+	}
+
+	public void doMiningFatigue(Player player, int blockY) {
+		if (!miningFatigueEnabled) return;
+		if (blockY > miningFatigueMaxY) return;
+		UhcPlayer up = getUhcPlayer(player);
+		if (up == null) return;
+		up.incMineCount();
+		if (up.getMineCount() >= miningFatigueBlocks) {
+			up.resetMineCount();
+			if (miningFatigueExhaustion > 0) {
+				// Increase player's exhaustion by specified amount
+				player.setExhaustion(player.getExhaustion() + miningFatigueExhaustion);
+			}
+			if (miningFatigueDamage > 0) {
+				// Apply specified damage to player
+				player.damage(miningFatigueDamage);
+			}
+		}
+
+		
 	}
 
 
