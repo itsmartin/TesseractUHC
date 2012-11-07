@@ -138,7 +138,7 @@ public class UhcTools extends JavaPlugin {
 		} else if(cmd.equals("tps")) {
 			response = cTps(sender, args);
 		} else if (cmd.equals("gm")) {
-			sender.setGameMode((sender.getGameMode() == GameMode.SURVIVAL) ? GameMode.CREATIVE : GameMode.SURVIVAL);
+			sender.setGameMode((sender.getGameMode() == GameMode.CREATIVE) ? GameMode.SURVIVAL : GameMode.CREATIVE);
 		} else if (cmd.equals("setspawn")) {
 			response = cSetspawn(sender);
 		} else if (cmd.equals("makestart")) {
@@ -792,7 +792,7 @@ public class UhcTools extends JavaPlugin {
 	 */
 	private String cClearinvall() {
 		for (Player p : world.getPlayers()) {
-			if (p.getGameMode() == GameMode.SURVIVAL) {
+			if (p.getGameMode() != GameMode.CREATIVE) {
 				clearInventory(p);
 				p.sendMessage(OK_COLOR + "Your inventory has been cleared");
 			}
@@ -1154,7 +1154,7 @@ public class UhcTools extends JavaPlugin {
 		feed(p);
 		clearXP(p);
 		clearPotionEffects(p);
-		if (p.getGameMode() == GameMode.SURVIVAL)
+		if (p.getGameMode() != GameMode.CREATIVE)
 			clearInventory(p);
 	}
 
@@ -1200,7 +1200,7 @@ public class UhcTools extends JavaPlugin {
 		world.setTime(0);
 		butcherHostile();
 		for (Player p : world.getPlayers()) {
-			if (p.getGameMode()==GameMode.ADVENTURE) {
+			if (p.getGameMode() != GameMode.CREATIVE) {
 				feed(p);
 				clearXP(p);
 				clearPotionEffects(p);
@@ -1325,6 +1325,7 @@ public class UhcTools extends JavaPlugin {
 			nextStartPoint ++;
 			// Teleport the player to the start point
 			p.teleport(start);
+			renew(p);
 			up.setLaunched(true);
 			up.setStartPoint(start);
 			return true;
