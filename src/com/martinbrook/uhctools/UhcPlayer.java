@@ -1,12 +1,11 @@
 package com.martinbrook.uhctools;
 
-import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 public class UhcPlayer {
 	private String name;
 	private boolean launched = false;
-	private Location startPoint;
+	private UhcStartPoint startPoint;
 	private int mineCount = 0;
 	
 	public UhcPlayer(Player p) {
@@ -37,12 +36,12 @@ public class UhcPlayer {
 	}
 
 
-	public Location getStartPoint() {
+	public UhcStartPoint getStartPoint() {
 		return startPoint;
 	}
 
 
-	public void setStartPoint(Location startPoint) {
+	public void setStartPoint(UhcStartPoint startPoint) {
 		this.startPoint = startPoint;
 	}
 

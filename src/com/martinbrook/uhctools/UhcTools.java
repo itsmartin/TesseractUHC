@@ -55,7 +55,7 @@ public class UhcTools extends JavaPlugin {
 	private Boolean permaday = false;
 	private int permadayTaskId;
 	private Boolean deathban = false;
-	private ArrayList<Location> startPoints = new ArrayList<Location>();
+	private ArrayList<UhcStartPoint> startPoints = new ArrayList<UhcStartPoint>();
 	private int nextStartPoint = 0;
 	private Boolean launchingPlayers = false;
 	private HashMap<String, UhcPlayer> uhcPlayers = new HashMap<String, UhcPlayer>(32);
@@ -67,6 +67,7 @@ public class UhcTools extends JavaPlugin {
 	private int miningFatigueExhaustion;
 	private int miningFatigueDamage;
 	private int miningFatigueMaxY;
+	private static String DEFAULT_START_POINTS_FILE = "starts.txt";
 	
 	public void onEnable(){
 		l = new UhcToolsListener(this);
@@ -77,11 +78,7 @@ public class UhcTools extends JavaPlugin {
 		
 		loadConfigValues();
 		
-		ArrayList<Location> sp = loadStartPoints("starts.txt"); 
-		if (sp != null) {
-			this.startPoints = sp;
-		}
-		nextStartPoint = 0;
+		loadStartPoints(); 
 	}
 	
 	public void onDisable(){
@@ -254,10 +251,10 @@ public class UhcTools extends JavaPlugin {
 		double y = l.getBlockY();
 		double z = l.getBlockZ() + 0.5;
 		
-		Location startPoint = new Location(world, x,y,z);
+		UhcStartPoint startPoint = new UhcStartPoint(world, x,y,z);
 		startPoints.add(startPoint);
 		
-		buildStartingTrough(startPoint, startPoints.size());
+		buildStartingTrough(startPoint.getLocation(), startPoints.size());
 		return OK_COLOR + "Start point added";
 		
 	}
@@ -347,21 +344,15 @@ public class UhcTools extends JavaPlugin {
 	}
 	
 	private String cLoadstarts() {
-		ArrayList<Location> sp = loadStartPoints("starts.txt");
+		nextStartPoint = 0;
+		loadStartPoints();
 		
-		if (sp != null) {
-			this.startPoints = sp;
-			nextStartPoint = 0;
-			return OK_COLOR.toString() + startPoints.size() + " start points loaded";
+		return OK_COLOR.toString() + startPoints.size() + " start points loaded";
 			
-			
-		} else {
-			return ERROR_COLOR + "Start list could not be loaded";
-		}
 	}
 	
 	private String cSavestarts() {
-		if (saveStartPoints("starts.txt",this.startPoints) == true) {
+		if (saveStartPoints() == true) {
 			return OK_COLOR + "Start points were saved!";
 		} else {
 			return ERROR_COLOR + "Start points could not be saved.";
@@ -600,12 +591,12 @@ public class UhcTools extends JavaPlugin {
 		UhcPlayer up = this.getUhcPlayer(args[0]);
 		if (up != null) {
 			// Argument matches a player
-			destination = up.getStartPoint();
+			destination = up.getStartPoint().getLocation();
 			
 		} else {
 			try {
 				int i = Integer.parseInt(args[0]);
-				destination = startPoints.get(i-1);
+				destination = startPoints.get(i-1).getLocation();
 			} catch (Exception e) {
 				return ERROR_COLOR + "Unable to find that start point";
 			}
@@ -1334,14 +1325,15 @@ public class UhcTools extends JavaPlugin {
 		
 		// Get the next available start point from the list
 		try {
-			Location start = startPoints.get(nextStartPoint);
+			UhcStartPoint start = startPoints.get(nextStartPoint);
 			// Increment the start point pointer
 			nextStartPoint ++;
 			// Teleport the player to the start point
-			p.teleport(start);
+			p.teleport(start.getLocation());
 			renew(p);
 			up.setLaunched(true);
 			up.setStartPoint(start);
+			start.setUhcPlayer(up);
 			return true;
 		} catch (IndexOutOfBoundsException e) {
 			// Out of start points!
@@ -1360,7 +1352,7 @@ public class UhcTools extends JavaPlugin {
 		UhcPlayer up = getUhcPlayer(p);
 		if (up == null) return false;
 		
-		return p.teleport(up.getStartPoint());
+		return p.teleport(up.getStartPoint().getLocation());
 	}
 	
 	/**
@@ -1401,12 +1393,15 @@ public class UhcTools extends JavaPlugin {
 		}
 	}
 	
-	public ArrayList<Location> loadStartPoints(String filename) {
+	public Boolean loadStartPoints() { return this.loadStartPoints(DEFAULT_START_POINTS_FILE); }
+	
+	public Boolean loadStartPoints(String filename) {
 		File fStarts = getDataFile(filename, true);
 		
-		if (fStarts == null) return null;
+		if (fStarts == null) return false;
 		
-		ArrayList<Location> starts = new ArrayList<Location>();
+		startPoints.clear();
+
 		try {
 			FileReader fr = new FileReader(fStarts);
 			BufferedReader in = new BufferedReader(fr);
@@ -1419,7 +1414,7 @@ public class UhcTools extends JavaPlugin {
 						double x = Double.parseDouble(coords[0]);
 						double y = Double.parseDouble(coords[1]);
 						double z = Double.parseDouble(coords[2]);
-						starts.add(new Location(world, x, y, z));
+						startPoints.add(new UhcStartPoint(world, x, y, z));
 					} catch (NumberFormatException e) {
 						server.broadcast("Bad entry in locations file: " + s, Server.BROADCAST_CHANNEL_ADMINISTRATIVE);
 					}
@@ -1431,30 +1426,30 @@ public class UhcTools extends JavaPlugin {
 
 			in.close();
 			fr.close();
-			return starts;
+			return true;
 			
 		} catch (IOException e) {
-			e.printStackTrace();
-			return null;
+			return false;
 		}
 	}
+	
+	public Boolean saveStartPoints() { return this.saveStartPoints(DEFAULT_START_POINTS_FILE); }
 	
 	/**
 	 * Save start points to a file
 	 * 
 	 * @param filename File to save start points to
-	 * @param sp The list of startpoints
 	 * @return Whether the operation succeeded
 	 */
-	public boolean saveStartPoints(String filename, ArrayList<Location> sp) {
+	public boolean saveStartPoints(String filename) {
 		File fStarts = getDataFile(filename, false);
 		if (fStarts == null) return false;
 
 		try {
 			FileWriter fw = new FileWriter(fStarts);
 			BufferedWriter out = new BufferedWriter(fw);
-			for (Location l : sp) {
-				out.write(l.getX() + "," + l.getY() + "," + l.getZ() + "\n");
+			for (UhcStartPoint sp : startPoints) {
+				out.write(sp.getX() + "," + sp.getY() + "," + sp.getZ() + "\n");
 			}
 			out.close();
 			fw.close();
