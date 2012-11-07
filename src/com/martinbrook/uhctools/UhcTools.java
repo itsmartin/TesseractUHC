@@ -1306,7 +1306,7 @@ public class UhcTools extends JavaPlugin {
 	}
 	
 	public UhcPlayer getUhcPlayer(Player playerToGet, Boolean createNew) {
-		return getUhcPlayer(playerToGet.getName());
+		return getUhcPlayer(playerToGet.getName(), createNew);
 	}
 	
 	public UhcPlayer getUhcPlayer(Player playerToGet) {
