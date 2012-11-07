@@ -1,0 +1,10 @@
+killerbonus:
+ enabled: true
+ id: 266
+ quantity: 4
+miningfatigue:
+ enabled: true
+ blocks: 10
+ hungerloss: 1
+ healthloss: 0
+ maxy: 20

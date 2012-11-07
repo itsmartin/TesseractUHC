@@ -8,6 +8,7 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.ItemStack;
 
 import org.bukkit.ChatColor;
 
@@ -63,5 +64,25 @@ public class UhcToolsListener implements Listener {
 			t.launch(p);
 		
 	}
+	
+	
+		
+	/**
+	 * Handle death events; add bonus items, if any.
+	 * 
+	 * @param pDeath
+	 */
+	@EventHandler
+	public void onPlayerDeath(PlayerDeathEvent pDeath){
+		Player p = pDeath.getEntity();
+		if (p.getKiller() != null) {
+			ItemStack bonus = t.getKillerBonus();
+			if (bonus != null)
+				pDeath.getDrops().add(bonus);
+		}
+		
+			
+	}
+
 	
 }

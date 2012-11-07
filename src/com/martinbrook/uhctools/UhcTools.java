@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.bukkit.ChatColor;
 
@@ -57,7 +58,10 @@ public class UhcTools extends JavaPlugin {
 	private ArrayList<Location> startPoints = new ArrayList<Location>();
 	private int nextStartPoint = 0;
 	private Boolean launchingPlayers = false;
-	private ArrayList<UhcPlayer> uhcPlayers = new ArrayList<UhcPlayer>();
+	private HashMap<String, UhcPlayer> uhcPlayers = new HashMap<String, UhcPlayer>(32);
+	private Boolean killerBonusEnabled = false;
+	private int killerBonusItemID = 0;
+	private int killerBonusItemQuantity = 0;
 	
 	public void onEnable(){
 		l = new UhcToolsListener(this);
@@ -65,6 +69,9 @@ public class UhcTools extends JavaPlugin {
 		
 		this.server = this.getServer();
 		this.world = getServer().getWorlds().get(0);
+		
+		loadConfigValues();
+		
 		ArrayList<Location> sp = loadStartPoints("starts.txt"); 
 		if (sp != null) {
 			this.startPoints = sp;
@@ -76,6 +83,13 @@ public class UhcTools extends JavaPlugin {
 		
 	}
 	
+	private void loadConfigValues() {
+		saveDefaultConfig();
+		killerBonusEnabled = getConfig().getBoolean("killerbonus.enabled");
+		killerBonusItemID = getConfig().getInt("killerbonus.id");
+		killerBonusItemQuantity = getConfig().getInt("killerbonus.quantity");
+	}
+
 	@Override
 	public boolean onCommand(CommandSender commandSender, Command command, String commandLabel, String[] args) {
 		boolean success = false;
@@ -1266,13 +1280,7 @@ public class UhcTools extends JavaPlugin {
 	}
 	
 	public UhcPlayer getUhcPlayer(String name) {
-		for(UhcPlayer p : uhcPlayers) {
-			if (p.getName().equalsIgnoreCase(name)) {
-				return p;
-			}
-		}
-		
-		return null;
+		return uhcPlayers.get(name);
 	}
 
 	public UhcPlayer getUhcPlayer(Player playerToGet) {
@@ -1295,7 +1303,7 @@ public class UhcTools extends JavaPlugin {
 		// Create a new UhcPlayer for the player
 		up = new UhcPlayer(p);
 		
-		uhcPlayers.add(up);
+		uhcPlayers.put(p.getName(),up);
 		
 		
 		// Get the next available start point from the list
@@ -1421,11 +1429,13 @@ public class UhcTools extends JavaPlugin {
 			for (Location l : sp) {
 				out.write(l.getX() + "," + l.getY() + "," + l.getZ() + "\n");
 			}
+			out.close();
+			fw.close();
+			return true;
 		} catch (IOException e) {
 			return false;
 		}
 		
-		return true;
 	}
 	
 	/**
@@ -1479,6 +1489,14 @@ public class UhcTools extends JavaPlugin {
 
 	public Boolean getLaunchingPlayers() {
 		return launchingPlayers;
+	}
+
+	public ItemStack getKillerBonus() {
+		if (!killerBonusEnabled) return null;
+		if (killerBonusItemID != 0 && killerBonusItemQuantity != 0)
+			return new ItemStack(killerBonusItemID, killerBonusItemQuantity);
+		else
+			return null;
 	}
 
 
