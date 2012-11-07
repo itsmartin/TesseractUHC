@@ -1092,15 +1092,17 @@ public class UhcTools extends JavaPlugin {
 		int z = l.getBlockZ();
 		world.getBlockAt(x,y-1,z).setType(Material.CHEST);
 		Inventory chest = ((Chest) world.getBlockAt(x,y-1,z).getState()).getBlockInventory();
-		chest.setItem(9,new ItemStack(Material.COMPASS, 1));
-		chest.setItem(10,new ItemStack(Material.CARROT_STICK, 1));
-		chest.setItem(11,new ItemStack(Material.STONE_SWORD, 1));
+		chest.setItem(3,new ItemStack(Material.CARROT_STICK, 1));
+		chest.setItem(4,new ItemStack(Material.STONE_SWORD, 1));
+		chest.setItem(5,new ItemStack(Material.WATCH, 1));
+		
 		chest.setItem(12,new ItemStack(Material.STONE_PICKAXE, 1));
 		chest.setItem(13,new ItemStack(Material.LEATHER_CHESTPLATE, 1));
 		chest.setItem(14,new ItemStack(Material.STONE_SPADE, 1));
-		chest.setItem(15,new ItemStack(Material.STONE_AXE, 1));
-		chest.setItem(16,new ItemStack(Material.MONSTER_EGG, 1, (short) 90));
-		chest.setItem(17,new ItemStack(Material.WATCH, 1));
+		
+		chest.setItem(21,new ItemStack(Material.SADDLE, 1));
+		chest.setItem(22,new ItemStack(Material.STONE_AXE, 1));
+		chest.setItem(23,new ItemStack(Material.MONSTER_EGG, 1, (short) 90));
 		
 		
 		
@@ -1208,7 +1210,7 @@ public class UhcTools extends JavaPlugin {
 		}
 		setDeathban(true);
 		setPermaday(false);
-		startCountdown(300, "PvP will be enabled", "PvP is now enabled!", CountdownType.PVP);
+		setPVP(true);
 	}
 	
 	/**
