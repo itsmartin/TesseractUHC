@@ -104,9 +104,15 @@ commands:
  loadstarts:
   description: Load start points from disk
   usage: /loadstarts
+ savestarts:
+  description: Save start points from disk
+  usage: /savestarts
  liststarts:
   description: List start points
   usage: /liststarts
+ makestart:
+  description: Create a start point at the current location
+  usage: /makestart
  launch:
   description: Launch all players, or a specific player
   usage: /launch [player]

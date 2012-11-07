@@ -1,8 +1,10 @@
 package com.martinbrook.uhctools;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -15,6 +17,8 @@ import org.bukkit.Material;
 import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.block.Chest;
+import org.bukkit.block.Sign;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.EnderDragon;
@@ -25,6 +29,8 @@ import org.bukkit.entity.MagmaCube;
 import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Slime;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
@@ -48,10 +54,10 @@ public class UhcTools extends JavaPlugin {
 	private Boolean permaday = false;
 	private int permadayTaskId;
 	private Boolean deathban = false;
-	private ArrayList<Location> startPoints;
+	private ArrayList<Location> startPoints = new ArrayList<Location>();
 	private int nextStartPoint = 0;
 	private Boolean launchingPlayers = false;
-	private ArrayList<UhcPlayer> uhcPlayers;
+	private ArrayList<UhcPlayer> uhcPlayers = new ArrayList<UhcPlayer>();
 	
 	public void onEnable(){
 		l = new UhcToolsListener(this);
@@ -59,7 +65,10 @@ public class UhcTools extends JavaPlugin {
 		
 		this.server = this.getServer();
 		this.world = getServer().getWorlds().get(0);
-		this.startPoints = loadStartPoints("starts.txt");
+		ArrayList<Location> sp = loadStartPoints("starts.txt"); 
+		if (sp != null) {
+			this.startPoints = sp;
+		}
 		nextStartPoint = 0;
 	}
 	
@@ -108,6 +117,8 @@ public class UhcTools extends JavaPlugin {
 			sender.setGameMode((sender.getGameMode() == GameMode.SURVIVAL) ? GameMode.CREATIVE : GameMode.SURVIVAL);
 		} else if (cmd.equals("setspawn")) {
 			response = cSetspawn(sender);
+		} else if (cmd.equals("makestart")) {
+			response = cMakestart(sender);
 		} else {
 			success = false;
 		}
@@ -166,6 +177,8 @@ public class UhcTools extends JavaPlugin {
 			response = cClearstarts();
 		} else if (cmd.equals("loadstarts")) {
 			response = cLoadstarts();
+		} else if (cmd.equals("savestarts")) {
+			response = cSavestarts();
 		} else if (cmd.equals("liststarts")) {
 			response = cListstarts();
 		} else if (cmd.equals("launch")) {
@@ -211,6 +224,19 @@ public class UhcTools extends JavaPlugin {
 		return OK_COLOR + "This world's spawn point has been set to " + newSpawn.getBlockX() + "," + newSpawn.getBlockY() + "," + newSpawn.getBlockZ();
 	}
 
+	private String cMakestart(Player sender) {
+		Location l = sender.getLocation();
+		double x = l.getBlockX() + 0.5;
+		double y = l.getBlockY();
+		double z = l.getBlockZ() + 0.5;
+		
+		Location startPoint = new Location(world, x,y,z);
+		startPoints.add(startPoint);
+		
+		buildStartingTrough(startPoint, startPoints.size());
+		return OK_COLOR + "Start point added";
+		
+	}
 	private String cCdc() {
 		cancelCountdown();
 		return OK_COLOR + "Countdown cancelled!";
@@ -246,14 +272,14 @@ public class UhcTools extends JavaPlugin {
 			return OK_COLOR + "PVP is " + (permaday ? "on" : "off");
 		
 		if (args[0].equalsIgnoreCase("off") || args[0].equals("0")) {
-			setPVP(true);
-			return null;
-		} else if (args[0].equalsIgnoreCase("on") || args[0].equals("1")) {
 			setPVP(false);
-			return null;
+		} else if (args[0].equalsIgnoreCase("on") || args[0].equals("1")) {
+			setPVP(true);
 		} else {
 			return ERROR_COLOR + "Argument '" + args[0] + "' not understood";
 		}
+		return null;
+
 	}
 	
 	
@@ -262,14 +288,14 @@ public class UhcTools extends JavaPlugin {
 			return OK_COLOR + "Permaday is " + (permaday ? "on" : "off");
 		
 		if (args[0].equalsIgnoreCase("off") || args[0].equals("0")) {
-			setPermaday(true);
-			return null;
-		} else if (args[0].equalsIgnoreCase("on") || args[0].equals("1")) {
 			setPermaday(false);
-			return null;
+		} else if (args[0].equalsIgnoreCase("on") || args[0].equals("1")) {
+			setPermaday(true);
 		} else {
 			return ERROR_COLOR + "Argument '" + args[0] + "' not understood";
 		}
+		return null;
+
 	}
 	
 	private String cDeathban(String[] args) {
@@ -277,40 +303,51 @@ public class UhcTools extends JavaPlugin {
 			return OK_COLOR + "Deathban is " + (deathban ? "on" : "off");
 		
 		if (args[0].equalsIgnoreCase("off") || args[0].equals("0")) {
-			setDeathban(true);
-			return null;
-		} else if (args[0].equalsIgnoreCase("on") || args[0].equals("1")) {
 			setDeathban(false);
-			return null;
+		} else if (args[0].equalsIgnoreCase("on") || args[0].equals("1")) {
+			setDeathban(true);
 		} else {
 			return ERROR_COLOR + "Argument '" + args[0] + "' not understood";
 		}
+		return null;
+
 	}
 	
 	private String cClearstarts() {
-		startPoints = null;
+		startPoints.clear();
 		nextStartPoint = 0;
 		return OK_COLOR + "Start list cleared";
 	}
 	
 	private String cLoadstarts() {
-		startPoints = loadStartPoints("starts.txt");
-		nextStartPoint = 0;
-		if (startPoints != null) {
+		ArrayList<Location> sp = loadStartPoints("starts.txt");
+		
+		if (sp != null) {
+			this.startPoints = sp;
+			nextStartPoint = 0;
 			return OK_COLOR.toString() + startPoints.size() + " start points loaded";
+			
 			
 		} else {
 			return ERROR_COLOR + "Start list could not be loaded";
 		}
 	}
 	
+	private String cSavestarts() {
+		if (saveStartPoints("starts.txt",this.startPoints) == true) {
+			return OK_COLOR + "Start points were saved!";
+		} else {
+			return ERROR_COLOR + "Start points could not be saved.";
+		}
+	}
+	
 	private String cListstarts() {
-		if (startPoints == null)
+		if (startPoints == null || startPoints.size()==0)
 			return ERROR_COLOR + "There are no starts";
 
 		String response = "";
 		for (int i = 0; i < startPoints.size(); i++) {
-			response += i + ": " + startPoints.get(i).getX() + "," + startPoints.get(i).getY() + "," + startPoints.get(i).getZ() + "\n";
+			response += (i+1) + ": " + startPoints.get(i).getX() + "," + startPoints.get(i).getY() + "," + startPoints.get(i).getZ() + "\n";
 		}
 		return response;
 	}
@@ -373,7 +410,7 @@ public class UhcTools extends JavaPlugin {
 		
 		
 		if (permaday) {
-			this.world.setTime(0);
+			this.world.setTime(6000);
 			permadayTaskId = getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
 				public void run() {
 					keepPermaday();
@@ -386,7 +423,7 @@ public class UhcTools extends JavaPlugin {
 	}
 	
 	private void keepPermaday() {
-		this.world.setTime(0);
+		this.world.setTime(6000);
 	}
 	
 	public void setDeathban(boolean d) {
@@ -541,7 +578,7 @@ public class UhcTools extends JavaPlugin {
 		} else {
 			try {
 				int i = Integer.parseInt(args[0]);
-				destination = startPoints.get(i);
+				destination = startPoints.get(i-1);
 			} catch (Exception e) {
 				return ERROR_COLOR + "Unable to find that start point";
 			}
@@ -1024,6 +1061,56 @@ public class UhcTools extends JavaPlugin {
 		return (b.isEmpty() || b.isLiquid()) && b.getType() != Material.LAVA && b.getType() != Material.STATIONARY_LAVA;
 	}
 
+	
+	public void buildStartingTrough(Location l, int n) {
+		int x = l.getBlockX();
+		int y = l.getBlockY();
+		int z = l.getBlockZ();
+		world.getBlockAt(x,y-1,z).setType(Material.CHEST);
+		Inventory chest = ((Chest) world.getBlockAt(x,y-1,z).getState()).getBlockInventory();
+		chest.setItem(9,new ItemStack(Material.COMPASS, 1));
+		chest.setItem(10,new ItemStack(Material.CARROT_STICK, 1));
+		chest.setItem(11,new ItemStack(Material.STONE_SWORD, 1));
+		chest.setItem(12,new ItemStack(Material.STONE_PICKAXE, 1));
+		chest.setItem(13,new ItemStack(Material.LEATHER_CHESTPLATE, 1));
+		chest.setItem(14,new ItemStack(Material.STONE_SPADE, 1));
+		chest.setItem(15,new ItemStack(Material.STONE_AXE, 1));
+		chest.setItem(16,new ItemStack(Material.MONSTER_EGG, 1, (short) 90));
+		chest.setItem(17,new ItemStack(Material.WATCH, 1));
+		
+		
+		
+		
+		
+		world.getBlockAt(x,y-2,z).setType(Material.GLASS);
+		
+		world.getBlockAt(x-1,y-1,z).setType(Material.GLOWSTONE);
+		world.getBlockAt(x-1,y,z).setType(Material.GLASS);
+		world.getBlockAt(x-1,y+1,z).setType(Material.GLASS);
+		
+		world.getBlockAt(x+1,y-1,z).setType(Material.GLOWSTONE);
+		world.getBlockAt(x+1,y,z).setType(Material.GLASS);
+		world.getBlockAt(x+1,y+1,z).setType(Material.GLASS);
+		
+		world.getBlockAt(x,y-1,z-1).setType(Material.GLOWSTONE);
+		world.getBlockAt(x,y,z-1).setType(Material.GLASS);
+		world.getBlockAt(x,y+1,z-1).setType(Material.GLASS);
+
+		world.getBlockAt(x,y-1,z+1).setType(Material.GLOWSTONE);
+		world.getBlockAt(x,y,z+1).setType(Material.GLASS);
+		world.getBlockAt(x,y+1,z+1).setType(Material.GLASS);
+		
+		world.getBlockAt(x,y,z+2).setType(Material.SIGN_POST);
+		
+		Sign s = (Sign) world.getBlockAt(x,y,z+2).getState();
+		
+		s.setLine(1, "Player " + n);
+		s.update();
+		
+		
+	}
+	
+	
 	public String cButcher() {
 		butcherHostile();
 		return "Hostile mobs have been butchered";
@@ -1315,6 +1402,30 @@ public class UhcTools extends JavaPlugin {
 			e.printStackTrace();
 			return null;
 		}
+	}
+	
+	/**
+	 * Save start points to a file
+	 * 
+	 * @param filename File to save start points to
+	 * @param sp The list of startpoints
+	 * @return Whether the operation succeeded
+	 */
+	public boolean saveStartPoints(String filename, ArrayList<Location> sp) {
+		File fStarts = getDataFile(filename, false);
+		if (fStarts == null) return false;
+
+		try {
+			FileWriter fw = new FileWriter(fStarts);
+			BufferedWriter out = new BufferedWriter(fw);
+			for (Location l : sp) {
+				out.write(l.getX() + "," + l.getY() + "," + l.getZ() + "\n");
+			}
+		} catch (IOException e) {
+			return false;
+		}
+		
+		return true;
 	}
 	
 	/**
