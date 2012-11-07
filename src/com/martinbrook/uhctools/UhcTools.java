@@ -1336,8 +1336,10 @@ public class UhcTools extends JavaPlugin {
 			// Increment the start point pointer
 			nextStartPoint ++;
 			// Teleport the player to the start point
+			p.setGameMode(GameMode.ADVENTURE);
 			p.teleport(start.getLocation());
 			renew(p);
+			
 			up.setLaunched(true);
 			up.setStartPoint(start);
 			start.setUhcPlayer(up);
