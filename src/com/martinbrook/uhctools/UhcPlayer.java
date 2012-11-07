@@ -12,7 +12,10 @@ public class UhcPlayer {
 	public UhcPlayer(Player p) {
 		this.name = p.getName();
 	}
-	
+
+	public UhcPlayer(String n) {
+		this.name = n;
+	}
 	
 	public String getName() {
 		return name;

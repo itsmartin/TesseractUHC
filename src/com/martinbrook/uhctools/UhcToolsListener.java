@@ -60,10 +60,11 @@ public class UhcToolsListener implements Listener {
 	
 	@EventHandler
 	public void onLogin(PlayerLoginEvent e) {
-		Player p = e.getPlayer();
-		UhcPlayer up = t.getUhcPlayer(p);
-		if (!up.isLaunched())
-			t.launch(p);
+		// Check if automatic player launching is running, if not, ignore
+		if (!t.getLaunchingPlayers()) return;
+		
+		// Check player who logged in has been launched
+		t.launch(e.getPlayer());
 		
 	}
 	

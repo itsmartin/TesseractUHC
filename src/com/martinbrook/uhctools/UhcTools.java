@@ -285,9 +285,12 @@ public class UhcTools extends JavaPlugin {
 	}
 	
 	private String cChatscript(String[] args) {
+		String scriptFile;
 		if (args.length < 1)
-			return ERROR_COLOR +"Specify the chat script filename";
-		playChatScript(args[0], true);
+			scriptFile = "announcement.txt"; 
+		else
+			scriptFile = args[0];
+		playChatScript(scriptFile, true);
 		return OK_COLOR + "Starting chat script " + args[0];
 	}
 	
@@ -1291,13 +1294,25 @@ public class UhcTools extends JavaPlugin {
 		
 	}
 	
-	public UhcPlayer getUhcPlayer(String name) {
-		return uhcPlayers.get(name);
+	public UhcPlayer getUhcPlayer(String name, Boolean createNew) {
+		UhcPlayer up = uhcPlayers.get(name);
+		if (up == null && createNew) {
+			up = new UhcPlayer(name);
+			uhcPlayers.put(name, up);
+		}
+		return up;
 	}
-
-	public UhcPlayer getUhcPlayer(Player playerToGet) {
+	
+	public UhcPlayer getUhcPlayer(String name) {
+		return getUhcPlayer(name, false);
+	}
+	
+	public UhcPlayer getUhcPlayer(Player playerToGet, Boolean createNew) {
 		return getUhcPlayer(playerToGet.getName());
-		
+	}
+	
+	public UhcPlayer getUhcPlayer(Player playerToGet) {
+		return getUhcPlayer(playerToGet.getName(), false);
 	}
 	
 	/**
@@ -1307,16 +1322,15 @@ public class UhcTools extends JavaPlugin {
 	 * @return success or failure
 	 */
 	public boolean launch(Player p) {
-		// Check if the player was already launched; if so, do nothing
-		UhcPlayer up = getUhcPlayer(p);
-		if (up != null)
-			if (up.isLaunched()) return false;
+
+		// Check that we are not dealing with an op here
+		if (p.isOp()) return false;
 		
-		// Create a new UhcPlayer for the player
-		up = new UhcPlayer(p);
-		
-		uhcPlayers.put(p.getName(),up);
-		
+		// Get the player, creating if necessary
+		UhcPlayer up = getUhcPlayer(p, true);
+
+		// If player already launched, ignore
+		if (up.isLaunched()) return false;
 		
 		// Get the next available start point from the list
 		try {
