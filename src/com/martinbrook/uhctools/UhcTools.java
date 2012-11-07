@@ -365,7 +365,14 @@ public class UhcTools extends JavaPlugin {
 
 		String response = "";
 		for (int i = 0; i < startPoints.size(); i++) {
-			response += (i+1) + ": " + startPoints.get(i).getX() + "," + startPoints.get(i).getY() + "," + startPoints.get(i).getZ() + "\n";
+			UhcStartPoint sp = startPoints.get(i);
+			UhcPlayer p = sp.getUhcPlayer();
+			
+			response += (i+1);
+			
+			if (p != null) response += " (" + p.getName() + ")";
+			
+			response += ": " + sp.getX() + "," + sp.getY() + "," + sp.getZ() + "\n";
 		}
 		return response;
 	}
