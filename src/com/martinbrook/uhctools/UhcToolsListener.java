@@ -59,11 +59,16 @@ public class UhcToolsListener implements Listener {
 			return;
 		}
 
-		// Match is underway. If player was not launched, don't allow them in.
+		// Match is underway.
+
+		// If player was not launched, don't allow them in.
 		UhcPlayer up = t.getUhcPlayer(e.getPlayer());
-		if (up == null || !up.isLaunched()) {
+		if (up == null || !up.isLaunched())
 			e.disallow(PlayerLoginEvent.Result.KICK_OTHER, "The match has already started");
-		}
+		
+		// If player has died, don't allow them in, if deathban is in effect.
+		if (t.getDeathban() && up != null && up.isDead())
+			e.disallow(PlayerLoginEvent.Result.KICK_OTHER, "Dead players cannot rejoin!");
 	}
 	
 	
@@ -97,10 +102,6 @@ public class UhcToolsListener implements Listener {
 		if (up != null)
 			t.handlePlayerDeath(up);
 
-		if (t.getDeathban()) {
-			p.setWhitelisted(false);
-		}
-		
 	}
 
 	@EventHandler
