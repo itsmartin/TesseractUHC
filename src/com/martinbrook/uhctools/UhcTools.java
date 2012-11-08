@@ -8,6 +8,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Random;
 
 import org.bukkit.ChatColor;
 
@@ -55,8 +56,8 @@ public class UhcTools extends JavaPlugin {
 	private Boolean permaday = false;
 	private int permadayTaskId;
 	private Boolean deathban = false;
-	private ArrayList<UhcStartPoint> startPoints = new ArrayList<UhcStartPoint>();
-	private int nextStartPoint = 0;
+	private HashMap<Integer, UhcStartPoint> startPoints = new HashMap<Integer, UhcStartPoint>();
+	private ArrayList<UhcStartPoint> availableStartPoints = new ArrayList<UhcStartPoint>();
 	private Boolean launchingPlayers = false;
 	private HashMap<String, UhcPlayer> uhcPlayers = new HashMap<String, UhcPlayer>(32);
 	private Boolean killerBonusEnabled = false;
@@ -82,7 +83,7 @@ public class UhcTools extends JavaPlugin {
 	}
 	
 	public void onDisable(){
-		
+		saveStartPoints();
 	}
 	
 	private void loadConfigValues() {
@@ -208,6 +209,8 @@ public class UhcTools extends JavaPlugin {
 			response = cLaunch(args);
 		} else if (cmd.equals("relaunch")) {
 			response = cRelaunch(args);
+		} else if (cmd.equals("unlaunch")) {
+			response = cUnlaunch(args);
 		} else {
 			success = false;
 		}
@@ -218,6 +221,25 @@ public class UhcTools extends JavaPlugin {
 		return success;
 	}
 	
+
+	private String cUnlaunch(String[] args) {
+		if (args.length != 1)
+			return ERROR_COLOR + "Incorrect number of arguments for /unlaunch";
+
+		UhcStartPoint sp = findStartPoint(args[0]);
+		
+		UhcPlayer up = sp.getUhcPlayer();
+		
+		if (up == null)
+			return ERROR_COLOR + "That start point is not occupied";
+		
+		if (unLaunch(up))
+			return OK_COLOR + up.getName() + " unlaunched, start point " + sp.getNumber() + " released";
+		else
+			return ERROR_COLOR + "Unable to unlaunch " + up.getName();
+
+	}
+
 
 	private String cMatch() {
 		startGame();
@@ -254,11 +276,11 @@ public class UhcTools extends JavaPlugin {
 		double y = l.getBlockY();
 		double z = l.getBlockZ() + 0.5;
 		
-		UhcStartPoint startPoint = new UhcStartPoint(world, x,y,z);
-		startPoints.add(startPoint);
+		UhcStartPoint startPoint = createStartPoint(world, x,y,z);
 		
 		if (args.length < 1 || !("-n".equalsIgnoreCase(args[0])))
-			buildStartingTrough(startPoint.getLocation(), startPoints.size());
+			buildStartingTrough(startPoint);
+		
 		return OK_COLOR + "Start point added";
 		
 	}
@@ -342,17 +364,13 @@ public class UhcTools extends JavaPlugin {
 	}
 	
 	private String cClearstarts() {
-		startPoints.clear();
-		nextStartPoint = 0;
+		clearStartPoints();
 		return OK_COLOR + "Start list cleared";
 	}
 	
 	private String cLoadstarts() {
-		nextStartPoint = 0;
 		loadStartPoints();
-		
 		return OK_COLOR.toString() + startPoints.size() + " start points loaded";
-			
 	}
 	
 	private String cSavestarts() {
@@ -364,15 +382,14 @@ public class UhcTools extends JavaPlugin {
 	}
 	
 	private String cListstarts() {
-		if (startPoints == null || startPoints.size()==0)
+		if (startPoints.size()==0)
 			return ERROR_COLOR + "There are no starts";
 
 		String response = "";
-		for (int i = 0; i < startPoints.size(); i++) {
-			UhcStartPoint sp = startPoints.get(i);
+		for (UhcStartPoint sp : startPoints.values()) {
 			UhcPlayer p = sp.getUhcPlayer();
 			
-			response += (i+1);
+			response += (sp.getNumber());
 			
 			if (p != null) response += " (" + p.getName() + ")";
 			
@@ -393,7 +410,7 @@ public class UhcTools extends JavaPlugin {
 			
 			response += p.getName();
 			if (up != null) {
-				response += " " + (up.isLaunched() ? " (start point " + (up.getStartPointIndex()+1) + ")" : " (unlaunched)");
+				response += " " + (up.isLaunched() ? " (start point " + (up.getStartPoint().getNumber()) + ")" : " (unlaunched)");
 			}
 			response += "\n";
 		}
@@ -619,31 +636,39 @@ public class UhcTools extends JavaPlugin {
 		if (args.length != 1)
 			return ERROR_COLOR + "Incorrect number of arguments for /tps";
 		
-		Location destination = null;
-		
-		UhcPlayer up = this.getUhcPlayer(args[0]);
-		if (up != null) {
-			// Argument matches a player
-			destination = up.getStartPoint().getLocation();
-			
-		} else {
-			try {
-				int i = Integer.parseInt(args[0]);
-				destination = startPoints.get(i-1).getLocation();
-			} catch (Exception e) {
-				return ERROR_COLOR + "Unable to find that start point";
-			}
-		}
-		
+		UhcStartPoint destination = findStartPoint(args[0]);
 		
 		if (destination != null) {
-			doTeleport(sender,destination);
+			doTeleport(sender,destination.getLocation());
 			return null;
 		} else {
 			return ERROR_COLOR + "Unable to find that start point";
 		}
 	}
 	
+	/**
+	 * Try to find a start point from a user-provided search string.
+	 * 
+	 * @param searchParam The string to search for - a player name, or a start number may be sent
+	 * @return The start point, or null if not found.
+	 */
+	public UhcStartPoint findStartPoint(String searchParam) {
+		UhcPlayer up = this.getUhcPlayer(searchParam);
+		if (up != null) {
+			// Argument matches a player
+			return up.getStartPoint();
+			
+		} else {
+			try {
+				int i = Integer.parseInt(searchParam);
+				return startPoints.get(i);
+			} catch (Exception e) {
+				return null;
+			}
+		}
+		
+	}
+
 	private String cTp(Player sender, String[] args) {
 		
 		if (args.length == 0) {
@@ -1113,10 +1138,10 @@ public class UhcTools extends JavaPlugin {
 	}
 
 	
-	public void buildStartingTrough(Location l, int n) {
-		int x = l.getBlockX();
-		int y = l.getBlockY();
-		int z = l.getBlockZ();
+	public void buildStartingTrough(UhcStartPoint sp) {
+		int x = sp.getLocation().getBlockX();
+		int y = sp.getLocation().getBlockY();
+		int z = sp.getLocation().getBlockZ();
 		world.getBlockAt(x,y-1,z).setType(Material.CHEST);
 		Inventory chest = ((Chest) world.getBlockAt(x,y-1,z).getState()).getBlockInventory();
 		chest.setItem(3,new ItemStack(Material.CARROT_STICK, 1));
@@ -1157,7 +1182,7 @@ public class UhcTools extends JavaPlugin {
 		
 		Sign s = (Sign) world.getBlockAt(x,y,z+2).getState();
 		
-		s.setLine(1, "Player " + n);
+		s.setLine(1, "Player " + sp.getNumber());
 		s.update();
 		
 		
@@ -1358,8 +1383,10 @@ public class UhcTools extends JavaPlugin {
 		
 		// Get the next available start point from the list
 		try {
-			UhcStartPoint start = startPoints.get(nextStartPoint);
+			Random rand = new Random();
 
+			UhcStartPoint start = availableStartPoints.remove(rand.nextInt(availableStartPoints.size()));
+			
 			// Teleport the player to the start point
 			p.setGameMode(GameMode.ADVENTURE);
 			p.teleport(start.getLocation());
@@ -1367,11 +1394,9 @@ public class UhcTools extends JavaPlugin {
 			
 			up.setLaunched(true);
 			up.setStartPoint(start);
-			up.setStartPointIndex(nextStartPoint);
+
 			start.setUhcPlayer(up);
 
-			// Increment the start point pointer
-			nextStartPoint ++;
 			return true;
 		} catch (IndexOutOfBoundsException e) {
 			// Out of start points!
@@ -1393,6 +1418,24 @@ public class UhcTools extends JavaPlugin {
 		return p.teleport(up.getStartPoint().getLocation());
 	}
 	
+	public boolean unLaunch(UhcPlayer up) {
+		UhcStartPoint sp = up.getStartPoint();
+		if (sp == null) return false;
+		
+		if (up.isLaunched()) return false;
+		
+		up.setLaunched(false);
+		up.setStartPoint(null);
+		sp.setUhcPlayer(null);
+		
+		availableStartPoints.add(sp);
+		
+		// teleport player back to spawn
+		getServer().getPlayer(up.getName()).teleport(world.getSpawnLocation());
+		
+		return true;
+	}
+
 	/**
 	 * Launch all online non-op players, and set other players to be launched upon joining
 	 */
@@ -1431,6 +1474,43 @@ public class UhcTools extends JavaPlugin {
 		}
 	}
 	
+	public UhcStartPoint createStartPoint(int number, Location l) {
+		// Check there is not already a start point with this number		
+		if (startPoints.containsKey(number))
+			return null;
+		
+		UhcStartPoint sp = new UhcStartPoint(number, l);
+		startPoints.put(number,  sp);
+		availableStartPoints.add(sp);
+		
+		return sp;
+	}
+	
+	public UhcStartPoint createStartPoint(int number, World world, Double x, Double y, Double z) {
+		return createStartPoint(number, new Location(world, x, y, z));
+	}
+	
+	public UhcStartPoint createStartPoint(Location l) {
+		return createStartPoint(getNextAvailableStartNumber(), l);
+	}
+
+	public UhcStartPoint createStartPoint(World world, Double x, Double y, Double z) {
+		return createStartPoint(new Location(world, x, y, z));
+	}
+		
+	public void clearStartPoints() {
+		startPoints.clear();
+		availableStartPoints.clear();
+
+	}
+	
+	public int getNextAvailableStartNumber() {
+		int n = 1;
+		while (startPoints.containsKey(n))
+			n++;
+		return n;
+	}
+	
 	public Boolean loadStartPoints() { return this.loadStartPoints(DEFAULT_START_POINTS_FILE); }
 	
 	public Boolean loadStartPoints(String filename) {
@@ -1438,25 +1518,32 @@ public class UhcTools extends JavaPlugin {
 		
 		if (fStarts == null) return false;
 		
-		startPoints.clear();
-
+		clearStartPoints();
+		
 		try {
 			FileReader fr = new FileReader(fStarts);
 			BufferedReader in = new BufferedReader(fr);
 			String s = in.readLine();
 
 			while (s != null) {
-				String[] coords = s.split(",");
-				if (coords.length == 3) {
+				String[] data = s.split(",");
+				if (data.length == 4) {
 					try {
-						double x = Double.parseDouble(coords[0]);
-						double y = Double.parseDouble(coords[1]);
-						double z = Double.parseDouble(coords[2]);
-						startPoints.add(new UhcStartPoint(world, x, y, z));
+						int n = Integer.parseInt(data[0]);
+						double x = Double.parseDouble(data[1]);
+						double y = Double.parseDouble(data[2]);
+						double z = Double.parseDouble(data[3]);
+						UhcStartPoint sp = createStartPoint (n, world, x, y, z);
+						if (sp == null) {
+							server.broadcast("Duplicate start point: " + n, Server.BROADCAST_CHANNEL_ADMINISTRATIVE);
+
+						}
 					} catch (NumberFormatException e) {
 						server.broadcast("Bad entry in locations file: " + s, Server.BROADCAST_CHANNEL_ADMINISTRATIVE);
 					}
 					
+				} else {
+					server.broadcast("Bad entry in locations file: " + s, Server.BROADCAST_CHANNEL_ADMINISTRATIVE);
 				}
 				
 				s = in.readLine();
@@ -1486,8 +1573,8 @@ public class UhcTools extends JavaPlugin {
 		try {
 			FileWriter fw = new FileWriter(fStarts);
 			BufferedWriter out = new BufferedWriter(fw);
-			for (UhcStartPoint sp : startPoints) {
-				out.write(sp.getX() + "," + sp.getY() + "," + sp.getZ() + "\n");
+			for (UhcStartPoint sp : startPoints.values()) {
+				out.write(sp.getNumber() + "," + sp.getX() + "," + sp.getY() + "," + sp.getZ() + "\n");
 			}
 			out.close();
 			fw.close();

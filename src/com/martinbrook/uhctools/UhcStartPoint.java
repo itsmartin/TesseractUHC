@@ -7,13 +7,15 @@ public class UhcStartPoint {
 
 	private Location location;
 	private UhcPlayer uhcPlayer = null;
+	private int number;
 
-	public UhcStartPoint(Location location) {
-		this.setLocation(location);
+	public UhcStartPoint(int number, Location location) {
+		this.location=location;
+		this.number=number;
 	}
 	
-	public UhcStartPoint(World w, double x, double y, double z) {
-		this.setLocation(new Location(w,x,y,z));
+	public UhcStartPoint(int number, World w, double x, double y, double z) {
+		this(number, new Location(w,x,y,z));
 	}
 
 	public Location getLocation() {
@@ -35,5 +37,10 @@ public class UhcStartPoint {
 	public double getX() { return location.getX(); }
 	public double getY() { return location.getY(); }
 	public double getZ() { return location.getZ(); }
-	
+
+	public int getNumber() {
+		return number;
+	}
+
+
 }

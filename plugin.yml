@@ -119,6 +119,9 @@ commands:
  launch:
   description: Launch all players, or a specific player
   usage: /launch [player]
+ unlaunch:
+  description: Unlaunch a specific player
+  usage /unlaunch player | start number
  relaunch:
   description: Relaunch a player
   usage: /relaunch player  
