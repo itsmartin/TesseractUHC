@@ -45,6 +45,7 @@ import com.wimbli.WorldBorder.BorderData;
 public class UhcTools extends JavaPlugin {
 	public Server server;
 	public World world;
+	private static UhcTools instance = null;
 	public static final ChatColor MAIN_COLOR = ChatColor.GREEN, SIDE_COLOR = ChatColor.GOLD, OK_COLOR = ChatColor.GREEN, ERROR_COLOR = ChatColor.RED,
 			DECISION_COLOR = ChatColor.GOLD, ALERT_COLOR = ChatColor.GREEN;
 	private Location lastNotifierLocation;
@@ -81,7 +82,20 @@ public class UhcTools extends JavaPlugin {
 	private int matchTimer = -1;
 	private boolean matchEnded = false;
 	
-	public void onEnable(){
+	/**
+	 * Get the singleton instance of UhcTools
+	 * 
+	 * @return The plugin instance
+	 */
+	public static UhcTools getInstance() {
+		return instance;
+	}
+	
+	public void onEnable() {
+		
+		// Store singleton instance
+		instance = this;
+		
 		l = new UhcToolsListener(this);
 		this.getServer().getPluginManager().registerEvents(l, this);
 		
@@ -1398,33 +1412,13 @@ public class UhcTools extends JavaPlugin {
 	}
 	
 	public void announceMatchTime(boolean precise) {
-		getServer().broadcastMessage(MAIN_COLOR + "Match time: " + SIDE_COLOR + formatDuration(matchStartTime, Calendar.getInstance(), precise));
-	}
-	
-	private String formatDuration(Calendar t1, Calendar t2, boolean precise) {
-		// Get duration in seconds
-		int d = (int) (t2.getTimeInMillis() - t1.getTimeInMillis()) / 1000;
-		
-		if (precise) {
-			int seconds = d % 60;
-			d = d / 60;
-			int minutes = d % 60;
-			int hours = d / 60;
-			
-			// The string
-			return String.format("%02d:%02d:%02d", hours, minutes, seconds);
-		} else {
-			int minutes = (d + 30) / 60;
-			return minutes + " minute" + (minutes == 1 ? "s" : "");
-			
-		}
-		
+		getServer().broadcastMessage(MAIN_COLOR + "Match time: " + SIDE_COLOR + UhcUtil.formatDuration(matchStartTime, Calendar.getInstance(), precise));
 	}
 	
 
 	public void playChatScript(String filename, boolean muteChat) {
 		if (muteChat) this.setChatMuted(true);
-		chatScript = loadChatScript(filename);
+		chatScript = UhcUtil.readFile(filename);
 		if (chatScript != null)
 			continueChatScript();
 	}
@@ -1559,31 +1553,7 @@ public class UhcTools extends JavaPlugin {
 		}
 	}
 	
-	public ArrayList<String> loadChatScript(String filename) {
-		File fChat = getDataFile(filename, true);
-		
-		if (fChat == null) return null;
-		
-		ArrayList<String> lines = new ArrayList<String>();
-		try {
-			FileReader fr = new FileReader(fChat);
-			BufferedReader in = new BufferedReader(fr);
-			String s = in.readLine();
 
-			while (s != null) {
-				lines.add(s);
-				s = in.readLine();
-			}
-
-			in.close();
-			fr.close();
-			return lines;
-			
-		} catch (IOException e) {
-			e.printStackTrace();
-			return null;
-		}
-	}
 	
 	public UhcStartPoint createStartPoint(int number, Location l) {
 		// Check there is not already a start point with this number		
@@ -1625,7 +1595,7 @@ public class UhcTools extends JavaPlugin {
 	public Boolean loadStartPoints() { return this.loadStartPoints(DEFAULT_START_POINTS_FILE); }
 	
 	public Boolean loadStartPoints(String filename) {
-		File fStarts = getDataFile(filename, true);
+		File fStarts = UhcUtil.getDataFile(filename, true);
 		
 		if (fStarts == null) return false;
 		
@@ -1678,7 +1648,7 @@ public class UhcTools extends JavaPlugin {
 	 * @return Whether the operation succeeded
 	 */
 	public boolean saveStartPoints(String filename) {
-		File fStarts = getDataFile(filename, false);
+		File fStarts = UhcUtil.getDataFile(filename, false);
 		if (fStarts == null) return false;
 
 		try {
@@ -1696,46 +1666,7 @@ public class UhcTools extends JavaPlugin {
 		
 	}
 	
-	/**
-	 * Initialise the data directory for this plugin.
-	 *
-	 * @return true if the directory has been created or already exists.
-	 */
-	private boolean createDataDirectory() {
-	    File file = this.getDataFolder();
-	    if (!file.isDirectory()){
-	        if (!file.mkdirs()) {
-	            // failed to create the non existent directory, so failed
-	            return false;
-	        }
-	    }
-	    return true;
-	}
-	 
-	/**
-	 * Retrieve a File description of a data file for your plugin.
-	 * This file will be looked for in the data directory of your plugin, wherever that is.
-	 * There is no need to specify the data directory in the filename such as "plugin/datafile.dat"
-	 * Instead, specify only "datafile.dat"
-	 *
-	 * @param filename The name of the file to retrieve.
-	 * @param mustAlreadyExist True if the file must already exist on the filesystem.
-	 *
-	 * @return A File descriptor to the specified data file, or null if there were any issues.
-	 */
-	private File getDataFile(String filename, boolean mustAlreadyExist) {
-	    if (createDataDirectory()) {
-	        File file = new File(this.getDataFolder(), filename);
-	        if (mustAlreadyExist) {
-	            if (file.exists()) {
-	                return file;
-	            }
-	        } else {
-	            return file;
-	        }
-	    }
-	    return null;
-	}
+
 	
 	public boolean isChatMuted() {
 		return chatMuted;
