@@ -1554,6 +1554,11 @@ public class UhcTools extends JavaPlugin {
 		startMatchTimer();
 	}
 	
+	/**
+	 * End the match
+	 * 
+	 * Announce the total match duration
+	 */
 	public void endMatch() {
 		announceMatchTime(true);
 		stopMatchTimer();
@@ -1579,7 +1584,10 @@ public class UhcTools extends JavaPlugin {
 		return true;
 	}
 	
-	public void countdown() {
+	/**
+	 * Continues the countdown in progress
+	 */
+	private void countdown() {
 		if (countdown < 0)
 			return;
 		
@@ -1616,11 +1624,17 @@ public class UhcTools extends JavaPlugin {
 		}, 20L);
 	}
 	
+	/**
+	 * Cancels a running countdown
+	 */
 	public void cancelCountdown() {
 		countdown = -1;
 	}
 	
-	public void startMatchTimer() {
+	/**
+	 * Starts the match timer
+	 */
+	private void startMatchTimer() {
 		matchStartTime = Calendar.getInstance();
 		matchTimer = getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
 			public void run() {
@@ -1629,17 +1643,31 @@ public class UhcTools extends JavaPlugin {
 		}, 36000L, 36000L);
 	}
 	
-	public void stopMatchTimer() {
+	/**
+	 * Stops the match timer
+	 */
+	private void stopMatchTimer() {
 		if (matchTimer != -1) {
 			getServer().getScheduler().cancelTask(matchTimer);
 		}
 	}
 	
+	/**
+	 * Announce the current match time in chat
+	 * 
+	 * @param precise Whether to give a precise time (00:00:00) instead of (xx minutes)
+	 */
 	public void announceMatchTime(boolean precise) {
 		getServer().broadcastMessage(MAIN_COLOR + "Match time: " + SIDE_COLOR + UhcUtil.formatDuration(matchStartTime, Calendar.getInstance(), precise));
 	}
 	
 
+	/**
+	 * Plays a chat script
+	 * 
+	 * @param filename The file to read the chat script from
+	 * @param muteChat Whether other chat should be muted
+	 */
 	public void playChatScript(String filename, boolean muteChat) {
 		if (muteChat) this.setChatMuted(true);
 		chatScript = UhcUtil.readFile(filename);
@@ -1647,7 +1675,10 @@ public class UhcTools extends JavaPlugin {
 			continueChatScript();
 	}
 	
-	public void continueChatScript() {
+	/**
+	 * Output next line of current chat script, unmuting the chat if it's finished.
+	 */
+	private void continueChatScript() {
 		getServer().broadcastMessage(ChatColor.GREEN + chatScript.get(0));
 		chatScript.remove(0);
 		if (chatScript.size() > 0) {
@@ -1663,6 +1694,13 @@ public class UhcTools extends JavaPlugin {
 		
 	}
 	
+	/**
+	 * Get a specific UhcPlayer by name, optionally creating a new one if needed
+	 * 
+	 * @param name The exact name of the player to be found
+	 * @param createNew Whether to create a new player if not found
+	 * @return The UhcPlayer
+	 */
 	public UhcPlayer getUhcPlayer(String name, Boolean createNew) {
 		UhcPlayer up = uhcPlayers.get(name);
 		if (up == null && createNew) {
@@ -1671,15 +1709,34 @@ public class UhcTools extends JavaPlugin {
 		}
 		return up;
 	}
-	
+
+	/**
+	 * Get a specific UhcPlayer by name
+	 * 
+	 * @param name The exact name of the player to be found
+	 * @return The UhcPlayer
+	 */
 	public UhcPlayer getUhcPlayer(String name) {
 		return getUhcPlayer(name, false);
 	}
 	
+	/**
+	 * Get a specific UhcPlayer matching the given Bukkit Player, optionally creating a new one if needed
+	 * 
+	 * @param playerToGet The Player to look for
+	 * @param createNew Whether to create a new player if not found
+	 * @return The UhcPlayer
+	 */
 	public UhcPlayer getUhcPlayer(Player playerToGet, Boolean createNew) {
 		return getUhcPlayer(playerToGet.getName(), createNew);
 	}
 	
+	/**
+	 * Get a specific UhcPlayer matching the given Bukkit Player
+	 * 
+	 * @param playerToGet The Player to look for
+	 * @return The UhcPlayer
+	 */
 	public UhcPlayer getUhcPlayer(Player playerToGet) {
 		return getUhcPlayer(playerToGet.getName(), false);
 	}
@@ -1687,7 +1744,7 @@ public class UhcTools extends JavaPlugin {
 	/**
 	 * Launch the specified player only
 	 * 
-	 * @param p
+	 * @param p The Player to be launched
 	 * @return success or failure
 	 */
 	public boolean launch(Player p) {
@@ -1732,7 +1789,8 @@ public class UhcTools extends JavaPlugin {
 	
 	/**
 	 * Re-teleport the specified player
-	 * @param p
+	 * 
+	 * @param p The player to be relaunched
 	 */
 	public boolean relaunch(Player p) {
 		UhcPlayer up = getUhcPlayer(p);
@@ -1741,6 +1799,12 @@ public class UhcTools extends JavaPlugin {
 		return p.teleport(up.getStartPoint().getLocation());
 	}
 	
+	/**
+	 * Unlaunch the given player, removing them from the match and freeing up a start point
+	 * 
+	 * @param up The player to be unlaunched
+	 * @return Whether the player was unlaunched
+	 */
 	public boolean unLaunch(UhcPlayer up) {
 		UhcStartPoint sp = up.getStartPoint();
 		if (sp == null) return false;
@@ -1779,6 +1843,13 @@ public class UhcTools extends JavaPlugin {
 	
 
 	
+	/**
+	 * Create a new start point at a given location
+	 * 
+	 * @param number The start point's number
+	 * @param l The location of the start point
+	 * @return The created start point
+	 */
 	public UhcStartPoint createStartPoint(int number, Location l) {
 		// Check there is not already a start point with this number		
 		if (startPoints.containsKey(number))
@@ -1791,24 +1862,57 @@ public class UhcTools extends JavaPlugin {
 		return sp;
 	}
 	
+	/**
+	 * Create a new start point at a given location
+	 * 
+	 * @param number The start point's number
+	 * @param world The world to create the start point
+	 * @param x x coordinate of the start point
+	 * @param y y coordinate of the start point
+	 * @param z z coordinate of the start point
+	 * @return The created start point
+	 */
 	public UhcStartPoint createStartPoint(int number, World world, Double x, Double y, Double z) {
 		return createStartPoint(number, new Location(world, x, y, z));
 	}
 	
+	/**
+	 * Create a new start point at a given location, giving it the next available number
+	 * 
+	 * @param l The location of the start point
+	 * @return The created start point
+	 */
 	public UhcStartPoint createStartPoint(Location l) {
 		return createStartPoint(getNextAvailableStartNumber(), l);
 	}
 
+	/**
+	 * Create a new start point at a given location, giving it the next available number
+	 * 
+	 * @param world The world to create the start point
+	 * @param x x coordinate of the start point
+	 * @param y y coordinate of the start point
+	 * @param z z coordinate of the start point
+	 * @return The created start point
+	 */
 	public UhcStartPoint createStartPoint(World world, Double x, Double y, Double z) {
 		return createStartPoint(new Location(world, x, y, z));
 	}
 		
+	/**
+	 * Clear all start points
+	 */
 	public void clearStartPoints() {
 		startPoints.clear();
 		availableStartPoints.clear();
 
 	}
 	
+	/**
+	 * Determine the lowest unused start number
+	 * 
+	 * @return The lowest available start point number
+	 */
 	public int getNextAvailableStartNumber() {
 		int n = 1;
 		while (startPoints.containsKey(n))
@@ -1816,8 +1920,20 @@ public class UhcTools extends JavaPlugin {
 		return n;
 	}
 	
+	/**
+	 * Attempt to load start points from the default file
+	 * 
+	 * @return Whether the operation succeeded
+	 */
 	public Boolean loadStartPoints() { return this.loadStartPoints(DEFAULT_START_POINTS_FILE); }
 	
+	
+	/**
+	 * Attempt to load start points from the specified file
+	 * 
+	 * @param filename The file to load start points from
+	 * @return Whether the operation succeeded
+	 */
 	public Boolean loadStartPoints(String filename) {
 		File fStarts = UhcUtil.getDataFile(filename, true);
 		
@@ -1863,6 +1979,11 @@ public class UhcTools extends JavaPlugin {
 		}
 	}
 	
+	/**
+	 * Save start points to the default file
+	 * 
+	 * @return Whether the operation succeeded
+	 */
 	public Boolean saveStartPoints() { return this.saveStartPoints(DEFAULT_START_POINTS_FILE); }
 	
 	/**
@@ -1892,18 +2013,34 @@ public class UhcTools extends JavaPlugin {
 	
 
 	
+	/**
+	 * @return Whether chat is currently muted
+	 */
 	public boolean isChatMuted() {
 		return chatMuted;
 	}
 	
+	/**
+	 * Mute or unmute chat
+	 * 
+	 * @param muted Status to be set
+	 */
 	public void setChatMuted(Boolean muted) {
 		chatMuted = muted;
 	}
 
+	/**
+	 * @return Whether player launching has started yet
+	 */
 	public Boolean getLaunchingPlayers() {
 		return launchingPlayers;
 	}
 
+	/**
+	 * Get the bonus items to be dropped by a PVP-killed player in addition to their inventory
+	 * 
+	 * @return The ItemStack to be dropped
+	 */
 	public ItemStack getKillerBonus() {
 		if (!killerBonusEnabled) return null;
 		if (killerBonusItemID != 0 && killerBonusItemQuantity != 0)
@@ -1912,6 +2049,14 @@ public class UhcTools extends JavaPlugin {
 			return null;
 	}
 
+	/**
+	 * Apply the mining fatigue game mechanic
+	 * 
+	 * Players who mine stone below a certain depth increase their hunger or take damage
+	 * 
+	 * @param player The player to act upon
+	 * @param blockY The Y coordinate of the mined block
+	 */
 	public void doMiningFatigue(Player player, int blockY) {
 		if (!miningFatigueEnabled) return;
 		if (blockY > miningFatigueMaxY) return;
@@ -1933,14 +2078,25 @@ public class UhcTools extends JavaPlugin {
 		
 	}
 
+	/**
+	 * @return Whether the game is underway
+	 */
 	public Boolean isMatchStarted() {
 		return matchStarted;
 	}
 
+	/**
+	 * @return The number of players still in the match
+	 */
 	public int getPlayersInMatch() {
 		return playersInMatch;
 	}
 
+	/**
+	 * Process the death of a player
+	 * 
+	 * @param up The player who died
+	 */
 	public void handlePlayerDeath(UhcPlayer up) {
 		up.setDead(true);
 		playersInMatch--;
@@ -1950,6 +2106,9 @@ public class UhcTools extends JavaPlugin {
 		}
 	}
 
+	/**
+	 * Publicly announce how many players are still in the match 
+	 */
 	private void announcePlayersRemaining() {
 		// Make no announcement if final player was killed
 		if (playersInMatch < 1) return;
@@ -1966,6 +2125,11 @@ public class UhcTools extends JavaPlugin {
 		getServer().broadcast(OK_COLOR + message, Server.BROADCAST_CHANNEL_USERS);
 	}
 
+	/**
+	 * Get a list of surviving players
+	 * 
+	 * @return A comma-separated list of surviving players
+	 */
 	private String getSurvivingPlayerList() {
 		String survivors = "";
 		
@@ -1979,6 +2143,12 @@ public class UhcTools extends JavaPlugin {
 		
 	}
 	
+    /**
+     * Get a BorderData from the WorldBorder plugin
+     * 
+     * @param w The world to get borders for
+     * @return The WorldBorder BorderData object
+     */
     private BorderData getWorldBorder(World w) {
         Plugin plugin = getServer().getPluginManager().getPlugin("WorldBorder");
 
@@ -1990,6 +2160,13 @@ public class UhcTools extends JavaPlugin {
         return wb.GetWorldBorder(w.getName());
     }
     
+    /**
+     * Change the WorldBorder radius for a world
+     * 
+     * @param w The world to be changed
+     * @param radius The new radius
+     * @return Whether the operation succeeded
+     */
     private boolean setWorldRadius(World w, int radius) {
     	BorderData border = getWorldBorder(w);
     	if (border != null) {
@@ -1999,6 +2176,9 @@ public class UhcTools extends JavaPlugin {
     	return false;
     }
 
+	/**
+	 * @return Whether the match is over
+	 */
 	public boolean isMatchEnded() {
 		return matchEnded;
 	}
