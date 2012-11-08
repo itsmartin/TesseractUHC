@@ -907,6 +907,11 @@ public class UhcTools extends JavaPlugin {
 		return response;
 	}
 
+	private String cButcher() {
+		butcherHostile();
+		return "Hostile mobs have been butchered";
+	}
+
 	private void loadConfigValues() {
 		saveDefaultConfig();
 		killerBonusEnabled = getConfig().getBoolean("killerbonus.enabled");
@@ -1252,10 +1257,6 @@ public class UhcTools extends JavaPlugin {
 	}
 	
 	
-	public String cButcher() {
-		butcherHostile();
-		return "Hostile mobs have been butchered";
-	}
 	public void butcherHostile() {
 		for (Entity entity : world.getEntitiesByClass(LivingEntity.class)) {
 			if (entity instanceof Monster || entity instanceof MagmaCube || entity instanceof Slime || entity instanceof EnderDragon
