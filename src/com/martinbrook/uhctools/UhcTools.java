@@ -8,6 +8,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Random;
 
@@ -288,7 +289,7 @@ public class UhcTools extends JavaPlugin {
 		if (args.length != 1)
 			return ERROR_COLOR + "Please specify the player to be removed";
 		
-		UhcPlayer up = uhcPlayers.get(args[0]);
+		UhcPlayer up = getUhcPlayer(args[0]); //TODO
 		
 		if (up == null)
 			return ERROR_COLOR + "Player " + args[0] + " not found";;
@@ -1720,17 +1721,27 @@ public class UhcTools extends JavaPlugin {
 	}
 	
 	/**
+	 * Get all players currently registered with the game
+	 * 
+	 * @return All registered players
+	 */
+	public Collection<UhcPlayer> getUhcPlayers() {
+		return uhcPlayers.values();
+	}
+	
+	
+	/**
 	 * Get a specific UhcPlayer by name, optionally creating a new one if needed
 	 * 
-	 * @param name The exact name of the player to be found
+	 * @param name The exact name of the player to be found  (case insensitive)
 	 * @param createNew Whether to create a new player if not found
 	 * @return The UhcPlayer
 	 */
 	public UhcPlayer getUhcPlayer(String name, Boolean createNew) {
-		UhcPlayer up = uhcPlayers.get(name);
+		UhcPlayer up = uhcPlayers.get(name.toLowerCase());
 		if (up == null && createNew) {
 			up = new UhcPlayer(name);
-			uhcPlayers.put(name, up);
+			uhcPlayers.put(name.toLowerCase(), up);
 		}
 		return up;
 	}
@@ -1738,7 +1749,7 @@ public class UhcTools extends JavaPlugin {
 	/**
 	 * Get a specific UhcPlayer by name
 	 * 
-	 * @param name The exact name of the player to be found
+	 * @param name The exact name of the player to be found (case insensitive)
 	 * @return The UhcPlayer
 	 */
 	public UhcPlayer getUhcPlayer(String name) {
@@ -1881,7 +1892,7 @@ public class UhcTools extends JavaPlugin {
 	 */
 	public void launchAll() {
 		launchingPlayers=true;
-		for(UhcPlayer up : uhcPlayers.values()) launch(up);
+		for(UhcPlayer up : getUhcPlayers()) launch(up);
 	}
 	
 
@@ -2176,7 +2187,7 @@ public class UhcTools extends JavaPlugin {
 	private String getSurvivingPlayerList() {
 		String survivors = "";
 		
-		for (UhcPlayer up : uhcPlayers.values())
+		for (UhcPlayer up : getUhcPlayers())
 			if (up.isLaunched() && !up.isDead()) survivors += up.getName() + ", ";;
 		
 		if (survivors.length() > 2)
