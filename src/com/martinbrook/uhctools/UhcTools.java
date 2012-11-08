@@ -1430,8 +1430,11 @@ public class UhcTools extends JavaPlugin {
 		
 		availableStartPoints.add(sp);
 		
-		// teleport player back to spawn
-		getServer().getPlayer(up.getName()).teleport(world.getSpawnLocation());
+		// teleport player back to spawn, if they are online
+		Player p = getServer().getPlayer(up.getName());
+		if (p != null)
+			doTeleport(p,world.getSpawnLocation());
+		
 		
 		return true;
 	}
