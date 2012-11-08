@@ -1537,6 +1537,11 @@ public class UhcTools extends JavaPlugin {
 		
 	}
 	
+	/**
+	 * Start the match
+	 * 
+	 * Butcher hostile mobs, turn off permaday, turn on PVP, put all players in survival and reset all players.
+	 */
 	public void startMatch() {
 		matchStarted = true;
 		world.setTime(0);
