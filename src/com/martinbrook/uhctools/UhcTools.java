@@ -935,8 +935,13 @@ public class UhcTools extends JavaPlugin {
 	 * @return response
 	 */
 	private String cRenewall() {
-		renewAll();
-		return OK_COLOR + "Renewed all players.";
+		for (Player p : world.getPlayers()) {
+			if (p.getGameMode() != GameMode.CREATIVE) {
+				renew(p);
+				p.sendMessage(OK_COLOR + "You have been healed and fed!");
+			}
+		}
+		return OK_COLOR + "Renewed all non-creative players";
 	}
 
 	/**
@@ -947,7 +952,7 @@ public class UhcTools extends JavaPlugin {
 	 */
 	private String cRenew(String[] args) {
 		if (args.length == 0)
-			return ERROR_COLOR + "Please specify player(s) to heal, or use /healall";
+			return ERROR_COLOR + "Please specify player(s) to heal, or use /renewall";
 
 		String response = "";
 
@@ -1466,17 +1471,6 @@ public class UhcTools extends JavaPlugin {
 		clearInventory(p);
 	}
 
-	/**
-	 * Heal, feed, clear XP, inventory and potion effects of all non-creative players
-	 */
-	public void renewAll() {
-		for (Player p : world.getPlayers()) {
-			if (p.getGameMode() != GameMode.CREATIVE) {
-				renew(p);
-				p.sendMessage(OK_COLOR + "You have been healed and fed!");
-			}
-		}
-	}
 
 	/**
 	 * Heal the given player
@@ -1555,7 +1549,6 @@ public class UhcTools extends JavaPlugin {
 				p.setGameMode(GameMode.SURVIVAL);
 			}
 		}
-		setDeathban(true);
 		setPermaday(false);
 		setPVP(true);
 		startMatchTimer();
