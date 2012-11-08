@@ -7,6 +7,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
 
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.World;
+import org.bukkit.block.Block;
+
 public class UhcUtil {
 
 	private UhcUtil() { }
@@ -96,6 +101,49 @@ public class UhcUtil {
 	        }
 	    }
 	    return null;
+	}
+	
+	/**
+	 * Calculates if it's possible for a player to fit in a certain spot.
+	 * 
+	 * @param feetLocation the location where the feet should be
+	 * @return wheter or not there's place for both his feet and head
+	 */
+	public static boolean isSpaceForPlayer(Location feetLocation) {
+		World w = feetLocation.getWorld();
+		int x = feetLocation.getBlockX(), y = feetLocation.getBlockY(), z = feetLocation.getBlockZ();
+		Block b1 = w.getBlockAt(x, y, z);
+		Block b2 = w.getBlockAt(x, y + 1, z);
+		return isSpaceForPlayer(b1) && isSpaceForPlayer(b2);
+	}
+	
+
+
+	/**
+	 * Calculates if it's possible for a player to fit in a certain spot.
+	 * 
+	 * @param w the world in which we need to check if there's space for the
+	 *            player
+	 * @param x the x coordinate of the block to check
+	 * @param y the y coordinate of the block (at the feet) to check
+	 * @param z the z coordinate of the block to check
+	 * @return whether or not there's place for both his feet and head
+	 */
+	public static boolean isSpaceForPlayer(World w, int x, int y, int z) {
+		Block b1 = w.getBlockAt(x, y, z);
+		Block b2 = w.getBlockAt(x, y + 1, z);
+		return isSpaceForPlayer(b1) && isSpaceForPlayer(b2);
+	}
+
+	/**
+	 * Determine whether a given block is a either empty or liquid (but not
+	 * lava)
+	 * 
+	 * @param b the block to check
+	 * @return whether the block is suitable
+	 */
+	public static boolean isSpaceForPlayer(Block b) {
+		return (b.isEmpty() || b.isLiquid()) && b.getType() != Material.LAVA && b.getType() != Material.STATIONARY_LAVA;
 	}
 	
 }

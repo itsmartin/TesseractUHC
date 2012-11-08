@@ -19,7 +19,6 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Server;
 import org.bukkit.World;
-import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
 import org.bukkit.block.Sign;
 import org.bukkit.command.Command;
@@ -1307,22 +1306,22 @@ public class UhcTools extends JavaPlugin {
 		for (int i = 0; i < 5; i++) {
 			if (xp) {
 				lxp.setX(lxp.getX() + 1);
-				if (!isSpaceForPlayer(lxp))
+				if (!UhcUtil.isSpaceForPlayer(lxp))
 					xp = false;
 			}
 			if (xn) {
 				lxn.setX(lxn.getX() - 1);
-				if (!isSpaceForPlayer(lxn))
+				if (!UhcUtil.isSpaceForPlayer(lxn))
 					xn = false;
 			}
 			if (zp) {
 				lzp.setZ(lzp.getZ() + 1);
-				if (!isSpaceForPlayer(lzp))
+				if (!UhcUtil.isSpaceForPlayer(lzp))
 					zp = false;
 			}
 			if (zn) {
 				lzn.setZ(lzn.getZ() - 1);
-				if (!isSpaceForPlayer(lzn))
+				if (!UhcUtil.isSpaceForPlayer(lzn))
 					zn = false;
 			}
 		}
@@ -1358,46 +1357,7 @@ public class UhcTools extends JavaPlugin {
 		streamer.teleport(tpl);
 	}
 
-	/**
-	 * Calculates if it's possible for a player to fit in a certain spot.
-	 * 
-	 * @param feetLocation the location where the feet should be
-	 * @return wheter or not there's place for both his feet and head
-	 */
-	public static boolean isSpaceForPlayer(Location feetLocation) {
-		World w = feetLocation.getWorld();
-		int x = feetLocation.getBlockX(), y = feetLocation.getBlockY(), z = feetLocation.getBlockZ();
-		Block b1 = w.getBlockAt(x, y, z);
-		Block b2 = w.getBlockAt(x, y + 1, z);
-		return isSpaceForPlayer(b1) && isSpaceForPlayer(b2);
-	}
 
-	/**
-	 * Calculates if it's possible for a player to fit in a certain spot.
-	 * 
-	 * @param w the world in which we need to check if there's space for the
-	 *            player
-	 * @param x the x coordinate of the block to check
-	 * @param y the y coordinate of the block (at the feet) to check
-	 * @param z the z coordinate of the block to check
-	 * @return whether or not there's place for both his feet and head
-	 */
-	public static boolean isSpaceForPlayer(World w, int x, int y, int z) {
-		Block b1 = w.getBlockAt(x, y, z);
-		Block b2 = w.getBlockAt(x, y + 1, z);
-		return isSpaceForPlayer(b1) && isSpaceForPlayer(b2);
-	}
-
-	/**
-	 * Determine whether a given block is a either empty or liquid (but not
-	 * lava)
-	 * 
-	 * @param b the block to check
-	 * @return whether the block is suitable
-	 */
-	public static boolean isSpaceForPlayer(Block b) {
-		return (b.isEmpty() || b.isLiquid()) && b.getType() != Material.LAVA && b.getType() != Material.STATIONARY_LAVA;
-	}
 
 	
 	public void buildStartingTrough(UhcStartPoint sp) {
