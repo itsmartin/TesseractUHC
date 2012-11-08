@@ -99,19 +99,6 @@ public class UhcTools extends JavaPlugin {
 		saveStartPoints();
 	}
 	
-	private void loadConfigValues() {
-		saveDefaultConfig();
-		killerBonusEnabled = getConfig().getBoolean("killerbonus.enabled");
-		killerBonusItemID = getConfig().getInt("killerbonus.id");
-		killerBonusItemQuantity = getConfig().getInt("killerbonus.quantity");
-		miningFatigueEnabled = getConfig().getBoolean("miningfatigue.enabled");
-		miningFatigueBlocks = getConfig().getInt("miningfatigue.blocks");
-		miningFatigueExhaustion = getConfig().getInt("miningfatigue.exhaustion");
-		miningFatigueDamage = getConfig().getInt("miningfatigue.damage");
-		miningFatigueMaxY = getConfig().getInt("miningfatigue.maxy");
-		deathban = getConfig().getBoolean("deathban");
-	}
-
 	@Override
 	public boolean onCommand(CommandSender commandSender, Command command, String commandLabel, String[] args) {
 		boolean success = false;
@@ -121,7 +108,7 @@ public class UhcTools extends JavaPlugin {
 		
 			if (commandSender instanceof Player)
 				success = runCommandAsOp((Player) commandSender, cmd, args);
-
+	
 			if (!success)
 				success = runCommandAsConsole(commandSender, cmd, args);
 		} else {
@@ -130,11 +117,11 @@ public class UhcTools extends JavaPlugin {
 		}
 		return true;
 	}
-	
+
 	private boolean runCommandAsOp(Player sender, String cmd, String[] args) {
 		boolean success = true;
 		String response = null; // Stores any response to be given to the sender
-
+	
 		if(cmd.equals("tp")) {
 			response = cTp(sender,args);
 		} else if (cmd.equals("tpd")) {
@@ -161,14 +148,15 @@ public class UhcTools extends JavaPlugin {
 		
 		if (response != null)
 			sender.sendMessage(response);
-
+	
 		return success;
 		
 	}
+
 	private boolean runCommandAsConsole(CommandSender sender, String cmd, String[] args) {
 		boolean success = true;
 		String response = null; // Stores any response to be given to the sender
-
+	
 		if(cmd.equals("tp")) {
 			response = sTp(args);
 		} else if(cmd.equals("butcher")) {
@@ -228,13 +216,30 @@ public class UhcTools extends JavaPlugin {
 		} else {
 			success = false;
 		}
-
+	
 		if (response != null)
 			sender.sendMessage(response);
 		
 		return success;
 	}
+
+	private boolean runCommandAsPlayer(Player sender, String cmd, String[] args) {
+		boolean success = true;
+		String response = null; // Stores any response to be given to the sender
 	
+		if (cmd.equals("kill")) {
+			response = ERROR_COLOR + "The kill command is disabled.";
+		} else if (cmd.equals("notify") || cmd.equals("n")) {
+			response = cNotify(sender, args);
+		} else {
+			success = false;
+		}
+	
+		if (response != null)
+			sender.sendMessage(response);
+		
+		return success;
+	}
 
 	private String cUnlaunch(String[] args) {
 		if (args.length != 1)
@@ -260,24 +265,6 @@ public class UhcTools extends JavaPlugin {
 		return OK_COLOR + "Match started!";
 	}
 
-	private boolean runCommandAsPlayer(Player sender, String cmd, String[] args) {
-		boolean success = true;
-		String response = null; // Stores any response to be given to the sender
-
-		if (cmd.equals("kill")) {
-			response = ERROR_COLOR + "The kill command is disabled.";
-		} else if (cmd.equals("notify") || cmd.equals("n")) {
-			response = cNotify(sender, args);
-		} else {
-			success = false;
-		}
-
-		if (response != null)
-			sender.sendMessage(response);
-		
-		return success;
-	}
-	
 	private String cSetspawn(Player sender) {
 		Location newSpawn = sender.getLocation();
 		newSpawn.getWorld().setSpawnLocation(newSpawn.getBlockX(), newSpawn.getBlockY(), newSpawn.getBlockZ());
@@ -474,49 +461,6 @@ public class UhcTools extends JavaPlugin {
 		}
 	}
 	
-	public void setPVP(boolean pvp) {
-		for(World w : server.getWorlds()) {
-			w.setPVP(pvp);
-		}
-
-		getServer().broadcast(OK_COLOR + "PVP has been " + (pvp ? "enabled" : "disabled") + "!", Server.BROADCAST_CHANNEL_ADMINISTRATIVE);
-
-	}
-	
-	public void setPermaday(boolean p) {
-		if (p == permaday) return;
-		
-		this.permaday=p;
-
-		getServer().broadcast(OK_COLOR + "Permaday has been " + (permaday ? "enabled" : "disabled") + "!", Server.BROADCAST_CHANNEL_ADMINISTRATIVE);
-		
-		
-		if (permaday) {
-			this.world.setTime(6000);
-			permadayTaskId = getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
-				public void run() {
-					keepPermaday();
-				}
-			}, 1200L, 1200L);
-			
-		} else {
-			getServer().getScheduler().cancelTask(permadayTaskId);
-		}
-	}
-	
-	private void keepPermaday() {
-		this.world.setTime(6000);
-	}
-	
-	public void setDeathban(boolean d) {
-		this.deathban = d;
-		getServer().broadcast(OK_COLOR + "Deathban has been " + (deathban ? "enabled" : "disabled") + "!", Server.BROADCAST_CHANNEL_ADMINISTRATIVE);
-	}
-	
-	public boolean getDeathban() {
-		return deathban;
-	}
-	
 	/**
 	 * Execute the /cdwb command
 	 * 
@@ -666,29 +610,6 @@ public class UhcTools extends JavaPlugin {
 		}
 	}
 	
-	/**
-	 * Try to find a start point from a user-provided search string.
-	 * 
-	 * @param searchParam The string to search for - a player name, or a start number may be sent
-	 * @return The start point, or null if not found.
-	 */
-	public UhcStartPoint findStartPoint(String searchParam) {
-		UhcPlayer up = this.getUhcPlayer(searchParam);
-		if (up != null) {
-			// Argument matches a player
-			return up.getStartPoint();
-			
-		} else {
-			try {
-				int i = Integer.parseInt(searchParam);
-				return startPoints.get(i);
-			} catch (Exception e) {
-				return null;
-			}
-		}
-		
-	}
-
 	private String cTp(Player sender, String[] args) {
 		
 		if (args.length == 0) {
@@ -970,6 +891,85 @@ public class UhcTools extends JavaPlugin {
 		}
 
 		return response;
+	}
+
+	private void loadConfigValues() {
+		saveDefaultConfig();
+		killerBonusEnabled = getConfig().getBoolean("killerbonus.enabled");
+		killerBonusItemID = getConfig().getInt("killerbonus.id");
+		killerBonusItemQuantity = getConfig().getInt("killerbonus.quantity");
+		miningFatigueEnabled = getConfig().getBoolean("miningfatigue.enabled");
+		miningFatigueBlocks = getConfig().getInt("miningfatigue.blocks");
+		miningFatigueExhaustion = getConfig().getInt("miningfatigue.exhaustion");
+		miningFatigueDamage = getConfig().getInt("miningfatigue.damage");
+		miningFatigueMaxY = getConfig().getInt("miningfatigue.maxy");
+		deathban = getConfig().getBoolean("deathban");
+	}
+
+	private void keepPermaday() {
+		this.world.setTime(6000);
+	}
+
+	public void setPVP(boolean pvp) {
+		for(World w : server.getWorlds()) {
+			w.setPVP(pvp);
+		}
+	
+		getServer().broadcast(OK_COLOR + "PVP has been " + (pvp ? "enabled" : "disabled") + "!", Server.BROADCAST_CHANNEL_ADMINISTRATIVE);
+	
+	}
+
+	public void setPermaday(boolean p) {
+		if (p == permaday) return;
+		
+		this.permaday=p;
+	
+		getServer().broadcast(OK_COLOR + "Permaday has been " + (permaday ? "enabled" : "disabled") + "!", Server.BROADCAST_CHANNEL_ADMINISTRATIVE);
+		
+		
+		if (permaday) {
+			this.world.setTime(6000);
+			permadayTaskId = getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
+				public void run() {
+					keepPermaday();
+				}
+			}, 1200L, 1200L);
+			
+		} else {
+			getServer().getScheduler().cancelTask(permadayTaskId);
+		}
+	}
+
+	public boolean getDeathban() {
+		return deathban;
+	}
+
+	public void setDeathban(boolean d) {
+		this.deathban = d;
+		getServer().broadcast(OK_COLOR + "Deathban has been " + (deathban ? "enabled" : "disabled") + "!", Server.BROADCAST_CHANNEL_ADMINISTRATIVE);
+	}
+
+	/**
+	 * Try to find a start point from a user-provided search string.
+	 * 
+	 * @param searchParam The string to search for - a player name, or a start number may be sent
+	 * @return The start point, or null if not found.
+	 */
+	public UhcStartPoint findStartPoint(String searchParam) {
+		UhcPlayer up = this.getUhcPlayer(searchParam);
+		if (up != null) {
+			// Argument matches a player
+			return up.getStartPoint();
+			
+		} else {
+			try {
+				int i = Integer.parseInt(searchParam);
+				return startPoints.get(i);
+			} catch (Exception e) {
+				return null;
+			}
+		}
+		
 	}
 
 	public void setLastDeathLocation(Location l) {
