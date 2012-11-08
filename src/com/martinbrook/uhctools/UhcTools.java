@@ -59,6 +59,7 @@ public class UhcTools extends JavaPlugin {
 	private HashMap<Integer, UhcStartPoint> startPoints = new HashMap<Integer, UhcStartPoint>();
 	private ArrayList<UhcStartPoint> availableStartPoints = new ArrayList<UhcStartPoint>();
 	private Boolean launchingPlayers = false;
+	private Boolean matchStarted = false;
 	private HashMap<String, UhcPlayer> uhcPlayers = new HashMap<String, UhcPlayer>(32);
 	private Boolean killerBonusEnabled = false;
 	private int killerBonusItemID = 0;
@@ -242,7 +243,7 @@ public class UhcTools extends JavaPlugin {
 
 
 	private String cMatch() {
-		startGame();
+		startMatch();
 		return OK_COLOR + "Match started!";
 	}
 
@@ -1248,7 +1249,8 @@ public class UhcTools extends JavaPlugin {
 		i.setBoots(null);
 	}
 	
-	public void startGame() {
+	public void startMatch() {
+		matchStarted = true;
 		world.setTime(0);
 		butcherHostile();
 		for (Player p : world.getPlayers()) {
@@ -1289,7 +1291,7 @@ public class UhcTools extends JavaPlugin {
 		
 		if (countdown == 0) {
 			if (countdownType == CountdownType.MATCH) {
-				this.startGame();
+				this.startMatch();
 			} else if (countdownType == CountdownType.PVP) {
 				this.setPVP(true);
 			} else if (countdownType == CountdownType.WORLD_REDUCE) {
@@ -1668,6 +1670,10 @@ public class UhcTools extends JavaPlugin {
 		}
 
 		
+	}
+
+	public Boolean isMatchStarted() {
+		return matchStarted;
 	}
 
 
