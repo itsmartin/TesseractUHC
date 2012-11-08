@@ -76,21 +76,27 @@ public class UhcToolsListener implements Listener {
 	@EventHandler
 	public void onPlayerDeath(PlayerDeathEvent e){
 		Player p = e.getEntity();
+		
+		// If it's a pvp kill, drop bonus items
 		if (p.getKiller() != null) {
 			ItemStack bonus = t.getKillerBonus();
 			if (bonus != null)
 				e.getDrops().add(bonus);
 		}
-		UhcPlayer up = t.getUhcPlayer(p);
 		
-		if (up != null) up.setDead(true);
-		
+		// Make death message red
 		String msg = e.getDeathMessage();
 		e.setDeathMessage(ChatColor.RED + msg);
 		
+		// Save death point
 		if (msg.indexOf("fell out of the world") == -1)
 			t.setLastDeathLocation(p.getLocation());
 		
+		// Handle the death
+		UhcPlayer up = t.getUhcPlayer(p);
+		if (up != null)
+			t.handlePlayerDeath(up);
+
 		if (t.getDeathban()) {
 			p.setWhitelisted(false);
 		}

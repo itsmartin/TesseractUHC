@@ -70,6 +70,7 @@ public class UhcTools extends JavaPlugin {
 	private int miningFatigueDamage;
 	private int miningFatigueMaxY;
 	private static String DEFAULT_START_POINTS_FILE = "starts.txt";
+	private int playersInMatch = 0;
 	
 	public void onEnable(){
 		l = new UhcToolsListener(this);
@@ -1425,6 +1426,7 @@ public class UhcTools extends JavaPlugin {
 			
 			up.setLaunched(true);
 			up.setStartPoint(start);
+			playersInMatch++;
 
 			start.setUhcPlayer(up);
 			
@@ -1460,6 +1462,8 @@ public class UhcTools extends JavaPlugin {
 		up.setLaunched(false);
 		up.setStartPoint(null);
 		sp.setUhcPlayer(null);
+		playersInMatch--;
+		
 		makeStartSign(sp);
 		
 		availableStartPoints.add(sp);
@@ -1708,5 +1712,43 @@ public class UhcTools extends JavaPlugin {
 		return matchStarted;
 	}
 
+	public int getPlayersInMatch() {
+		return playersInMatch;
+	}
+
+	public void handlePlayerDeath(UhcPlayer up) {
+		up.setDead(true);
+		playersInMatch--;
+		announcePlayersRemaining();
+	}
+
+	private void announcePlayersRemaining() {
+		// Make no announcement if final player was killed
+		if (playersInMatch < 1) return;
+		
+		String message;
+		if (playersInMatch == 1) {
+			message = getSurvivingPlayerList() + " is the winner!";
+		} else if (playersInMatch <= 4) {
+			message = playersInMatch + " players remain: " + getSurvivingPlayerList();
+		} else {
+			message = playersInMatch + " players remain";
+		}
+		
+		getServer().broadcast(OK_COLOR + message, Server.BROADCAST_CHANNEL_USERS);
+	}
+
+	private String getSurvivingPlayerList() {
+		String survivors = "";
+		
+		for (UhcPlayer up : uhcPlayers.values())
+			if (up.isLaunched() && !up.isDead()) survivors += up.getName() + ", ";;
+		
+		if (survivors.length() > 2)
+			survivors = survivors.substring(0,survivors.length()-2);
+		
+		return survivors;
+		
+	}
 
 }
