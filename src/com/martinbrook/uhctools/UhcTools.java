@@ -132,6 +132,14 @@ public class UhcTools extends JavaPlugin {
 		return true;
 	}
 
+	/**
+	 * Execute a command sent by an opped player on the server
+	 * 
+	 * @param sender The Player who sent the command
+	 * @param cmd The command
+	 * @param args Command arguments
+	 * @return Whether the command succeeded
+	 */
 	private boolean runCommandAsOp(Player sender, String cmd, String[] args) {
 		boolean success = true;
 		String response = null; // Stores any response to be given to the sender
@@ -167,6 +175,14 @@ public class UhcTools extends JavaPlugin {
 		
 	}
 
+	/**
+	 * Run a command sent from the console
+	 * 
+	 * @param sender The sender of the command
+	 * @param cmd The command
+	 * @param args Command arguments
+	 * @return Whether the command succeeded
+	 */
 	private boolean runCommandAsConsole(CommandSender sender, String cmd, String[] args) {
 		boolean success = true;
 		String response = null; // Stores any response to be given to the sender
@@ -237,6 +253,14 @@ public class UhcTools extends JavaPlugin {
 		return success;
 	}
 
+	/**
+	 * Run a command sent by a player
+	 * 
+	 * @param sender the Player who sent the command
+	 * @param cmd The command
+	 * @param args Command arguments
+	 * @return Whether the command succeeded
+	 */
 	private boolean runCommandAsPlayer(Player sender, String cmd, String[] args) {
 		boolean success = true;
 		String response = null; // Stores any response to be given to the sender
@@ -255,6 +279,13 @@ public class UhcTools extends JavaPlugin {
 		return success;
 	}
 
+	/**
+	 * Carry out the /unlaunch command
+	 * 
+	 * @param sender the sender of the command
+	 * @param args arguments
+	 * @return response
+	 */
 	private String cUnlaunch(String[] args) {
 		if (args.length != 1)
 			return ERROR_COLOR + "Incorrect number of arguments for /unlaunch";
@@ -273,18 +304,38 @@ public class UhcTools extends JavaPlugin {
 
 	}
 
-
+	/**
+	 * Carry out the /match command
+	 * 
+	 * @param sender the sender of the command
+	 * @param args arguments
+	 * @return response
+	 */
 	private String cMatch() {
 		startMatch();
 		return OK_COLOR + "Match started!";
 	}
 
+	/**
+	 * Carry out the /setspawn command
+	 * 
+	 * @param sender the sender of the command
+	 * @param args arguments
+	 * @return response
+	 */
 	private String cSetspawn(Player sender) {
 		Location newSpawn = sender.getLocation();
 		newSpawn.getWorld().setSpawnLocation(newSpawn.getBlockX(), newSpawn.getBlockY(), newSpawn.getBlockZ());
 		return OK_COLOR + "This world's spawn point has been set to " + newSpawn.getBlockX() + "," + newSpawn.getBlockY() + "," + newSpawn.getBlockZ();
 	}
 
+	/**
+	 * Carry out the /makestart command
+	 * 
+	 * @param sender the sender of the command
+	 * @param args arguments
+	 * @return response
+	 */
 	private String cMakestart(Player sender, String[] args) {
 		Location l = sender.getLocation();
 		double x = l.getBlockX() + 0.5;
@@ -299,12 +350,27 @@ public class UhcTools extends JavaPlugin {
 		return OK_COLOR + "Start point added";
 		
 	}
+	
+	/**
+	 * Carry out the /cdc command
+	 * 
+	 * @param sender the sender of the command
+	 * @param args arguments
+	 * @return response
+	 */
 	private String cCdc() {
 		cancelCountdown();
 		return OK_COLOR + "Countdown cancelled!";
 		
 	}
 	
+	/**
+	 * Carry out the /muteall command
+	 * 
+	 * @param sender the sender of the command
+	 * @param args arguments
+	 * @return response
+	 */
 	private String cMuteall(String[] args) {
 		if (args.length < 1)
 			return ERROR_COLOR +"Please specify 'on' or 'off'";
@@ -322,6 +388,13 @@ public class UhcTools extends JavaPlugin {
 
 	}
 	
+	/**
+	 * Carry out the /chatscript command
+	 * 
+	 * @param sender the sender of the command
+	 * @param args arguments
+	 * @return response
+	 */
 	private String cChatscript(String[] args) {
 		String scriptFile;
 		if (args.length < 1)
@@ -332,6 +405,13 @@ public class UhcTools extends JavaPlugin {
 		return OK_COLOR + "Starting chat script";
 	}
 	
+	/**
+	 * Carry out the /pvp command
+	 * 
+	 * @param sender the sender of the command
+	 * @param args arguments
+	 * @return response
+	 */
 	private String cPvp(String[] args) {
 		if (args.length < 1)
 			return OK_COLOR + "PVP is " + (permaday ? "on" : "off");
@@ -347,7 +427,13 @@ public class UhcTools extends JavaPlugin {
 
 	}
 	
-	
+	/**
+	 * Carry out the /permaday command
+	 * 
+	 * @param sender the sender of the command
+	 * @param args arguments
+	 * @return response
+	 */
 	private String cPermaday(String[] args) {
 		if (args.length < 1)
 			return OK_COLOR + "Permaday is " + (permaday ? "on" : "off");
@@ -363,6 +449,13 @@ public class UhcTools extends JavaPlugin {
 
 	}
 	
+	/**
+	 * Carry out the /deathban command
+	 * 
+	 * @param sender the sender of the command
+	 * @param args arguments
+	 * @return response
+	 */
 	private String cDeathban(String[] args) {
 		if (args.length < 1)
 			return OK_COLOR + "Deathban is " + (deathban ? "on" : "off");
@@ -378,16 +471,37 @@ public class UhcTools extends JavaPlugin {
 
 	}
 	
+	/**
+	 * Carry out the /clearstarts command
+	 * 
+	 * @param sender the sender of the command
+	 * @param args arguments
+	 * @return response
+	 */
 	private String cClearstarts() {
 		clearStartPoints();
 		return OK_COLOR + "Start list cleared";
 	}
 	
+	/**
+	 * Carry out the /loadstarts command
+	 * 
+	 * @param sender the sender of the command
+	 * @param args arguments
+	 * @return response
+	 */
 	private String cLoadstarts() {
 		loadStartPoints();
 		return OK_COLOR.toString() + startPoints.size() + " start points loaded";
 	}
 	
+	/**
+	 * Carry out the /savestarts command
+	 * 
+	 * @param sender the sender of the command
+	 * @param args arguments
+	 * @return response
+	 */
 	private String cSavestarts() {
 		if (saveStartPoints() == true) {
 			return OK_COLOR + "Start points were saved!";
@@ -396,6 +510,13 @@ public class UhcTools extends JavaPlugin {
 		}
 	}
 	
+	/**
+	 * Carry out the /liststarts command
+	 * 
+	 * @param sender the sender of the command
+	 * @param args arguments
+	 * @return response
+	 */
 	private String cListstarts() {
 		if (startPoints.size()==0)
 			return ERROR_COLOR + "There are no starts";
@@ -413,7 +534,13 @@ public class UhcTools extends JavaPlugin {
 		return response;
 	}
 	
-	
+	/**
+	 * Carry out the /listplayers command
+	 * 
+	 * @param sender the sender of the command
+	 * @param args arguments
+	 * @return response
+	 */
 	private String cListplayers() {
 		String response = "Players on server:\n";
 		
@@ -434,7 +561,13 @@ public class UhcTools extends JavaPlugin {
 
 	}
 
-	
+	/**
+	 * Carry out the /launch command
+	 * 
+	 * @param sender the sender of the command
+	 * @param args arguments
+	 * @return response
+	 */
 	private String cLaunch(String[] args)  {
 		if (args.length == 0) {
 			// launch all players
@@ -456,6 +589,13 @@ public class UhcTools extends JavaPlugin {
 		}
 	}
 	
+	/**
+	 * Carry out the /relaunch command
+	 * 
+	 * @param sender the sender of the command
+	 * @param args arguments
+	 * @return response
+	 */
 	private String cRelaunch(String[] args)  {
 		if (args.length == 0) {
 			return ERROR_COLOR + "Please specify player to relaunch";
@@ -504,6 +644,13 @@ public class UhcTools extends JavaPlugin {
 			return ERROR_COLOR + "Countdown already in progress!"; 
 	}
 
+	/**
+	 * Carry out the /cdpvp command
+	 * 
+	 * @param sender the sender of the command
+	 * @param args arguments
+	 * @return response
+	 */
 	private String cCdpvp(String[] args) {
 		if (args.length > 1)
 			return ERROR_COLOR + "Usage: /cdpvp [seconds]";
@@ -519,6 +666,13 @@ public class UhcTools extends JavaPlugin {
 			return ERROR_COLOR + "Countdown already in progress!"; 
 	}
 
+	/**
+	 * Carry out the /cdmatch command
+	 * 
+	 * @param sender the sender of the command
+	 * @param args arguments
+	 * @return response
+	 */
 	private String cCdmatch(String[] args) {
 		if (args.length > 1)
 			return ERROR_COLOR + "Usage: /cdmatch [seconds]";
@@ -624,6 +778,13 @@ public class UhcTools extends JavaPlugin {
 		}
 	}
 	
+	/**
+	 * Carry out the /tp command for a player
+	 * 
+	 * @param sender the sender of the command
+	 * @param args arguments
+	 * @return response
+	 */
 	private String cTp(Player sender, String[] args) {
 		
 		if (args.length == 0) {
@@ -695,6 +856,13 @@ public class UhcTools extends JavaPlugin {
 		return ERROR_COLOR + "Incorrect number of arguments";
 	}
 
+	/**
+	 * Carry out the /tp command for a console user
+	 * 
+	 * @param sender the sender of the command
+	 * @param args arguments
+	 * @return response
+	 */
 	private String sTp(String[] args) {
 		
 		if(args.length == 2){
@@ -733,7 +901,13 @@ public class UhcTools extends JavaPlugin {
 		return ERROR_COLOR + "Incorrect number of arguments";
 	}
 	
-	
+	/**
+	 * Carry out the /tp0 command
+	 * 
+	 * @param sender the sender of the command
+	 * @param args arguments
+	 * @return response
+	 */
 	private String cTp0(Player sender) {
 		sender.teleport(world.getSpawnLocation());
 		return OK_COLOR + "Teleported to spawn";
@@ -907,11 +1081,22 @@ public class UhcTools extends JavaPlugin {
 		return response;
 	}
 
+	/**
+	 * Carry out the /butcher command
+	 * 
+	 * @param sender the sender of the command
+	 * @param args arguments
+	 * @return response
+	 */
 	private String cButcher() {
 		butcherHostile();
 		return "Hostile mobs have been butchered";
 	}
 
+	
+	/**
+	 * Load configuration settings into variables
+	 */
 	private void loadConfigValues() {
 		saveDefaultConfig();
 		killerBonusEnabled = getConfig().getBoolean("killerbonus.enabled");
@@ -925,10 +1110,18 @@ public class UhcTools extends JavaPlugin {
 		deathban = getConfig().getBoolean("deathban");
 	}
 
+	/**
+	 * Set time to midday, to keep permaday in effect.
+	 */
 	private void keepPermaday() {
 		this.world.setTime(6000);
 	}
 
+	/**
+	 * Enables / disables PVP on all worlds
+	 * 
+	 * @param pvp Whether PVP is to be allowed
+	 */
 	public void setPVP(boolean pvp) {
 		for(World w : server.getWorlds()) {
 			w.setPVP(pvp);
@@ -938,6 +1131,11 @@ public class UhcTools extends JavaPlugin {
 	
 	}
 
+	/**
+	 * Enables / disables permaday
+	 * 
+	 * @param p whether permaday is to be on or off
+	 */
 	public void setPermaday(boolean p) {
 		if (p == permaday) return;
 		
@@ -959,10 +1157,20 @@ public class UhcTools extends JavaPlugin {
 		}
 	}
 
+	/**
+	 * Check whether deathban is in effect
+	 * 
+	 * @return Whether deathban is enabled
+	 */
 	public boolean getDeathban() {
 		return deathban;
 	}
 
+	/**
+	 * Set deathban on/off
+	 * 
+	 * @param d Whether deathban is to be enabled
+	 */
 	public void setDeathban(boolean d) {
 		this.deathban = d;
 		getServer().broadcast(OK_COLOR + "Deathban has been " + (deathban ? "enabled" : "disabled") + "!", Server.BROADCAST_CHANNEL_ADMINISTRATIVE);
@@ -991,22 +1199,37 @@ public class UhcTools extends JavaPlugin {
 		
 	}
 
+	/**
+	 * Set a death location for teleporters
+	 * 
+	 * @param l The location to be stored
+	 */
 	public void setLastDeathLocation(Location l) {
 		lastDeathLocation = l;
 		lastEventLocation = l;
 	}
 
+	/**
+	 * Set a notification location for teleporters
+	 * 
+	 * @param l The location to be stored
+	 */
 	public void setLastNotifierLocation(Location l) {
 		lastNotifierLocation = l;
 		lastEventLocation = l;
 	}
 
+	/**
+	 * Set a logout location for teleporters
+	 * 
+	 * @param l The location to be stored
+	 */
 	public void setLastLogoutLocation(Location l) {
 		lastLogoutLocation = l;
 	}
 	
 	/**
-	 * Teleport one player to another. If player is a staff member, fancy
+	 * Teleport one player to another. If player is opped, fancy
 	 * teleport will be done. Adds a custom message to be displayed.
 	 * 
 	 * @param p1 player to be teleported
@@ -1016,23 +1239,23 @@ public class UhcTools extends JavaPlugin {
 	public void doTeleport(Player p1, Player p2, String message) {
 		//saveTpLocation(p1);
 
-		// if the first player is a staff member, do fancy teleport. Otherwise
-		// just
-		// teleport.
+		// if the first player is opped, do fancy teleport.
 		if (!p1.isOp())
 			p1.teleport(p2);
 		else
 			doFancyTeleport(p1, p2);
 
+		// If player is in creative, set them to be in flight
 		if (p1.getGameMode() == GameMode.CREATIVE)
 			p1.setFlying(true);
 
+		// Send the teleport message, if provided
 		if (message != null && !message.isEmpty())
 			p1.sendMessage(OK_COLOR + message);
 	}
 
 	/**
-	 * Teleport one player to another. If player is a staff member, fancy
+	 * Teleport one player to another. If player is opped, fancy
 	 * teleport will be done.
 	 * 
 	 * @param p1 player to be teleported
@@ -1070,7 +1293,7 @@ public class UhcTools extends JavaPlugin {
 	 * @param streamer the Player who will be fancy-teleported
 	 * @param p the Player they are to be teleported to
 	 */
-	public void doFancyTeleport(Player streamer, Player p) {
+	private void doFancyTeleport(Player streamer, Player p) {
 		Location l = p.getLocation();
 
 		Location lp = new Location(l.getWorld(), l.getX(), l.getY(), l.getZ());
