@@ -34,8 +34,11 @@ import org.bukkit.entity.Slime;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
+
+import com.wimbli.WorldBorder.WorldBorder;
 
 public class UhcTools extends JavaPlugin {
 	public Server server;
@@ -1750,5 +1753,16 @@ public class UhcTools extends JavaPlugin {
 		return survivors;
 		
 	}
+	
+    private WorldBorder getWorldBorder() {
+        Plugin plugin = getServer().getPluginManager().getPlugin("WorldBorder");
+
+        // Check if the plugin is loaded
+        if (plugin == null || !(plugin instanceof WorldBorder))
+        	return null;
+
+        return (WorldBorder) plugin;
+    }
+
 
 }
