@@ -1360,6 +1360,11 @@ public class UhcTools extends JavaPlugin {
 
 
 	
+	/**
+	 * Build a starting trough at the specified start point, and puts a starter chest and sign there.
+	 * 
+	 * @param sp The start point where the trough will be created
+	 */
 	public void buildStartingTrough(UhcStartPoint sp) {
 		int x = sp.getLocation().getBlockX();
 		int y = sp.getLocation().getBlockY();
@@ -1377,9 +1382,6 @@ public class UhcTools extends JavaPlugin {
 		chest.setItem(21,new ItemStack(Material.SADDLE, 1));
 		chest.setItem(22,new ItemStack(Material.STONE_AXE, 1));
 		chest.setItem(23,new ItemStack(Material.MONSTER_EGG, 1, (short) 90));
-		
-		
-		
 		
 		
 		world.getBlockAt(x,y-2,z).setType(Material.GLASS);
@@ -1440,6 +1442,9 @@ public class UhcTools extends JavaPlugin {
 	}
 	
 	
+	/**
+	 * Remove all hostile mobs in the current world
+	 */
 	public void butcherHostile() {
 		for (Entity entity : world.getEntitiesByClass(LivingEntity.class)) {
 			if (entity instanceof Monster || entity instanceof MagmaCube || entity instanceof Slime || entity instanceof EnderDragon
