@@ -107,6 +107,7 @@ public class UhcTools extends JavaPlugin {
 		miningFatigueExhaustion = getConfig().getInt("miningfatigue.exhaustion");
 		miningFatigueDamage = getConfig().getInt("miningfatigue.damage");
 		miningFatigueMaxY = getConfig().getInt("miningfatigue.maxy");
+		deathban = getConfig().getBoolean("deathban");
 	}
 
 	@Override
