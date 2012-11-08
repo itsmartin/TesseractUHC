@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Random;
 
@@ -76,6 +77,9 @@ public class UhcTools extends JavaPlugin {
 	private static String DEFAULT_START_POINTS_FILE = "starts.txt";
 	private int playersInMatch = 0;
 	private int nextRadius;
+	private Calendar matchStartTime;
+	private int matchTimer = -1;
+	private boolean matchEnded = false;
 	
 	public void onEnable(){
 		l = new UhcToolsListener(this);
@@ -1306,6 +1310,14 @@ public class UhcTools extends JavaPlugin {
 		setDeathban(true);
 		setPermaday(false);
 		setPVP(true);
+		startMatchTimer();
+	}
+	
+	public void endMatch() {
+		announceMatchTime(true);
+		stopMatchTimer();
+		matchEnded = true;
+
 	}
 	
 	/**
@@ -1367,6 +1379,46 @@ public class UhcTools extends JavaPlugin {
 		countdown = -1;
 	}
 	
+	public void startMatchTimer() {
+		matchStartTime = Calendar.getInstance();
+		matchTimer = getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
+			public void run() {
+				announceMatchTime(false);
+			}
+		}, 36000L, 36000L);
+	}
+	
+	public void stopMatchTimer() {
+		if (matchTimer != -1) {
+			getServer().getScheduler().cancelTask(matchTimer);
+		}
+	}
+	
+	public void announceMatchTime(boolean precise) {
+		getServer().broadcastMessage(MAIN_COLOR + "Match time: " + SIDE_COLOR + formatDuration(matchStartTime, Calendar.getInstance(), precise));
+	}
+	
+	private String formatDuration(Calendar t1, Calendar t2, boolean precise) {
+		// Get duration in seconds
+		int d = (int) (t2.getTimeInMillis() - t1.getTimeInMillis()) / 1000;
+		
+		if (precise) {
+			int seconds = d % 60;
+			d = d / 60;
+			int minutes = d % 60;
+			int hours = d / 60;
+			
+			// The string
+			return String.format("%02d:%02d:%02d", hours, minutes, seconds);
+		} else {
+			int minutes = (d + 30) / 60;
+			return minutes + " minute" + (minutes == 1 ? "s" : "");
+			
+		}
+		
+	}
+	
+
 	public void playChatScript(String filename, boolean muteChat) {
 		if (muteChat) this.setChatMuted(true);
 		chatScript = loadChatScript(filename);
@@ -1735,6 +1787,9 @@ public class UhcTools extends JavaPlugin {
 		up.setDead(true);
 		playersInMatch--;
 		announcePlayersRemaining();
+		if (playersInMatch == 1) {
+			endMatch();
+		}
 	}
 
 	private void announcePlayersRemaining() {
@@ -1785,6 +1840,10 @@ public class UhcTools extends JavaPlugin {
     	}
     	return false;
     }
+
+	public boolean isMatchEnded() {
+		return matchEnded;
+	}
 
 
 }

@@ -53,13 +53,17 @@ public class UhcToolsListener implements Listener {
 		// If we are in the pre-launch period, do nothing
 		if (!t.getLaunchingPlayers()) return;
 		
+		// If match is over, do nothing
+		if (t.isMatchEnded()) return;
+
 		// If the match has not yet started, launch the player if necessary
 		if (!t.isMatchStarted()) {
 			t.launch(e.getPlayer());
 			return;
 		}
 
-		// Match is underway.
+		
+		// Match is in progress.
 
 		// If player was not launched, don't allow them in.
 		UhcPlayer up = t.getUhcPlayer(e.getPlayer());
