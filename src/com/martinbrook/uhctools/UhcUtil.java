@@ -11,6 +11,10 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.plugin.Plugin;
+
+import com.wimbli.WorldBorder.BorderData;
+import com.wimbli.WorldBorder.WorldBorder;
 
 public class UhcUtil {
 
@@ -145,5 +149,38 @@ public class UhcUtil {
 	public static boolean isSpaceForPlayer(Block b) {
 		return (b.isEmpty() || b.isLiquid()) && b.getType() != Material.LAVA && b.getType() != Material.STATIONARY_LAVA;
 	}
+	
+    /**
+     * Get a BorderData from the WorldBorder plugin
+     * 
+     * @param w The world to get borders for
+     * @return The WorldBorder BorderData object
+     */
+    private static BorderData getWorldBorder(World w) {
+        Plugin plugin = UhcTools.getInstance().getServer().getPluginManager().getPlugin("WorldBorder");
+
+        // Check if the plugin is loaded
+        if (plugin == null || !(plugin instanceof WorldBorder))
+        	return null;
+
+        WorldBorder wb = (WorldBorder) plugin;
+        return wb.GetWorldBorder(w.getName());
+    }
+    
+    /**
+     * Change the WorldBorder radius for a world
+     * 
+     * @param w The world to be changed
+     * @param radius The new radius
+     * @return Whether the operation succeeded
+     */
+    public static boolean setWorldRadius(World w, int radius) {
+    	BorderData border = getWorldBorder(w);
+    	if (border != null) {
+    		border.setRadius(radius);
+    		return true;
+    	}
+    	return false;
+    }
 	
 }

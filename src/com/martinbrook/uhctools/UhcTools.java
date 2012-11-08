@@ -34,12 +34,8 @@ import org.bukkit.entity.Slime;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
-
-import com.wimbli.WorldBorder.WorldBorder;
-import com.wimbli.WorldBorder.BorderData;
 
 public class UhcTools extends JavaPlugin {
 	public Server server;
@@ -1597,7 +1593,7 @@ public class UhcTools extends JavaPlugin {
 			} else if (countdownType == CountdownType.PVP) {
 				this.setPVP(true);
 			} else if (countdownType == CountdownType.WORLD_REDUCE) {
-				if (this.setWorldRadius(world,nextRadius)) {
+				if (UhcUtil.setWorldRadius(world,nextRadius)) {
 					getServer().broadcast(OK_COLOR + "Border reduced to " + nextRadius, Server.BROADCAST_CHANNEL_ADMINISTRATIVE);
 				} else {
 					getServer().broadcast(ERROR_COLOR + "Unable to reduce border. Is WorldBorder installed?", Server.BROADCAST_CHANNEL_ADMINISTRATIVE);
@@ -2143,38 +2139,7 @@ public class UhcTools extends JavaPlugin {
 		
 	}
 	
-    /**
-     * Get a BorderData from the WorldBorder plugin
-     * 
-     * @param w The world to get borders for
-     * @return The WorldBorder BorderData object
-     */
-    private BorderData getWorldBorder(World w) {
-        Plugin plugin = getServer().getPluginManager().getPlugin("WorldBorder");
 
-        // Check if the plugin is loaded
-        if (plugin == null || !(plugin instanceof WorldBorder))
-        	return null;
-
-        WorldBorder wb = (WorldBorder) plugin;
-        return wb.GetWorldBorder(w.getName());
-    }
-    
-    /**
-     * Change the WorldBorder radius for a world
-     * 
-     * @param w The world to be changed
-     * @param radius The new radius
-     * @return Whether the operation succeeded
-     */
-    private boolean setWorldRadius(World w, int radius) {
-    	BorderData border = getWorldBorder(w);
-    	if (border != null) {
-    		border.setRadius(radius);
-    		return true;
-    	}
-    	return false;
-    }
 
 	/**
 	 * @return Whether the match is over
