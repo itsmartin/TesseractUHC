@@ -39,6 +39,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 
 import com.wimbli.WorldBorder.WorldBorder;
+import com.wimbli.WorldBorder.BorderData;
 
 public class UhcTools extends JavaPlugin {
 	public Server server;
@@ -74,6 +75,7 @@ public class UhcTools extends JavaPlugin {
 	private int miningFatigueMaxY;
 	private static String DEFAULT_START_POINTS_FILE = "starts.txt";
 	private int playersInMatch = 0;
+	private int nextRadius;
 	
 	public void onEnable(){
 		l = new UhcToolsListener(this);
@@ -519,13 +521,19 @@ public class UhcTools extends JavaPlugin {
 		if (args.length == 0 || args.length > 2)
 			return ERROR_COLOR + "Specify world radius and countdown duration";
 		
-		int radius = Integer.parseInt(args[0]);
+		
+		try {
+			nextRadius = Integer.parseInt(args[0]);
+		} catch (NumberFormatException e) {
+			return ERROR_COLOR + "World radius must be specified as an integer";
+		}
+		
 		int countLength = 300;
 		
 		if (args.length == 2)
 			countLength = Integer.parseInt(args[1]);
 		
-		if (startCountdown(countLength, "World border will move to +/- " + radius + " x and z", "World border is now at +/- " + radius + " x and z!", CountdownType.WORLD_REDUCE))
+		if (startCountdown(countLength, "World border will move to +/- " + nextRadius + " x and z", "World border is now at +/- " + nextRadius + " x and z!", CountdownType.WORLD_REDUCE))
 			return OK_COLOR + "Countdown started";
 		else 
 			return ERROR_COLOR + "Countdown already in progress!"; 
@@ -1328,7 +1336,11 @@ public class UhcTools extends JavaPlugin {
 			} else if (countdownType == CountdownType.PVP) {
 				this.setPVP(true);
 			} else if (countdownType == CountdownType.WORLD_REDUCE) {
-				
+				if (this.setWorldRadius(world,nextRadius)) {
+					getServer().broadcast(OK_COLOR + "Border reduced to " + nextRadius, Server.BROADCAST_CHANNEL_ADMINISTRATIVE);
+				} else {
+					getServer().broadcast(ERROR_COLOR + "Unable to reduce border. Is WorldBorder installed?", Server.BROADCAST_CHANNEL_ADMINISTRATIVE);
+				}
 			}
 			getServer().broadcastMessage(MAIN_COLOR + countdownEndMessage);
 			return;
@@ -1754,14 +1766,24 @@ public class UhcTools extends JavaPlugin {
 		
 	}
 	
-    private WorldBorder getWorldBorder() {
+    private BorderData getWorldBorder(World w) {
         Plugin plugin = getServer().getPluginManager().getPlugin("WorldBorder");
 
         // Check if the plugin is loaded
         if (plugin == null || !(plugin instanceof WorldBorder))
         	return null;
 
-        return (WorldBorder) plugin;
+        WorldBorder wb = (WorldBorder) plugin;
+        return wb.GetWorldBorder(w.getName());
+    }
+    
+    private boolean setWorldRadius(World w, int radius) {
+    	BorderData border = getWorldBorder(w);
+    	if (border != null) {
+    		border.setRadius(radius);
+    		return true;
+    	}
+    	return false;
     }
 
 
