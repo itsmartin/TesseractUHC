@@ -139,7 +139,7 @@ public class UhcTools extends JavaPlugin {
 		} else if (cmd.equals("setspawn")) {
 			response = cSetspawn(sender);
 		} else if (cmd.equals("makestart")) {
-			response = cMakestart(sender);
+			response = cMakestart(sender,args);
 		} else {
 			success = false;
 		}
@@ -248,7 +248,7 @@ public class UhcTools extends JavaPlugin {
 		return OK_COLOR + "This world's spawn point has been set to " + newSpawn.getBlockX() + "," + newSpawn.getBlockY() + "," + newSpawn.getBlockZ();
 	}
 
-	private String cMakestart(Player sender) {
+	private String cMakestart(Player sender, String[] args) {
 		Location l = sender.getLocation();
 		double x = l.getBlockX() + 0.5;
 		double y = l.getBlockY();
@@ -257,7 +257,8 @@ public class UhcTools extends JavaPlugin {
 		UhcStartPoint startPoint = new UhcStartPoint(world, x,y,z);
 		startPoints.add(startPoint);
 		
-		buildStartingTrough(startPoint.getLocation(), startPoints.size());
+		if (args.length < 1 || !("-n".equalsIgnoreCase(args[0])))
+			buildStartingTrough(startPoint.getLocation(), startPoints.size());
 		return OK_COLOR + "Start point added";
 		
 	}
