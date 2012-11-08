@@ -1443,7 +1443,7 @@ public class UhcTools extends JavaPlugin {
 	
 	
 	/**
-	 * Remove all hostile mobs in the current world
+	 * Remove all hostile mobs in the overworld
 	 */
 	public void butcherHostile() {
 		for (Entity entity : world.getEntitiesByClass(LivingEntity.class)) {
@@ -1453,44 +1453,78 @@ public class UhcTools extends JavaPlugin {
 		}
 	}
 	
+	/**
+	 * Heal, feed, clear XP, inventory and potion effects of the given player
+	 * 
+	 * @param p The player to be renewed
+	 */
 	public void renew(Player p) {
 		heal(p);
 		feed(p);
 		clearXP(p);
 		clearPotionEffects(p);
-		if (p.getGameMode() != GameMode.CREATIVE)
-			clearInventory(p);
+		clearInventory(p);
 	}
 
+	/**
+	 * Heal, feed, clear XP, inventory and potion effects of all non-creative players
+	 */
 	public void renewAll() {
 		for (Player p : world.getPlayers()) {
-			renew(p);
-			p.sendMessage(OK_COLOR + "You have been healed and fed!");
+			if (p.getGameMode() != GameMode.CREATIVE) {
+				renew(p);
+				p.sendMessage(OK_COLOR + "You have been healed and fed!");
+			}
 		}
 	}
 
+	/**
+	 * Heal the given player
+	 * 
+	 * @param p The player to be healed
+	 */
 	public void heal(Player p) {
 		p.setHealth(20);
 	}
 
+	/**
+	 * Feed the given player
+	 * 
+	 * @param p The player to be fed
+	 */
 	public void feed(Player p) {
 		p.setFoodLevel(20);
 		p.setExhaustion(0.0F);
 		p.setSaturation(5.0F);
 	}
 
+	/**
+	 * Reset XP of the given player
+	 * 
+	 * @param p The player
+	 */
 	public void clearXP(Player p) {
 		p.setTotalExperience(0);
 		p.setExp(0);
 		p.setLevel(0);
 	}
 
+	/**
+	 * Clear potion effects of the given player
+	 * 
+	 * @param p The player
+	 */
 	public void clearPotionEffects(Player p) {
 		for (PotionEffect pe : p.getActivePotionEffects()) {
 			p.removePotionEffect(pe.getType());
 		}
 	}
 
+	/**
+	 * Clear inventory and ender chest of the given player
+	 * 
+	 * @param player
+	 */
 	public void clearInventory(Player player) {
 		PlayerInventory i = player.getInventory();
 		i.clear();
@@ -1498,6 +1532,9 @@ public class UhcTools extends JavaPlugin {
 		i.setChestplate(null);
 		i.setLeggings(null);
 		i.setBoots(null);
+		
+		player.getEnderChest().clear();
+		
 	}
 	
 	public void startMatch() {
