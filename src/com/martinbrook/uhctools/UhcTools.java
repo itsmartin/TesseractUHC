@@ -289,7 +289,7 @@ public class UhcTools extends JavaPlugin {
 		if (args.length != 1)
 			return ERROR_COLOR + "Please specify the player to be removed";
 		
-		UhcPlayer up = getUhcPlayer(args[0]); //TODO
+		UhcPlayer up = getUhcPlayer(args[0]);
 		
 		if (up == null)
 			return ERROR_COLOR + "Player " + args[0] + " not found";;
@@ -1735,7 +1735,7 @@ public class UhcTools extends JavaPlugin {
 	 * 
 	 * @param name The exact name of the player to be found  (case insensitive)
 	 * @param createNew Whether to create a new player if not found
-	 * @return The UhcPlayer
+	 * @return The UhcPlayer, or null if not found/created
 	 */
 	public UhcPlayer getUhcPlayer(String name, Boolean createNew) {
 		UhcPlayer up = uhcPlayers.get(name.toLowerCase());
@@ -1750,7 +1750,7 @@ public class UhcTools extends JavaPlugin {
 	 * Get a specific UhcPlayer by name
 	 * 
 	 * @param name The exact name of the player to be found (case insensitive)
-	 * @return The UhcPlayer
+	 * @return The UhcPlayer, or null if not found
 	 */
 	public UhcPlayer getUhcPlayer(String name) {
 		return getUhcPlayer(name, false);
@@ -1761,7 +1761,7 @@ public class UhcTools extends JavaPlugin {
 	 * 
 	 * @param playerToGet The Player to look for
 	 * @param createNew Whether to create a new player if not found
-	 * @return The UhcPlayer
+	 * @return The UhcPlayer, or null if not found/created
 	 */
 	public UhcPlayer getUhcPlayer(Player playerToGet, Boolean createNew) {
 		return getUhcPlayer(playerToGet.getName(), createNew);
@@ -1771,7 +1771,7 @@ public class UhcTools extends JavaPlugin {
 	 * Get a specific UhcPlayer matching the given Bukkit Player
 	 * 
 	 * @param playerToGet The Player to look for
-	 * @return The UhcPlayer
+	 * @return The UhcPlayer, or null if not found
 	 */
 	public UhcPlayer getUhcPlayer(Player playerToGet) {
 		return getUhcPlayer(playerToGet.getName(), false);
