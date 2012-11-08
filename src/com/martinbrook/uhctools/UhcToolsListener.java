@@ -47,12 +47,23 @@ public class UhcToolsListener implements Listener {
 	
 	@EventHandler
 	public void onLogin(PlayerLoginEvent e) {
-		// Check if automatic player launching is running, if not, ignore
-		if (!t.getLaunchingPlayers() || t.isMatchStarted()) return;
+		// If player not allowed to log in, do nothing
+		if (e.getResult() != PlayerLoginEvent.Result.ALLOWED) return;
 		
-		// Check player who logged in has been launched
-		t.launch(e.getPlayer());
+		// If we are in the pre-launch period, do nothing
+		if (!t.getLaunchingPlayers()) return;
 		
+		// If the match has not yet started, launch the player if necessary
+		if (!t.isMatchStarted()) {
+			t.launch(e.getPlayer());
+			return;
+		}
+
+		// Match is underway. If player was not launched, don't allow them in.
+		UhcPlayer up = t.getUhcPlayer(e.getPlayer());
+		if (up == null || !up.isLaunched()) {
+			e.disallow(PlayerLoginEvent.Result.KICK_OTHER, "The match has already started");
+		}
 	}
 	
 	
