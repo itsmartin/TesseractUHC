@@ -90,7 +90,8 @@ public class UhcTools extends JavaPlugin {
 		
 		loadConfigValues();
 		
-		loadStartPoints(); 
+		loadStartPoints();
+		setPermaday(true);
 	}
 	
 	public void onDisable(){
