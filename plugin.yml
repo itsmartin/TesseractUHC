@@ -119,9 +119,18 @@ commands:
  launch:
   description: Launch all players, or a specific player
   usage: /launch [player]
- unlaunch:
-  description: Unlaunch a specific player
-  usage /unlaunch player | start number
+ addplayers:
+  description: Set start points for all players on the server
+  usage: /addplayers
+ addplayer:
+  description: Set start point for the specified player
+  usage: /addplayer player
+ removeplayer:
+  description: Remove a specific player
+  usage /removeplayer player
+ rmplayer:
+  description: Remove a specific player
+  usage /rmplayer player
  relaunch:
   description: Relaunch a player
   usage: /relaunch player  

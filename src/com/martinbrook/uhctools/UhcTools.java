@@ -234,10 +234,14 @@ public class UhcTools extends JavaPlugin {
 			response = cListplayers();
 		} else if (cmd.equals("launch")) {
 			response = cLaunch(args);
+		} else if (cmd.equals("addplayers")) {
+			response = cAddplayers();
+		} else if (cmd.equals("addplayer")) {
+			response = cAddplayer(args);
+		} else if (cmd.equals("removeplayer") || cmd.equalsIgnoreCase("rmplayer")) {
+			response = cRemoveplayer(args);
 		} else if (cmd.equals("relaunch")) {
 			response = cRelaunch(args);
-		} else if (cmd.equals("unlaunch")) {
-			response = cUnlaunch(args);
 		} else {
 			success = false;
 		}
@@ -275,29 +279,69 @@ public class UhcTools extends JavaPlugin {
 	}
 
 	/**
-	 * Carry out the /unlaunch command
+	 * Carry out the /removeplayer command
 	 * 
-	 * @param sender the sender of the command
 	 * @param args arguments
 	 * @return response
 	 */
-	private String cUnlaunch(String[] args) {
+	private String cRemoveplayer(String[] args) {
 		if (args.length != 1)
-			return ERROR_COLOR + "Incorrect number of arguments for /unlaunch";
-
-		UhcStartPoint sp = findStartPoint(args[0]);
+			return ERROR_COLOR + "Please specify the player to be removed";
 		
-		UhcPlayer up = sp.getUhcPlayer();
+		UhcPlayer up = uhcPlayers.get(args[0]);
 		
 		if (up == null)
-			return ERROR_COLOR + "That start point is not occupied";
+			return ERROR_COLOR + "Player " + args[0] + " not found";;
 		
-		if (unLaunch(up))
-			return OK_COLOR + up.getName() + " unlaunched, start point " + sp.getNumber() + " released";
+		if (removePlayer(up))
+			return OK_COLOR + up.getName() + " removed, start point " + up.getStartPoint().getNumber() + " released";
 		else
 			return ERROR_COLOR + "Unable to unlaunch " + up.getName();
 
 	}
+
+	/**
+	 * Carry out the /addplayers command
+	 * 
+	 * @return response
+	 */
+	private String cAddplayers() {
+		int added = 0;
+		for (Player p : getServer().getOnlinePlayers()) {
+			if (!p.isOp())
+				if (addPlayer(p)) added++;
+		}
+		if (added > 0)
+			return "" + OK_COLOR + added + " player" + (added == 1? "" : "s") + " added";
+		else
+			return ERROR_COLOR + "No players to add!";
+		
+	}
+
+	/**
+	 * Carry out the /addplayer command
+	 * 
+	 * @param args arguments
+	 * @return response
+	 */
+	private String cAddplayer(String[] args) {
+		if (args.length != 1) 
+			return ERROR_COLOR + "Please specify the player to add";
+	
+		Player p = server.getPlayer(args[0]);
+		if (p == null)
+			return ERROR_COLOR + "Player " + args[0] + " not found";
+		
+		if (p.isOp())
+			return ERROR_COLOR + "Player should be deopped first!";
+		
+		boolean success = addPlayer(p);
+		if (success)
+			return OK_COLOR + "Added player " + p.getDisplayName();
+		else 
+			return ERROR_COLOR + "Player could not be added";
+	}
+
 
 	/**
 	 * Carry out the /match command
@@ -564,24 +608,9 @@ public class UhcTools extends JavaPlugin {
 	 * @return response
 	 */
 	private String cLaunch(String[] args)  {
-		if (args.length == 0) {
-			// launch all players
-			launchAll();
-			return OK_COLOR + "Launching complete";
-		} else {
-			Player p = server.getPlayer(args[0]);
-			if (p == null)
-				return ERROR_COLOR + "Player " + args[0] + " not found";
-			
-			if (p.isOp())
-				return ERROR_COLOR + "Player should be deopped before launching";
-			
-			boolean success = launch(p);
-			if (success)
-				return OK_COLOR + "Launched " + p.getDisplayName();
-			else 
-				return ERROR_COLOR + "Player could not be launched";
-		}
+		// launch all players
+		launchAll();
+		return OK_COLOR + "Launching complete";
 	}
 	
 	/**
@@ -1738,47 +1767,65 @@ public class UhcTools extends JavaPlugin {
 	}
 	
 	/**
-	 * Launch the specified player only
+	 * Add the supplied player and assign them a start point
 	 * 
-	 * @param p The Player to be launched
+	 * @param p The player to add
 	 * @return success or failure
 	 */
-	public boolean launch(Player p) {
-
+	public boolean addPlayer(Player p) {
 		// Check that we are not dealing with an op here
 		if (p.isOp()) return false;
+		
+		// Check that there are available start points
+		if (availableStartPoints.size() < 1) return false;
+		
+		
 		
 		// Get the player, creating if necessary
 		UhcPlayer up = getUhcPlayer(p, true);
 
+		
+		// Check if the player already has a start point
+		if (up.getStartPoint() != null) return false;
+		
+		// Get them a start point
+		Random rand = new Random();
+		UhcStartPoint start = availableStartPoints.remove(rand.nextInt(availableStartPoints.size()));
+		up.setStartPoint(start);
+		playersInMatch++;
+		start.setUhcPlayer(up);
+		
+		makeStartSign(start);
+
+		return false;
+	}
+
+	/**
+	 * Launch the specified player only
+	 * 
+	 * @param p The UhcPlayer to be launched
+	 * @return success or failure
+	 */
+	public boolean launch(UhcPlayer up) {
+
 		// If player already launched, ignore
 		if (up.isLaunched()) return false;
 		
-		// Get the next available start point from the list
-		try {
-			Random rand = new Random();
+		// Get the player
+		Player p = getServer().getPlayer(up.getName());
+		
+		// If player not online, return
+		if (p == null) return false;
+		
+		// Teleport the player to the start point
+		p.setGameMode(GameMode.ADVENTURE);
+		doTeleport(p, up.getStartPoint().getLocation());
+		renew(p);
+		
+		up.setLaunched(true);
 
-			UhcStartPoint start = availableStartPoints.remove(rand.nextInt(availableStartPoints.size()));
-			
-			// Teleport the player to the start point
-			p.setGameMode(GameMode.ADVENTURE);
-			p.teleport(start.getLocation());
-			renew(p);
-			
-			up.setLaunched(true);
-			up.setStartPoint(start);
-			playersInMatch++;
+		return true;
 
-			start.setUhcPlayer(up);
-			
-			makeStartSign(start);
-
-			return true;
-		} catch (IndexOutOfBoundsException e) {
-			// Out of start points!
-			getServer().broadcast(ERROR_COLOR + "Not enough available start points! " + p.getDisplayName() + " not launched.", Server.BROADCAST_CHANNEL_ADMINISTRATIVE);
-			return false;
-		} 
 
 		
 	}
@@ -1796,45 +1843,45 @@ public class UhcTools extends JavaPlugin {
 	}
 	
 	/**
-	 * Unlaunch the given player, removing them from the match and freeing up a start point
+	 * Remove the given player, removing them from the match and freeing up a start point.
 	 * 
-	 * @param up The player to be unlaunched
-	 * @return Whether the player was unlaunched
+	 * The player will be teleported back to spawn if they are still on the server
+	 * 
+	 * @param up The player to be removed
+	 * @return Whether the player was removed
 	 */
-	public boolean unLaunch(UhcPlayer up) {
+	public boolean removePlayer(UhcPlayer up) {
+		
 		UhcStartPoint sp = up.getStartPoint();
+
+		// If player has no start point, then they are not in the match and cannot be removed
 		if (sp == null) return false;
 		
-		if (up.isLaunched()) return false;
-		
-		up.setLaunched(false);
 		up.setStartPoint(null);
 		sp.setUhcPlayer(null);
 		playersInMatch--;
-		
 		makeStartSign(sp);
-		
 		availableStartPoints.add(sp);
 		
-		// teleport player back to spawn, if they are online
-		Player p = getServer().getPlayer(up.getName());
-		if (p != null)
-			doTeleport(p,world.getSpawnLocation());
-		
+		if (up.isLaunched()) {
+			up.setLaunched(false);
+			// teleport player back to spawn, if they are online
+			Player p = getServer().getPlayer(up.getName());
+			if (p != null)
+				doTeleport(p,world.getSpawnLocation());
+
+		}
 		
 		return true;
 	}
 
+
 	/**
-	 * Launch all online non-op players, and set other players to be launched upon joining
+	 * Start the launching phase, and launch all players who have been added to the game
 	 */
 	public void launchAll() {
 		launchingPlayers=true;
-		for(Player p : getServer().getOnlinePlayers()) {
-			if (!p.isOp()) {
-				launch(p);
-			}
-		}
+		for(UhcPlayer up : uhcPlayers.values()) launch(up);
 	}
 	
 

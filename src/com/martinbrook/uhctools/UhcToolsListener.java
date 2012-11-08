@@ -56,9 +56,13 @@ public class UhcToolsListener implements Listener {
 		// If match is over, do nothing
 		if (t.isMatchEnded()) return;
 
-		// If the match has not yet started, launch the player if necessary
+		
+		// Get a uhcplayer if possible
+		UhcPlayer up = t.getUhcPlayer(e.getPlayer());
+		
+		// If the match has not yet started, try to launch the player if necessary
 		if (!t.isMatchStarted()) {
-			t.launch(e.getPlayer());
+			if (up != null) t.launch(up);
 			return;
 		}
 
@@ -66,12 +70,11 @@ public class UhcToolsListener implements Listener {
 		// Match is in progress.
 
 		// If player was not launched, don't allow them in.
-		UhcPlayer up = t.getUhcPlayer(e.getPlayer());
 		if (up == null || !up.isLaunched())
 			e.disallow(PlayerLoginEvent.Result.KICK_OTHER, "The match has already started");
 		
 		// If player has died, don't allow them in, if deathban is in effect.
-		if (t.getDeathban() && up != null && up.isDead())
+		if (t.getDeathban() && up.isDead())
 			e.disallow(PlayerLoginEvent.Result.KICK_OTHER, "Dead players cannot rejoin!");
 	}
 	
