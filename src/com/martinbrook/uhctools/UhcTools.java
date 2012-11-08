@@ -1179,14 +1179,23 @@ public class UhcTools extends JavaPlugin {
 		world.getBlockAt(x,y,z+1).setType(Material.GLASS);
 		world.getBlockAt(x,y+1,z+1).setType(Material.GLASS);
 		
+		makeStartSign(sp, "Player " + sp.getNumber());
+	}
+	
+	public void makeStartSign(UhcStartPoint sp, String text) {
+		int x = sp.getLocation().getBlockX();
+		int y = sp.getLocation().getBlockY();
+		int z = sp.getLocation().getBlockZ();
 		world.getBlockAt(x,y,z+2).setType(Material.SIGN_POST);
 		
 		Sign s = (Sign) world.getBlockAt(x,y,z+2).getState();
 		
-		s.setLine(1, "Player " + sp.getNumber());
+		s.setLine(0, "");
+		s.setLine(1, text);
+		s.setLine(2, "");
+		s.setLine(3, "");
+
 		s.update();
-		
-		
 	}
 	
 	
