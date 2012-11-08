@@ -1179,9 +1179,29 @@ public class UhcTools extends JavaPlugin {
 		world.getBlockAt(x,y,z+1).setType(Material.GLASS);
 		world.getBlockAt(x,y+1,z+1).setType(Material.GLASS);
 		
-		makeStartSign(sp, "Player " + sp.getNumber());
+		makeStartSign(sp);
 	}
 	
+	/**
+	 * Make a default start sign
+	 * 
+	 * @param sp The start point to make the sign at
+	 */
+	public void makeStartSign(UhcStartPoint sp) {
+		UhcPlayer up = sp.getUhcPlayer();
+		if (up == null) 
+			makeStartSign(sp, "Player " + sp.getNumber());
+		else
+			makeStartSign(sp, up.getName());
+			
+	}
+	
+	/**
+	 * Make a start sign with specific text
+	 * 
+	 * @param sp The start point to make the sign at
+	 * @param text The text to write on the sign
+	 */
 	public void makeStartSign(UhcStartPoint sp, String text) {
 		int x = sp.getLocation().getBlockX();
 		int y = sp.getLocation().getBlockY();
@@ -1407,6 +1427,8 @@ public class UhcTools extends JavaPlugin {
 			up.setStartPoint(start);
 
 			start.setUhcPlayer(up);
+			
+			makeStartSign(start);
 
 			return true;
 		} catch (IndexOutOfBoundsException e) {
@@ -1438,6 +1460,7 @@ public class UhcTools extends JavaPlugin {
 		up.setLaunched(false);
 		up.setStartPoint(null);
 		sp.setUhcPlayer(null);
+		makeStartSign(sp);
 		
 		availableStartPoints.add(sp);
 		
