@@ -58,6 +58,8 @@ public class UhcToolsListener implements Listener {
 		// If match is over, do nothing
 		if (t.isMatchEnded()) return;
 
+		// If player is op, do nothing
+		if (e.getPlayer().isOp()) return;
 		
 		// Get a uhcplayer if possible
 		UhcPlayer up = t.getUhcPlayer(e.getPlayer());
