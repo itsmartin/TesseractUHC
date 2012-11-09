@@ -736,6 +736,12 @@ public class UhcTools extends JavaPlugin {
 		if (args.length > 1)
 			return ERROR_COLOR + "Usage: /match [seconds]";
 		
+		if (playersInMatch < 2)
+			return ERROR_COLOR + "Not enough players to start";
+		
+		if (!launchingPlayers)
+			return ERROR_COLOR + "Launch players first!";
+		
 		int countLength = 300;
 		
 		if (args.length == 1)
