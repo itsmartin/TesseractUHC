@@ -1206,7 +1206,7 @@ public class UhcTools extends JavaPlugin {
 			w.setPVP(pvp);
 		}
 	
-		getServer().broadcast(OK_COLOR + "PVP has been " + (pvp ? "enabled" : "disabled") + "!", Server.BROADCAST_CHANNEL_ADMINISTRATIVE);
+		getServer().broadcastMessage(OK_COLOR + "PVP has been " + (pvp ? "enabled" : "disabled") + "!");
 	
 	}
 
@@ -1627,6 +1627,7 @@ public class UhcTools extends JavaPlugin {
 		setPermaday(false);
 		setPVP(true);
 		startMatchTimer();
+		getServer().broadcastMessage(OK_COLOR + "GO!");
 	}
 	
 	/**
@@ -1689,8 +1690,10 @@ public class UhcTools extends JavaPlugin {
 				int minutes = countdown / 60;
 				getServer().broadcastMessage(ChatColor.RED + countdownEvent + " in " + minutes + " minute" + (minutes == 1? "":"s"));
 			}
-		} else if (countdown % 15 == 0 || countdown <= 5) {
-			getServer().broadcastMessage(ChatColor.RED + countdownEvent + " in " + countdown + " second" + (countdown == 1? "" : "s"));
+		} else if (countdown % 15 == 0) {
+			getServer().broadcastMessage(ChatColor.RED + countdownEvent + " in " + countdown + " seconds");
+		} else if (countdown <= 5) { 
+			getServer().broadcastMessage(ChatColor.RED + "" + countdown);
 		}
 		
 		countdown--;
