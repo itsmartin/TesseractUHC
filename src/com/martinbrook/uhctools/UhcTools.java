@@ -755,7 +755,7 @@ public class UhcTools extends JavaPlugin {
 		if (args.length == 1)
 			countLength = Integer.parseInt(args[0]);
 		
-		if (startCountdown(countLength, "The match will begin", "Go!", CountdownType.MATCH))
+		if (startCountdown(countLength, "The match will begin", "GO!", CountdownType.MATCH))
 			return OK_COLOR + "Countdown started";
 		else 
 			return ERROR_COLOR + "Countdown already in progress!"; 
@@ -1627,7 +1627,6 @@ public class UhcTools extends JavaPlugin {
 		setPermaday(false);
 		setPVP(true);
 		startMatchTimer();
-		getServer().broadcastMessage(OK_COLOR + "GO!");
 	}
 	
 	/**
@@ -1693,7 +1692,7 @@ public class UhcTools extends JavaPlugin {
 		} else if (countdown % 15 == 0) {
 			getServer().broadcastMessage(ChatColor.RED + countdownEvent + " in " + countdown + " seconds");
 		} else if (countdown <= 5) { 
-			getServer().broadcastMessage(ChatColor.RED + "" + countdown);
+			getServer().broadcastMessage(ChatColor.RED + "" + countdown + "...");
 		}
 		
 		countdown--;
