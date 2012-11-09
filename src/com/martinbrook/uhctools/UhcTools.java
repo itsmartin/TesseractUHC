@@ -164,6 +164,8 @@ public class UhcTools extends JavaPlugin {
 			response = cSetspawn(sender);
 		} else if (cmd.equals("makestart")) {
 			response = cMakestart(sender,args);
+		} else if (cmd.equals("notify") || cmd.equals("n")) {
+			response = cNotify(sender, args);
 		} else {
 			success = false;
 		}
