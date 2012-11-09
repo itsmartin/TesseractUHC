@@ -1852,7 +1852,7 @@ public class UhcTools extends JavaPlugin {
 		
 		makeStartSign(start);
 
-		return false;
+		return true;
 	}
 
 	/**
