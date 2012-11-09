@@ -324,7 +324,7 @@ public class UhcTools extends JavaPlugin {
 		String response = OK_COLOR + "" + calculatedStarts.size() + " start locations calculated: \n";
 		for(int i = 0 ; i < calculatedStarts.size() ; i++) {
 			Location l = calculatedStarts.get(i);
-			response += i + ": x=" + l.getX() + " z=" + l.getZ() + "\n";
+			response += (i+1) + ": x=" + l.getX() + " z=" + l.getZ() + "\n";
 		}
 		return response;
 		
