@@ -1636,6 +1636,8 @@ public class UhcTools extends JavaPlugin {
 		announceMatchTime(true);
 		stopMatchTimer();
 		matchEnded = true;
+		// Put all players into creative
+		for (Player p : getServer().getOnlinePlayers()) p.setGameMode(GameMode.CREATIVE);
 
 	}
 	
@@ -2194,10 +2196,11 @@ public class UhcTools extends JavaPlugin {
 	public void handlePlayerDeath(UhcPlayer up) {
 		up.setDead(true);
 		playersInMatch--;
-		announcePlayersRemaining();
-		if (playersInMatch == 1) {
-			endMatch();
-		}
+		getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable() {
+			public void run() {
+				announcePlayersRemaining();
+			}
+		});
 	}
 
 	/**
@@ -2210,6 +2213,7 @@ public class UhcTools extends JavaPlugin {
 		String message;
 		if (playersInMatch == 1) {
 			message = getSurvivingPlayerList() + " is the winner!";
+			endMatch();
 		} else if (playersInMatch <= 4) {
 			message = playersInMatch + " players remain: " + getSurvivingPlayerList();
 		} else {

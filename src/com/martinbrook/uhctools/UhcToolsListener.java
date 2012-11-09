@@ -55,8 +55,11 @@ public class UhcToolsListener implements Listener {
 		// If we are in the pre-launch period, do nothing
 		if (!t.getLaunchingPlayers()) return;
 		
-		// If match is over, do nothing
-		if (t.isMatchEnded()) return;
+		// If match is over, put player in creative, do nothing else
+		if (t.isMatchEnded()) {
+			e.getPlayer().setGameMode(GameMode.CREATIVE);
+			return;
+		}
 
 		// If player is op, do nothing
 		if (e.getPlayer().isOp()) return;
