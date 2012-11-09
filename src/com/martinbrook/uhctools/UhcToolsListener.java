@@ -64,7 +64,13 @@ public class UhcToolsListener implements Listener {
 		
 		// If the match has not yet started, try to launch the player if necessary
 		if (!t.isMatchStarted()) {
-			if (up != null) t.launch(up);
+			if (up != null) {
+				// Player is in the match, make sure they are launched
+				t.launch(up);
+			} else {
+				// Player isn't in the match, so make sure they log in at spawn
+				e.getPlayer().teleport(t.world.getSpawnLocation());
+			}
 			return;
 		}
 
