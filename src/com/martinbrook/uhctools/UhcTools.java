@@ -78,6 +78,7 @@ public class UhcTools extends JavaPlugin {
 	private int matchTimer = -1;
 	private boolean matchEnded = false;
 	private ArrayList<Location> calculatedStarts = null;
+	private boolean pvp = false;
 	
 	/**
 	 * Get the singleton instance of UhcTools
@@ -504,7 +505,7 @@ public class UhcTools extends JavaPlugin {
 	 */
 	private String cPvp(String[] args) {
 		if (args.length < 1)
-			return OK_COLOR + "PVP is " + (permaday ? "on" : "off");
+			return OK_COLOR + "PVP is " + (pvp ? "on" : "off");
 		
 		if (args[0].equalsIgnoreCase("off") || args[0].equals("0")) {
 			setPVP(false);
@@ -1200,6 +1201,7 @@ public class UhcTools extends JavaPlugin {
 	 * @param pvp Whether PVP is to be allowed
 	 */
 	public void setPVP(boolean pvp) {
+		this.pvp = pvp;
 		for(World w : server.getWorlds()) {
 			w.setPVP(pvp);
 		}
