@@ -1915,6 +1915,10 @@ public class UhcTools extends JavaPlugin {
 				playersInMatch--;
 				makeStartSign(sp);
 				availableStartPoints.add(sp);
+				if (matchStarted) {
+					getServer().broadcastMessage(ChatColor.GOLD + up.getName() + " has been removed from the match");
+					announcePlayersRemaining();
+				}
 			}
 		}
 		
