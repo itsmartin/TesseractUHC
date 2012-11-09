@@ -4,12 +4,14 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
 
 import org.bukkit.ChatColor;
@@ -111,6 +113,24 @@ public class UhcToolsListener implements Listener {
 
 	}
 
+	@EventHandler
+	public void onRespawn(PlayerRespawnEvent e) {
+		// Only do anything if match is in progress
+		if (!t.isMatchStarted() || t.isMatchEnded()) return;
+		
+		Player p = e.getPlayer();
+		
+		// If they're a dead UHC player, put them into adventure mode and make sure they respawn at overworld spawn
+		UhcPlayer up = t.getUhcPlayer(p);
+		
+		if (up != null) {
+			if (up.isDead()) {
+				p.setGameMode(GameMode.ADVENTURE);
+				e.setRespawnLocation(t.world.getSpawnLocation());
+			}
+		}
+	}
+	
 	@EventHandler
 	public void onBlockBreak(BlockBreakEvent e) {
 		if (e.getBlock().getType() == Material.STONE) {
