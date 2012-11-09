@@ -57,9 +57,9 @@ commands:
  renewall:
   description: Renews all players
   usage: /renewall
- cdmatch:
+ match:
   description: Starts the match countdown
-  usage: /cdmatch seconds
+  usage: /match seconds
  cdpvp:
   description: Starts the PvP countdown
   usage: /cdpvp seconds
