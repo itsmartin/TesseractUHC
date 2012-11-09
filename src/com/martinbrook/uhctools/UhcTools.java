@@ -2194,6 +2194,7 @@ public class UhcTools extends JavaPlugin {
 	 * @param up The player who died
 	 */
 	public void handlePlayerDeath(UhcPlayer up) {
+		if (up.isDead()) return;
 		up.setDead(true);
 		playersInMatch--;
 		getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable() {

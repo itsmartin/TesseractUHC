@@ -123,7 +123,7 @@ public class UhcToolsListener implements Listener {
 		
 		// Handle the death
 		UhcPlayer up = t.getUhcPlayer(p);
-		if (up != null)
+		if (up != null && up.isLaunched() && !up.isDead() && t.isMatchStarted() && !t.isMatchEnded())
 			t.handlePlayerDeath(up);
 
 	}
