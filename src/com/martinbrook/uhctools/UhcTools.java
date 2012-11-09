@@ -2042,7 +2042,7 @@ public class UhcTools extends JavaPlugin {
 	 * @return Whether the operation succeeded
 	 */
 	public Boolean loadStartPoints(String filename) {
-		File fStarts = UhcUtil.getDataFile(filename, true);
+		File fStarts = UhcUtil.getWorldDataFile(filename, true);
 		
 		if (fStarts == null) return false;
 		
@@ -2100,7 +2100,7 @@ public class UhcTools extends JavaPlugin {
 	 * @return Whether the operation succeeded
 	 */
 	public boolean saveStartPoints(String filename) {
-		File fStarts = UhcUtil.getDataFile(filename, false);
+		File fStarts = UhcUtil.getWorldDataFile(filename, false);
 		if (fStarts == null) return false;
 
 		try {

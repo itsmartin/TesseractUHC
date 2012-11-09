@@ -41,7 +41,7 @@ public class UhcUtil {
 	}
 
 	public static ArrayList<String> readFile(String filename) {
-		File fChat = getDataFile(filename, true);
+		File fChat = getPluginDataFile(filename, true);
 		
 		if (fChat == null) return null;
 		
@@ -67,35 +67,66 @@ public class UhcUtil {
 	}
 	
 	/**
-	 * Initialise the data directory for the UhcTools plugin.
+	 * Initialise the data folder for the UhcTools plugin.
 	 *
-	 * @return true if the directory has been created or already exists.
+	 * @return The data folder for the plugin, or null if it couldn't be created
 	 */
-	private static boolean createDataDirectory() {
-	    File file = UhcTools.getInstance().getDataFolder();
-	    if (!file.isDirectory()){
-	        if (!file.mkdirs()) {
+	private static File getPluginFolder() {
+	    File pluginFolder = UhcTools.getInstance().getDataFolder();
+	    if (!pluginFolder.isDirectory()){
+	        if (!pluginFolder.mkdirs()) {
 	            // failed to create the non existent directory, so failed
-	            return false;
+	            return null;
 	        }
 	    }
-	    return true;
+	    return pluginFolder;
+	}
+	
+	/**
+	 * Get the folder for the current (main) world
+	 * 
+	 * @return The world folder
+	 */
+	private static File getWorldFolder() {
+		File worldFolder = UhcTools.getInstance().world.getWorldFolder();
+		if (worldFolder.isDirectory()) return worldFolder;
+		else return null;
 	}
 	 
 	/**
-	 * Retrieve a File description of a data file for your plugin.
-	 * This file will be looked for in the data directory of your plugin, wherever that is.
-	 * There is no need to specify the data directory in the filename such as "plugin/datafile.dat"
-	 * Instead, specify only "datafile.dat"
+	 * Retrieve a File from the plugin data folder.
 	 *
-	 * @param filename The name of the file to retrieve.
-	 * @param mustAlreadyExist True if the file must already exist on the filesystem.
-	 *
-	 * @return A File descriptor to the specified data file, or null if there were any issues.
+	 * @param filename Filename to retrieve
+	 * @param mustAlreadyExist true if the file should already exist
+	 * @return The specified data file, or null if not found
 	 */
-	public static File getDataFile(String filename, boolean mustAlreadyExist) {
-	    if (createDataDirectory()) {
-	        File file = new File(UhcTools.getInstance().getDataFolder(), filename);
+	public static File getPluginDataFile(String filename, boolean mustAlreadyExist) {
+		return getDataFile(getPluginFolder(), filename, mustAlreadyExist);
+	}
+	
+	/**
+	 * Retrieve a File from the world data folder.
+	 *
+	 * @param filename Filename to retrieve
+	 * @param mustAlreadyExist true if the file should already exist
+	 * @return The specified data file, or null if not found
+	 */
+	public static File getWorldDataFile(String filename, boolean mustAlreadyExist) {
+		return getDataFile(getWorldFolder(), filename, mustAlreadyExist);
+	}
+	
+	
+	/**
+	 * Retrieve a File from a specific folder.
+	 * 
+	 * @param folder The folder to look for the file in
+	 * @param filename Filename to retrieve
+	 * @param mustAlreadyExist true if the file should already exist
+	 * @return The specified data file, or null if not found
+	 */
+	public static File getDataFile(File folder, String filename, boolean mustAlreadyExist) {
+	    if (folder != null) {
+	        File file = new File(folder, filename);
 	        if (mustAlreadyExist) {
 	            if (file.exists()) {
 	                return file;
