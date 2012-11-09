@@ -1206,7 +1206,7 @@ public class UhcTools extends JavaPlugin {
 			w.setPVP(pvp);
 		}
 	
-		getServer().broadcastMessage(OK_COLOR + "PVP has been " + (pvp ? "enabled" : "disabled") + "!");
+		getServer().broadcast(OK_COLOR + "PVP has been " + (pvp ? "enabled" : "disabled") + "!", Server.BROADCAST_CHANNEL_ADMINISTRATIVE);
 	
 	}
 
