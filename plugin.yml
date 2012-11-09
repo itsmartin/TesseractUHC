@@ -127,10 +127,10 @@ commands:
   usage: /addplayer player
  removeplayer:
   description: Remove a specific player
-  usage /removeplayer player
+  usage: /removeplayer player
  rmplayer:
   description: Remove a specific player
-  usage /rmplayer player
+  usage: /rmplayer player
  relaunch:
   description: Relaunch a player
   usage: /relaunch player
