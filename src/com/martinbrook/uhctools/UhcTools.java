@@ -77,6 +77,7 @@ public class UhcTools extends JavaPlugin {
 	private Calendar matchStartTime;
 	private int matchTimer = -1;
 	private boolean matchEnded = false;
+	private ArrayList<Location> calculatedStarts = null;
 	
 	/**
 	 * Get the singleton instance of UhcTools
@@ -154,6 +155,8 @@ public class UhcTools extends JavaPlugin {
 			response = cTp0(sender);
 		} else if(cmd.equals("tps")) {
 			response = cTps(sender, args);
+		} else if (cmd.equals("tpcs")) {
+			response = cTpcs(sender,args);
 		} else if (cmd.equals("gm")) {
 			sender.setGameMode((sender.getGameMode() == GameMode.CREATIVE) ? GameMode.SURVIVAL : GameMode.CREATIVE);
 		} else if (cmd.equals("setspawn")) {
@@ -243,6 +246,8 @@ public class UhcTools extends JavaPlugin {
 			response = cRemoveplayer(args);
 		} else if (cmd.equals("relaunch")) {
 			response = cRelaunch(args);
+		} else if (cmd.equals("calcstarts")) {
+			response = cCalcstarts(args);
 		} else {
 			success = false;
 		}
@@ -278,6 +283,54 @@ public class UhcTools extends JavaPlugin {
 		
 		return success;
 	}
+
+	/**
+	 * Carry out the /tpcs command
+	 * 
+	 * @param sender player who sent the command
+	 * @param args arguments
+	 * @return response
+	 */
+	private String cTpcs(Player sender, String[] args) {
+		if (calculatedStarts == null)
+			return ERROR_COLOR + "Start points have not been calculated";
+		
+		if (args.length != 1)
+			return ERROR_COLOR + "Please give the start number";
+		
+		
+		try {
+			int startNumber = Integer.parseInt(args[0]);
+			doTeleport(sender,calculatedStarts.get(startNumber - 1));
+		} catch (NumberFormatException e) {
+			return ERROR_COLOR + "Please give the start number";
+		} catch (IndexOutOfBoundsException e) {
+			return ERROR_COLOR + "That start does not exist";
+		}
+		
+		return null;
+	}
+
+	/**
+	 * Carry out the /calcstarts
+	 * 
+	 * @param args arguments
+	 * @return response
+	 */
+	private String cCalcstarts(String[] args) {
+		calculatedStarts = UhcUtil.calculateStarts(args);
+		if (calculatedStarts == null) return ERROR_COLOR + "No start locations were calculated";
+		
+		String response = OK_COLOR + "" + calculatedStarts.size() + " start locations calculated: \n";
+		for(int i = 0 ; i < calculatedStarts.size() ; i++) {
+			Location l = calculatedStarts.get(i);
+			response += i + ": x=" + l.getX() + " z=" + l.getZ() + "\n";
+		}
+		return response;
+		
+		
+	}
+
 
 	/**
 	 * Carry out the /removeplayer command

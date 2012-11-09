@@ -133,4 +133,10 @@ commands:
   usage /rmplayer player
  relaunch:
   description: Relaunch a player
-  usage: /relaunch player  
+  usage: /relaunch player
+ calcstarts:
+  description: Calculate potential start points
+  usage: /calcstarts type param1 param2
+ tpcs:
+  description: Teleport to a calculated start point
+  usage: /tpcs number

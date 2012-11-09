@@ -182,5 +182,56 @@ public class UhcUtil {
     	}
     	return false;
     }
+
+	/**
+	 * Attempt to parse a calcstarts command and return a list of start points
+	 * 
+	 * @param args The arguments which were passed to the command
+	 * @return List of start locations, or null if failed
+	 */
+	public static ArrayList<Location> calculateStarts(String[] args) {
+		if (args.length < 1) return null;
+		String method = args[0];
+		if ("radial".equalsIgnoreCase(method)) {
+			if (args.length != 3) return null;
+			int count;
+			int radius;
+			try {
+				count = Integer.parseInt(args[1]);
+				radius = Integer.parseInt(args[2]);
+			} catch (NumberFormatException e) {
+				return null;
+			}
+			return calculateRadialStarts(count, radius);
+			
+		}
+		return null;
+		
+
+	}
+
+	/**
+	 * Generate a list of radial start points
+	 * 
+	 * @param count Number of starts to generate
+	 * @param radius Radius of circle
+	 * @return List of starts
+	 */
+	private static ArrayList<Location> calculateRadialStarts(int count, int radius) {
+		ArrayList<Location> locations = new ArrayList<Location>();
+		
+		double arc = (2*Math.PI) / count;
+		World w = UhcTools.getInstance().world;
+		
+		for(int i = 0; i < count; i++) {
+			int x = (int) (radius * Math.cos(i*arc));
+			int z = (int) (radius * Math.sin(i*arc));
+			
+			int y = w.getHighestBlockYAt(x, z);
+			locations.add(new Location(w,x,y,z));
+		}
+		return locations;
+	
+	}
 	
 }
