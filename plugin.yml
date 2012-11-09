@@ -89,9 +89,6 @@ commands:
   description: Sends a private notification message to an admin
   usage: /n Message
   alias: notify
- match:
-  description: Start the match
-  usage: /match
  permaday:
   description: Enable/disable permaday
   usage: /permaday on | off

@@ -221,8 +221,6 @@ public class UhcTools extends JavaPlugin {
 			response = cChatscript(args);
 		} else if (cmd.equals("muteall")) {
 			response = cMuteall(args);
-		} else if (cmd.equals("match")) {
-			response = cMatch();
 		} else if (cmd.equals("permaday")) {
 			response = cPermaday(args);
 		} else if (cmd.equals("deathban")) {
@@ -394,18 +392,6 @@ public class UhcTools extends JavaPlugin {
 			return ERROR_COLOR + "Player could not be added";
 	}
 
-
-	/**
-	 * Carry out the /match command
-	 * 
-	 * @param sender the sender of the command
-	 * @param args arguments
-	 * @return response
-	 */
-	private String cMatch() {
-		startMatch();
-		return OK_COLOR + "Match started!";
-	}
 
 	/**
 	 * Carry out the /setspawn command
