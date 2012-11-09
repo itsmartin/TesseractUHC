@@ -342,15 +342,12 @@ public class UhcTools extends JavaPlugin {
 		if (args.length != 1)
 			return ERROR_COLOR + "Please specify the player to be removed";
 		
-		UhcPlayer up = getUhcPlayer(args[0]);
+		UhcPlayer up = removePlayer(args[0]);
 		
-		if (up == null)
-			return ERROR_COLOR + "Player " + args[0] + " not found";;
-		
-		if (removePlayer(up))
+		if (up != null)
 			return OK_COLOR + up.getName() + " removed, start point " + up.getStartPoint().getNumber() + " released";
 		else
-			return ERROR_COLOR + "Unable to unlaunch " + up.getName();
+			return ERROR_COLOR + "Player " + args[0] + " not found";
 
 	}
 
@@ -635,20 +632,17 @@ public class UhcTools extends JavaPlugin {
 	 * @return response
 	 */
 	private String cListplayers() {
-		String response = "Players on server:\n";
+		String response = "Players in the match:\n";
 		
-		for (Player p : getServer().getOnlinePlayers()) {
-			UhcPlayer up = getUhcPlayer(p);
-			if (up != null) response += (up.isDead() ? ERROR_COLOR + "[D] " : OK_COLOR);
-			else if (p.isOp()) response += DECISION_COLOR;
-			else response += ERROR_COLOR;
+		for (UhcPlayer up : getUhcPlayers()) {
+			response += (up.isDead() ? ERROR_COLOR + "[D] " : OK_COLOR);
 			
-			response += p.getName();
-			if (up != null) {
-				response += " " + (up.isLaunched() ? " (start point " + (up.getStartPoint().getNumber()) + ")" : " (unlaunched)");
-			}
+			response += up.getName();
+			response += " (start point " + (up.getStartPoint().getNumber()) + ")";
+			response += (!up.isLaunched() ? " (unlaunched)" : "");
 			response += "\n";
 		}
+		
 		
 		return response;
 
@@ -1784,41 +1778,41 @@ public class UhcTools extends JavaPlugin {
 	
 	
 	/**
-	 * Get a specific UhcPlayer by name, optionally creating a new one if needed
+	 * Create a new player and add them to the game
 	 * 
-	 * @param name The exact name of the player to be found  (case insensitive)
-	 * @param createNew Whether to create a new player if not found
-	 * @return The UhcPlayer, or null if not found/created
+	 * @param name The player's name
+	 * @param sp The player's start point
+	 * @return The newly created player, or null if they already existed
 	 */
-	public UhcPlayer getUhcPlayer(String name, Boolean createNew) {
-		UhcPlayer up = uhcPlayers.get(name.toLowerCase());
-		if (up == null && createNew) {
-			up = new UhcPlayer(name);
-			uhcPlayers.put(name.toLowerCase(), up);
-		}
+	public UhcPlayer createUhcPlayer(String name, UhcStartPoint sp) {
+		// Fail if player exists
+		if (existsUhcPlayer(name)) return null;
+		
+		UhcPlayer up = new UhcPlayer(name, sp);
+		uhcPlayers.put(name.toLowerCase(), up);
 		return up;
-	}
-
-	/**
-	 * Get a specific UhcPlayer by name
-	 * 
-	 * @param name The exact name of the player to be found (case insensitive)
-	 * @return The UhcPlayer, or null if not found
-	 */
-	public UhcPlayer getUhcPlayer(String name) {
-		return getUhcPlayer(name, false);
 	}
 	
 	/**
-	 * Get a specific UhcPlayer matching the given Bukkit Player, optionally creating a new one if needed
+	 * Check if a player exists
 	 * 
-	 * @param playerToGet The Player to look for
-	 * @param createNew Whether to create a new player if not found
-	 * @return The UhcPlayer, or null if not found/created
+	 * @param name Player name to check (case insensitive)
+	 * @return Whether the player exists
 	 */
-	public UhcPlayer getUhcPlayer(Player playerToGet, Boolean createNew) {
-		return getUhcPlayer(playerToGet.getName(), createNew);
+	public boolean existsUhcPlayer(String name) {
+		return uhcPlayers.containsKey(name.toLowerCase());
 	}
+	
+	/**
+	 * Get a specific UhcPlayer by name
+	 * 
+	 * @param name The exact name of the player to be found  (case insensitive)
+	 * @return The UhcPlayer, or null if not found
+	 */
+	public UhcPlayer getUhcPlayer(String name) {
+		return uhcPlayers.get(name.toLowerCase());
+	}
+
 	
 	/**
 	 * Get a specific UhcPlayer matching the given Bukkit Player
@@ -1827,7 +1821,7 @@ public class UhcTools extends JavaPlugin {
 	 * @return The UhcPlayer, or null if not found
 	 */
 	public UhcPlayer getUhcPlayer(Player playerToGet) {
-		return getUhcPlayer(playerToGet.getName(), false);
+		return getUhcPlayer(playerToGet.getName());
 	}
 	
 	/**
@@ -1843,21 +1837,18 @@ public class UhcTools extends JavaPlugin {
 		// Check that there are available start points
 		if (availableStartPoints.size() < 1) return false;
 		
-		
-		
-		// Get the player, creating if necessary
-		UhcPlayer up = getUhcPlayer(p, true);
-
-		
-		// Check if the player already has a start point
-		if (up.getStartPoint() != null) return false;
+		// Check that the player doesn't exist 
+		if (existsUhcPlayer(p.getName())) return false;
 		
 		// Get them a start point
 		Random rand = new Random();
 		UhcStartPoint start = availableStartPoints.remove(rand.nextInt(availableStartPoints.size()));
-		up.setStartPoint(start);
-		playersInMatch++;
+		
+		// Create the player
+		UhcPlayer up = createUhcPlayer(p.getName(), start);
 		start.setUhcPlayer(up);
+
+		playersInMatch++;
 		
 		makeStartSign(start);
 
@@ -1911,32 +1902,28 @@ public class UhcTools extends JavaPlugin {
 	 * 
 	 * The player will be teleported back to spawn if they are still on the server
 	 * 
-	 * @param up The player to be removed
-	 * @return Whether the player was removed
+	 * @param name The player to be removed
+	 * @return The removed player, or null if failed
 	 */
-	public boolean removePlayer(UhcPlayer up) {
+	public UhcPlayer removePlayer(String name) {
+		UhcPlayer up = uhcPlayers.remove(name);
+		Player p = getServer().getPlayer(name);
 		
-		UhcStartPoint sp = up.getStartPoint();
-
-		// If player has no start point, then they are not in the match and cannot be removed
-		if (sp == null) return false;
-		
-		up.setStartPoint(null);
-		sp.setUhcPlayer(null);
-		playersInMatch--;
-		makeStartSign(sp);
-		availableStartPoints.add(sp);
-		
-		if (up.isLaunched()) {
-			up.setLaunched(false);
-			// teleport player back to spawn, if they are online
-			Player p = getServer().getPlayer(up.getName());
-			if (p != null)
-				doTeleport(p,world.getSpawnLocation());
-
+		if (up != null) {
+			// Free up the start point
+			UhcStartPoint sp = up.getStartPoint();
+			if (sp != null) {
+				sp.setUhcPlayer(null);
+				playersInMatch--;
+				makeStartSign(sp);
+				availableStartPoints.add(sp);
+			}
 		}
 		
-		return true;
+		// Teleport the player if possible
+		if (p != null) doTeleport(p,world.getSpawnLocation());
+		
+		return up;
 	}
 
 

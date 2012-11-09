@@ -10,12 +10,13 @@ public class UhcPlayer {
 	private int mineCount = 0;
 	private boolean dead = false;
 	
-	public UhcPlayer(Player p) {
-		this.name = p.getName();
-	}
-
-	public UhcPlayer(String n) {
+	public UhcPlayer(String n, UhcStartPoint sp) {
 		this.name = n;
+		this.startPoint = sp;
+	}
+	
+	public UhcPlayer(Player p, UhcStartPoint sp) {
+		this(p.getName(), sp);
 	}
 	
 	public String getName() {
@@ -41,12 +42,6 @@ public class UhcPlayer {
 	public UhcStartPoint getStartPoint() {
 		return startPoint;
 	}
-
-
-	public void setStartPoint(UhcStartPoint startPoint) {
-		this.startPoint = startPoint;
-	}
-
 
 	public int getMineCount() {
 		return mineCount;
