@@ -1,5 +1,7 @@
 package com.martinbrook.uhctools;
 
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -9,6 +11,7 @@ import org.bukkit.Material;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
@@ -150,6 +153,18 @@ public class UhcToolsListener implements Listener {
 	public void onBlockBreak(BlockBreakEvent e) {
 		if (e.getBlock().getType() == Material.STONE) {
 			t.doMiningFatigue(e.getPlayer(), e.getBlock().getLocation().getBlockY());
+		}
+	}
+	
+	@EventHandler
+	public void onInteractEntityEvent(PlayerInteractEntityEvent e) {
+		Player p = e.getPlayer();
+		if (!p.isOp()) return;
+
+		Entity clicked = e.getRightClicked();
+
+		if (clicked.getType() == EntityType.PLAYER) {
+			t.showInventory(p, (Player) clicked);
 		}
 	}
 	

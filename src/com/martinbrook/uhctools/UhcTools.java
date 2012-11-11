@@ -14,6 +14,7 @@ import java.util.Random;
 
 import org.bukkit.ChatColor;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -160,6 +161,8 @@ public class UhcTools extends JavaPlugin {
 			response = cTpcs(sender,args);
 		} else if (cmd.equals("gm")) {
 			sender.setGameMode((sender.getGameMode() == GameMode.CREATIVE) ? GameMode.SURVIVAL : GameMode.CREATIVE);
+		} else if (cmd.equals("vi") || cmd.equals("pi")) {
+			response = cVi(sender, args);
 		} else if (cmd.equals("setspawn")) {
 			response = cSetspawn(sender);
 		} else if (cmd.equals("makestart")) {
@@ -284,6 +287,30 @@ public class UhcTools extends JavaPlugin {
 		
 		return success;
 	}
+
+	/**
+	 * Carry out the /vi or /pi command
+	 * 
+	 * @param sender the sender of the command
+	 * @param args arguments
+	 * @return response
+	 */
+	private String cVi(Player sender, String[] args) {
+		if (args.length < 1)
+			return ERROR_COLOR + "Please give the name of a player";
+		
+		Player p = getServer().getPlayer(args[0]);
+		
+		if (p == null)
+			return ERROR_COLOR + "Player " + args[0] + " not found.";
+
+		if (!showInventory(sender, p))
+			return ERROR_COLOR + "Unable to view inventory";
+		
+		return null;
+
+	}
+
 
 	/**
 	 * Carry out the /tpcs command
@@ -2253,5 +2280,57 @@ public class UhcTools extends JavaPlugin {
 		return matchEnded;
 	}
 
+	/**
+	 * Show a spectator the contents of a player's inventory.
+	 * 
+	 * @param spectator The player who is asking to see the inventory
+	 * @param player The player being observed
+	 */
+	public boolean showInventory(Player spectator, Player player) {
+
+		Inventory i = getInventoryView(player);
+		if (i == null) return false;
+		
+		spectator.openInventory(i);
+		return true;
+	}
+
+	/**
+	 * Gets a copy of a player's current inventory, including armor/health/hunger details.
+	 *
+	 * @author AuthorBlues
+	 * @param player The player to be viewed
+	 * @return inventory The player's inventory
+	 *
+	 */
+	public Inventory getInventoryView(Player player)
+	{
+
+		PlayerInventory pInventory = player.getInventory();
+		Inventory inventoryView = Bukkit.getServer().createInventory(null,
+			pInventory.getSize() + 9, player.getDisplayName() + "'s Inventory");
+
+		ItemStack[] oldContents = pInventory.getContents();
+		ItemStack[] newContents = inventoryView.getContents();
+
+		for (int i = 0; i < oldContents.length; ++i)
+			if (oldContents[i] != null) newContents[i] = oldContents[i];
+
+		newContents[oldContents.length + 0] = pInventory.getHelmet();
+		newContents[oldContents.length + 1] = pInventory.getChestplate();
+		newContents[oldContents.length + 2] = pInventory.getLeggings();
+		newContents[oldContents.length + 3] = pInventory.getBoots();
+
+		newContents[oldContents.length + 7] = new ItemStack(Material.APPLE, player.getHealth());
+		newContents[oldContents.length + 8] = new ItemStack(Material.COOKED_BEEF, player.getFoodLevel());
+
+		for (int i = 0; i < oldContents.length; ++i)
+			if (newContents[i] != null) newContents[i] = newContents[i].clone();
+
+		inventoryView.setContents(newContents);
+		return inventoryView;
+	}
+	
+	
 
 }

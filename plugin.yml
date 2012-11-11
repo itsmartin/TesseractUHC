@@ -137,3 +137,9 @@ commands:
  tpcs:
   description: Teleport to a calculated start point
   usage: /tpcs number
+ vi:
+  description: View a player's inventory
+  usage: /vi player
+ pi:
+  description: View a player's inventory
+  usage: /pi player
