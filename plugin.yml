@@ -1,6 +1,6 @@
 name: UhcTools
 main: com.martinbrook.uhctools.UhcTools
-version: 0.3
+version: 0.4
 description: Useful commands for UHC matches
 commands:
  tp:
@@ -114,8 +114,8 @@ commands:
   description: List all players, and their start points and status
   usage: /listplayers
  launch:
-  description: Launch all players, or a specific player
-  usage: /launch [player]
+  description: Launch any players who haven't yet been launched
+  usage: /launch
  addplayers:
   description: Set start points for all players on the server
   usage: /addplayers
