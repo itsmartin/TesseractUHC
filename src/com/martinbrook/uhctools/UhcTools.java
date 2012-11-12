@@ -80,6 +80,7 @@ public class UhcTools extends JavaPlugin {
 	private boolean matchEnded = false;
 	private ArrayList<Location> calculatedStarts = null;
 	private boolean pvp = false;
+	private int spawnKeeperTask = -1;
 	
 	/**
 	 * Get the singleton instance of UhcTools
@@ -107,6 +108,7 @@ public class UhcTools extends JavaPlugin {
 		setPermaday(true);
 		setPVP(false);
 		setVanish();
+		enableSpawnKeeper();
 	}
 	
 	public void onDisable(){
@@ -242,7 +244,7 @@ public class UhcTools extends JavaPlugin {
 		} else if (cmd.equals("listplayers")) {
 			response = cListplayers();
 		} else if (cmd.equals("launch")) {
-			response = cLaunch(args);
+			response = cLaunch();
 		} else if (cmd.equals("addplayers")) {
 			response = cAddplayers();
 		} else if (cmd.equals("addplayer")) {
@@ -679,7 +681,7 @@ public class UhcTools extends JavaPlugin {
 	 * @param args arguments
 	 * @return response
 	 */
-	private String cLaunch(String[] args)  {
+	private String cLaunch()  {
 		// launch all players
 		launchAll();
 		return OK_COLOR + "Launching complete";
@@ -1973,11 +1975,31 @@ public class UhcTools extends JavaPlugin {
 	 */
 	public void launchAll() {
 		launchingPlayers=true;
+		disableSpawnKeeper();
 		setVanish(); // Update vanish status
 		for(UhcPlayer up : getUhcPlayers()) launch(up);
 	}
 	
+	
+	public void enableSpawnKeeper() {
+		spawnKeeperTask = getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
+			public void run() {
+				runSpawnKeeper();
+			}
+		}, 20L, 20L);
+	}
 
+	public void disableSpawnKeeper() {
+		getServer().getScheduler().cancelTask(spawnKeeperTask);
+	}
+	
+	public void runSpawnKeeper() {
+		for (Player p : getServer().getOnlinePlayers()) {
+			if (!p.isOp() && p.getLocation().getY() < 128) {
+				doTeleport(p, world.getSpawnLocation());
+			}
+		}
+	}
 	
 	/**
 	 * Create a new start point at a given location
