@@ -8,11 +8,15 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
+import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
+import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
@@ -26,7 +30,13 @@ public class UhcToolsListener implements Listener {
 		this.t = t;
 	}
 	
-	
+
+	@EventHandler
+	public void onJoin(PlayerJoinEvent e) {
+		t.setVanish(e.getPlayer());
+	}
+
+
 	@EventHandler
 	public void onQuit(PlayerQuitEvent e) {
 		t.setLastLogoutLocation(e.getPlayer().getLocation());
@@ -167,5 +177,25 @@ public class UhcToolsListener implements Listener {
 			t.showInventory(p, (Player) clicked);
 		}
 	}
+	
+	
+	@EventHandler(ignoreCancelled = true)
+	public void onPlayerPickupItem(PlayerPickupItemEvent e) {
+		if (e.getPlayer().isOp() && t.inLaunchOrMatch()) e.setCancelled(true);
+	}
+
+	@EventHandler(ignoreCancelled = true)
+	public void onPlayerDropItem(PlayerDropItemEvent e) {
+		if (e.getPlayer().isOp() && t.inLaunchOrMatch()) e.setCancelled(true);
+	}
+
+	@EventHandler(ignoreCancelled = true)
+	public void onEntityTarget(EntityTargetEvent e) {
+		Entity target = e.getTarget();
+		if (target != null && target.getType() == EntityType.PLAYER) {
+			if (((Player) target).isOp() && t.inLaunchOrMatch()) e.setCancelled(true);
+		}
+	}
+	
 	
 }

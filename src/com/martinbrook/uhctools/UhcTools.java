@@ -106,6 +106,7 @@ public class UhcTools extends JavaPlugin {
 		loadStartPoints();
 		setPermaday(true);
 		setPVP(false);
+		setVanish();
 	}
 	
 	public void onDisable(){
@@ -252,6 +253,8 @@ public class UhcTools extends JavaPlugin {
 			response = cRelaunch(args);
 		} else if (cmd.equals("calcstarts")) {
 			response = cCalcstarts(args);
+		} else if (cmd.equals("setvanish")) {
+			response = cSetvanish();
 		} else {
 			success = false;
 		}
@@ -286,6 +289,11 @@ public class UhcTools extends JavaPlugin {
 			sender.sendMessage(response);
 		
 		return success;
+	}
+
+	private String cSetvanish() {
+		setVanish();
+		return OK_COLOR + "Visibility of all players has been updated";
 	}
 
 	/**
@@ -1648,6 +1656,7 @@ public class UhcTools extends JavaPlugin {
 		setPermaday(false);
 		setPVP(true);
 		startMatchTimer();
+		setVanish();
 	}
 	
 	/**
@@ -1661,6 +1670,7 @@ public class UhcTools extends JavaPlugin {
 		matchEnded = true;
 		// Put all players into creative
 		for (Player p : getServer().getOnlinePlayers()) p.setGameMode(GameMode.CREATIVE);
+		setVanish();
 
 	}
 	
@@ -1963,6 +1973,7 @@ public class UhcTools extends JavaPlugin {
 	 */
 	public void launchAll() {
 		launchingPlayers=true;
+		setVanish(); // Update vanish status
 		for(UhcPlayer up : getUhcPlayers()) launch(up);
 	}
 	
@@ -2279,6 +2290,13 @@ public class UhcTools extends JavaPlugin {
 	public boolean isMatchEnded() {
 		return matchEnded;
 	}
+	
+	/**
+	 * @return Whether we are in the launch or match period
+	 */
+	public boolean inLaunchOrMatch() {
+		return (getLaunchingPlayers() && !isMatchEnded());
+	}
 
 	/**
 	 * Show a spectator the contents of a player's inventory.
@@ -2331,6 +2349,44 @@ public class UhcTools extends JavaPlugin {
 		return inventoryView;
 	}
 	
-	
 
+	/**
+	 * Set the correct vanish status for all players on the server
+	 * 
+	 * @param p1
+	 */
+	public void setVanish() {
+		for(Player p : getServer().getOnlinePlayers()) {
+			setVanish(p);
+		}
+	}
+
+	/**
+	 * Set the correct vanish status for the player in relation to all other players
+	 * 
+	 * @param p The player to update
+	 */
+	public void setVanish(Player p) {
+		for (Player p2 : getServer().getOnlinePlayers()) {
+			setVanish(p, p2);
+			setVanish(p2, p);
+		}
+	}
+	
+	/**
+	 * Set the correct vanish status between two players
+	 * 
+	 * @param viewer Player viewing
+	 * @param viewed Player being viewed
+	 */
+	public void setVanish(Player viewer, Player viewed) {
+		if (viewer == viewed) return;
+		
+		// An op should be invisible to a non-op if the match is launching and not ended
+		if (!viewer.isOp() && viewed.isOp() && inLaunchOrMatch()) {
+			viewer.hidePlayer(viewed);
+		} else {
+			viewer.showPlayer(viewed);
+		}
+	}
 }

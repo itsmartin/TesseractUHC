@@ -143,3 +143,6 @@ commands:
  pi:
   description: View a player's inventory
   usage: /pi player
+ setvanish:
+  description: Update vanish status of all players on the server
+  usage: /setvanish
