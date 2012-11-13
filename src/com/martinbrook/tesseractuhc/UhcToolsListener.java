@@ -24,9 +24,9 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.ChatColor;
 
 public class UhcToolsListener implements Listener {
-	private UhcTools t;
+	private TesseractUHC t;
 
-	public UhcToolsListener(UhcTools t) {
+	public UhcToolsListener(TesseractUHC t) {
 		this.t = t;
 	}
 	

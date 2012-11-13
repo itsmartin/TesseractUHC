@@ -72,7 +72,7 @@ public class UhcUtil {
 	 * @return The data folder for the plugin, or null if it couldn't be created
 	 */
 	private static File getPluginFolder() {
-	    File pluginFolder = UhcTools.getInstance().getDataFolder();
+	    File pluginFolder = TesseractUHC.getInstance().getDataFolder();
 	    if (!pluginFolder.isDirectory()){
 	        if (!pluginFolder.mkdirs()) {
 	            // failed to create the non existent directory, so failed
@@ -88,7 +88,7 @@ public class UhcUtil {
 	 * @return The world folder
 	 */
 	private static File getWorldFolder() {
-		File worldFolder = UhcTools.getInstance().world.getWorldFolder();
+		File worldFolder = TesseractUHC.getInstance().world.getWorldFolder();
 		if (worldFolder.isDirectory()) return worldFolder;
 		else return null;
 	}
@@ -188,7 +188,7 @@ public class UhcUtil {
      * @return The WorldBorder BorderData object
      */
     private static BorderData getWorldBorder(World w) {
-        Plugin plugin = UhcTools.getInstance().getServer().getPluginManager().getPlugin("WorldBorder");
+        Plugin plugin = TesseractUHC.getInstance().getServer().getPluginManager().getPlugin("WorldBorder");
 
         // Check if the plugin is loaded
         if (plugin == null || !(plugin instanceof WorldBorder))
@@ -252,7 +252,7 @@ public class UhcUtil {
 		ArrayList<Location> locations = new ArrayList<Location>();
 		
 		double arc = (2*Math.PI) / count;
-		World w = UhcTools.getInstance().world;
+		World w = TesseractUHC.getInstance().world;
 		
 		for(int i = 0; i < count; i++) {
 			int x = (int) (radius * Math.cos(i*arc));

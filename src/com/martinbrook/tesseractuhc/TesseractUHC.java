@@ -39,10 +39,10 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 
-public class UhcTools extends JavaPlugin {
+public class TesseractUHC extends JavaPlugin {
 	public Server server;
 	public World world;
-	private static UhcTools instance = null;
+	private static TesseractUHC instance = null;
 	public static final ChatColor MAIN_COLOR = ChatColor.GREEN, SIDE_COLOR = ChatColor.GOLD, OK_COLOR = ChatColor.GREEN, ERROR_COLOR = ChatColor.RED,
 			DECISION_COLOR = ChatColor.GOLD, ALERT_COLOR = ChatColor.GREEN;
 	private Location lastNotifierLocation;
@@ -87,7 +87,7 @@ public class UhcTools extends JavaPlugin {
 	 * 
 	 * @return The plugin instance
 	 */
-	public static UhcTools getInstance() {
+	public static TesseractUHC getInstance() {
 		return instance;
 	}
 	
