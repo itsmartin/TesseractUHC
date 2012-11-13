@@ -1,5 +1,5 @@
-name: UhcTools
-main: com.martinbrook.uhctools.UhcTools
+name: TesseractUHC
+main: com.martinbrook.tesseractuhc.UhcTools
 version: 0.4
 description: Useful commands for UHC matches
 commands:

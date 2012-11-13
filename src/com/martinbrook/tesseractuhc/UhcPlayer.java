@@ -1,4 +1,4 @@
-package com.martinbrook.uhctools;
+package com.martinbrook.tesseractuhc;
 
 import org.bukkit.entity.Player;
 

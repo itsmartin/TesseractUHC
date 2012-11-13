@@ -1,4 +1,4 @@
-package com.martinbrook.uhctools;
+package com.martinbrook.tesseractuhc;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
