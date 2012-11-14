@@ -88,7 +88,7 @@ public class UhcUtil {
 	 * @return The world folder
 	 */
 	private static File getWorldFolder() {
-		File worldFolder = TesseractUHC.getInstance().world.getWorldFolder();
+		File worldFolder = TesseractUHC.getInstance().getMatch().getStartingWorld().getWorldFolder();
 		if (worldFolder.isDirectory()) return worldFolder;
 		else return null;
 	}
@@ -252,7 +252,7 @@ public class UhcUtil {
 		ArrayList<Location> locations = new ArrayList<Location>();
 		
 		double arc = (2*Math.PI) / count;
-		World w = TesseractUHC.getInstance().world;
+		World w = TesseractUHC.getInstance().getMatch().getStartingWorld();
 		
 		for(int i = 0; i < count; i++) {
 			int x = (int) (radius * Math.cos(i*arc));

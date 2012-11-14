@@ -23,28 +23,28 @@ import org.bukkit.inventory.ItemStack;
 
 import org.bukkit.ChatColor;
 
-public class UhcToolsListener implements Listener {
-	private TesseractUHC t;
+public class UhcMatchListener implements Listener {
+	private UhcMatch m;
 
-	public UhcToolsListener(TesseractUHC t) {
-		this.t = t;
+	public UhcMatchListener(UhcMatch m) {
+		this.m = m;
 	}
 	
 
 	@EventHandler
 	public void onJoin(PlayerJoinEvent e) {
-		t.setVanish(e.getPlayer());
+		m.setVanish(e.getPlayer());
 	}
 
 
 	@EventHandler
 	public void onQuit(PlayerQuitEvent e) {
-		t.setLastLogoutLocation(e.getPlayer().getLocation());
+		m.setLastLogoutLocation(e.getPlayer().getLocation());
 	}
 	
 	@EventHandler
 	public void onPlayerChatEvent(AsyncPlayerChatEvent e) {
-		if (t.isChatMuted() && !e.getPlayer().isOp())
+		if (m.isChatMuted() && !e.getPlayer().isOp())
 			e.setCancelled(true);
 		
 		// ops get gold text automatically
@@ -56,7 +56,7 @@ public class UhcToolsListener implements Listener {
 	
 	@EventHandler
 	public void onPlayerComandPreprocessEvent(PlayerCommandPreprocessEvent e) {
-		if (t.isChatMuted() && !e.getPlayer().isOp() && e.getMessage().toLowerCase().startsWith("/me"))
+		if (m.isChatMuted() && !e.getPlayer().isOp() && e.getMessage().toLowerCase().startsWith("/me"))
 			e.setCancelled(true);
 	}
 	
@@ -66,10 +66,10 @@ public class UhcToolsListener implements Listener {
 		if (e.getResult() != PlayerLoginEvent.Result.ALLOWED) return;
 		
 		// If we are in the pre-launch period, do nothing
-		if (!t.getLaunchingPlayers()) return;
+		if (!m.getLaunchingPlayers()) return;
 		
 		// If match is over, put player in creative, do nothing else
-		if (t.isMatchEnded()) {
+		if (m.isMatchEnded()) {
 			e.getPlayer().setGameMode(GameMode.CREATIVE);
 			return;
 		}
@@ -78,16 +78,16 @@ public class UhcToolsListener implements Listener {
 		if (e.getPlayer().isOp()) return;
 		
 		// Get a uhcplayer if possible
-		UhcPlayer up = t.getUhcPlayer(e.getPlayer());
+		UhcPlayer up = m.getUhcPlayer(e.getPlayer());
 		
 		// If the match has not yet started, try to launch the player if necessary
-		if (!t.isMatchStarted()) {
+		if (!m.isMatchStarted()) {
 			if (up != null) {
 				// Player is in the match, make sure they are launched
-				t.launch(up);
+				m.launch(up);
 			} else {
 				// Player isn't in the match, so make sure they log in at spawn
-				e.getPlayer().teleport(t.world.getSpawnLocation());
+				e.getPlayer().teleport(m.getStartingWorld().getSpawnLocation());
 			}
 			return;
 		}
@@ -102,7 +102,7 @@ public class UhcToolsListener implements Listener {
 		}
 		
 		// If player has died, don't allow them in, if deathban is in effect.
-		if (t.getDeathban() && up.isDead()) {
+		if (m.getDeathban() && up.isDead()) {
 			e.disallow(PlayerLoginEvent.Result.KICK_OTHER, "Dead players cannot rejoin!");
 			return;
 		}
@@ -121,7 +121,7 @@ public class UhcToolsListener implements Listener {
 		
 		// If it's a pvp kill, drop bonus items
 		if (p.getKiller() != null) {
-			ItemStack bonus = t.getKillerBonus();
+			ItemStack bonus = m.getKillerBonus();
 			if (bonus != null)
 				e.getDrops().add(bonus);
 		}
@@ -132,29 +132,29 @@ public class UhcToolsListener implements Listener {
 		
 		// Save death point
 		if (msg.indexOf("fell out of the world") == -1)
-			t.setLastDeathLocation(p.getLocation());
+			m.setLastDeathLocation(p.getLocation());
 		
 		// Handle the death
-		UhcPlayer up = t.getUhcPlayer(p);
-		if (up != null && up.isLaunched() && !up.isDead() && t.isMatchStarted() && !t.isMatchEnded())
-			t.handlePlayerDeath(up);
+		UhcPlayer up = m.getUhcPlayer(p);
+		if (up != null && up.isLaunched() && !up.isDead() && m.isMatchStarted() && !m.isMatchEnded())
+			m.handlePlayerDeath(up);
 
 	}
 
 	@EventHandler
 	public void onRespawn(PlayerRespawnEvent e) {
 		// Only do anything if match is in progress
-		if (!t.isMatchStarted() || t.isMatchEnded()) return;
+		if (!m.isMatchStarted() || m.isMatchEnded()) return;
 		
 		Player p = e.getPlayer();
 		
 		// If they're a dead UHC player, put them into adventure mode and make sure they respawn at overworld spawn
-		UhcPlayer up = t.getUhcPlayer(p);
+		UhcPlayer up = m.getUhcPlayer(p);
 		
 		if (up != null) {
 			if (up.isDead()) {
 				p.setGameMode(GameMode.ADVENTURE);
-				e.setRespawnLocation(t.world.getSpawnLocation());
+				e.setRespawnLocation(m.getStartingWorld().getSpawnLocation());
 			}
 		}
 	}
@@ -162,7 +162,7 @@ public class UhcToolsListener implements Listener {
 	@EventHandler
 	public void onBlockBreak(BlockBreakEvent e) {
 		if (e.getBlock().getType() == Material.STONE) {
-			t.doMiningFatigue(e.getPlayer(), e.getBlock().getLocation().getBlockY());
+			m.doMiningFatigue(e.getPlayer(), e.getBlock().getLocation().getBlockY());
 		}
 	}
 	
@@ -174,26 +174,26 @@ public class UhcToolsListener implements Listener {
 		Entity clicked = e.getRightClicked();
 
 		if (clicked.getType() == EntityType.PLAYER) {
-			t.showInventory(p, (Player) clicked);
+			m.showInventory(p, (Player) clicked);
 		}
 	}
 	
 	
 	@EventHandler(ignoreCancelled = true)
 	public void onPlayerPickupItem(PlayerPickupItemEvent e) {
-		if (e.getPlayer().isOp() && t.inLaunchOrMatch()) e.setCancelled(true);
+		if (e.getPlayer().isOp() && m.inLaunchOrMatch()) e.setCancelled(true);
 	}
 
 	@EventHandler(ignoreCancelled = true)
 	public void onPlayerDropItem(PlayerDropItemEvent e) {
-		if (e.getPlayer().isOp() && t.inLaunchOrMatch()) e.setCancelled(true);
+		if (e.getPlayer().isOp() && m.inLaunchOrMatch()) e.setCancelled(true);
 	}
 
 	@EventHandler(ignoreCancelled = true)
 	public void onEntityTarget(EntityTargetEvent e) {
 		Entity target = e.getTarget();
 		if (target != null && target.getType() == EntityType.PLAYER) {
-			if (((Player) target).isOp() && t.inLaunchOrMatch()) e.setCancelled(true);
+			if (((Player) target).isOp() && m.inLaunchOrMatch()) e.setCancelled(true);
 		}
 	}
 	

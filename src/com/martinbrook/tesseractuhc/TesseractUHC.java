@@ -1,78 +1,26 @@
 package com.martinbrook.tesseractuhc;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.Random;
-
 import org.bukkit.ChatColor;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.entity.EnderDragon;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Ghast;
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.MagmaCube;
-import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.Slime;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.potion.PotionEffect;
 
 public class TesseractUHC extends JavaPlugin {
-	public Server server;
-	public World world;
+	private UhcMatchListener l;
 	private static TesseractUHC instance = null;
 	public static final ChatColor MAIN_COLOR = ChatColor.GREEN, SIDE_COLOR = ChatColor.GOLD, OK_COLOR = ChatColor.GREEN, ERROR_COLOR = ChatColor.RED,
 			DECISION_COLOR = ChatColor.GOLD, ALERT_COLOR = ChatColor.GREEN;
-	private Location lastNotifierLocation;
-	private Location lastDeathLocation;
-	private Location lastEventLocation;
-	private Location lastLogoutLocation;
-	private int countdown = 0;
-	private String countdownEvent;
-	private String countdownEndMessage;
-	private UhcToolsListener l;
-	private ArrayList<String> chatScript;
-	private Boolean chatMuted = false;
-	private CountdownType countdownType;
-	private Boolean permaday = false;
-	private int permadayTaskId;
-	private Boolean deathban = false;
-	private HashMap<Integer, UhcStartPoint> startPoints = new HashMap<Integer, UhcStartPoint>();
-	private ArrayList<UhcStartPoint> availableStartPoints = new ArrayList<UhcStartPoint>();
-	private Boolean launchingPlayers = false;
-	private Boolean matchStarted = false;
-	private HashMap<String, UhcPlayer> uhcPlayers = new HashMap<String, UhcPlayer>(32);
-	private static String DEFAULT_START_POINTS_FILE = "starts.txt";
-	private int playersInMatch = 0;
-	private int nextRadius;
-	private Calendar matchStartTime;
-	private int matchTimer = -1;
-	private boolean matchEnded = false;
-	private ArrayList<Location> calculatedStarts = null;
-	private boolean pvp = false;
-	private int spawnKeeperTask = -1;
-	private FileConfiguration config;
+	
+	private UhcMatch match;
 	
 	/**
 	 * Get the singleton instance of UhcTools
@@ -87,26 +35,19 @@ public class TesseractUHC extends JavaPlugin {
 		
 		// Store singleton instance
 		instance = this;
-		
-		l = new UhcToolsListener(this);
+
+		saveDefaultConfig();
+		this.match = new UhcMatch(getServer().getWorlds().get(0), getConfig());
+	
+		l = new UhcMatchListener(match);
 		this.getServer().getPluginManager().registerEvents(l, this);
 		
-		this.server = this.getServer();
-		this.world = getServer().getWorlds().get(0);
 		
-		saveDefaultConfig();
-		this.config = getConfig();
 		
-		loadStartPoints();
-		setPermaday(true);
-		setPVP(false);
-		setVanish();
-		setDeathban(config.getBoolean("deathban"));
-		enableSpawnKeeper();
 	}
 	
 	public void onDisable(){
-		saveStartPoints();
+		match.saveStartPoints();
 	}
 	
 	@Override
@@ -288,7 +229,7 @@ public class TesseractUHC extends JavaPlugin {
 	}
 
 	private String cSetvanish() {
-		setVanish();
+		match.setVanish();
 		return OK_COLOR + "Visibility of all players has been updated";
 	}
 
@@ -308,7 +249,7 @@ public class TesseractUHC extends JavaPlugin {
 		if (p == null)
 			return ERROR_COLOR + "Player " + args[0] + " not found.";
 
-		if (!showInventory(sender, p))
+		if (!match.showInventory(sender, p))
 			return ERROR_COLOR + "Unable to view inventory";
 		
 		return null;
@@ -324,7 +265,8 @@ public class TesseractUHC extends JavaPlugin {
 	 * @return response
 	 */
 	private String cTpcs(Player sender, String[] args) {
-		if (calculatedStarts == null)
+		ArrayList<Location> starts = match.getCalculatedStarts();
+		if (starts == null)
 			return ERROR_COLOR + "Start points have not been calculated";
 		
 		if (args.length != 1)
@@ -333,7 +275,7 @@ public class TesseractUHC extends JavaPlugin {
 		
 		try {
 			int startNumber = Integer.parseInt(args[0]);
-			doTeleport(sender,calculatedStarts.get(startNumber - 1));
+			doTeleport(sender,starts.get(startNumber - 1));
 		} catch (NumberFormatException e) {
 			return ERROR_COLOR + "Please give the start number";
 		} catch (IndexOutOfBoundsException e) {
@@ -350,14 +292,15 @@ public class TesseractUHC extends JavaPlugin {
 	 * @return response
 	 */
 	private String cCalcstarts(String[] args) {
-		calculatedStarts = UhcUtil.calculateStarts(args);
-		if (calculatedStarts == null) return ERROR_COLOR + "No start locations were calculated";
+		ArrayList<Location> starts = UhcUtil.calculateStarts(args);
+		if (starts == null) return ERROR_COLOR + "No start locations were calculated";
 		
-		String response = OK_COLOR + "" + calculatedStarts.size() + " start locations calculated: \n";
-		for(int i = 0 ; i < calculatedStarts.size() ; i++) {
-			Location l = calculatedStarts.get(i);
+		String response = OK_COLOR + "" + starts.size() + " start locations calculated: \n";
+		for(int i = 0 ; i < starts.size() ; i++) {
+			Location l = starts.get(i);
 			response += (i+1) + ": x=" + l.getX() + " z=" + l.getZ() + "\n";
 		}
+		match.setCalculatedStarts(starts);
 		return response;
 		
 		
@@ -374,7 +317,7 @@ public class TesseractUHC extends JavaPlugin {
 		if (args.length != 1)
 			return ERROR_COLOR + "Please specify the player to be removed";
 		
-		UhcPlayer up = removePlayer(args[0]);
+		UhcPlayer up = match.removePlayer(args[0]);
 		
 		if (up != null)
 			return OK_COLOR + up.getName() + " removed, start point " + up.getStartPoint().getNumber() + " released";
@@ -392,7 +335,7 @@ public class TesseractUHC extends JavaPlugin {
 		int added = 0;
 		for (Player p : getServer().getOnlinePlayers()) {
 			if (!p.isOp())
-				if (addPlayer(p)) added++;
+				if (match.addPlayer(p)) added++;
 		}
 		if (added > 0)
 			return "" + OK_COLOR + added + " player" + (added == 1? "" : "s") + " added";
@@ -411,14 +354,14 @@ public class TesseractUHC extends JavaPlugin {
 		if (args.length != 1) 
 			return ERROR_COLOR + "Please specify the player to add";
 	
-		Player p = server.getPlayer(args[0]);
+		Player p = getServer().getPlayer(args[0]);
 		if (p == null)
 			return ERROR_COLOR + "Player " + args[0] + " not found";
 		
 		if (p.isOp())
 			return ERROR_COLOR + "Player should be deopped first!";
 		
-		boolean success = addPlayer(p);
+		boolean success = match.addPlayer(p);
 		if (success)
 			return OK_COLOR + "Added player " + p.getDisplayName();
 		else 
@@ -452,7 +395,7 @@ public class TesseractUHC extends JavaPlugin {
 		double y = l.getBlockY();
 		double z = l.getBlockZ() + 0.5;
 		
-		UhcStartPoint startPoint = createStartPoint(world, x,y,z);
+		UhcStartPoint startPoint = match.createStartPoint(x,y,z);
 		
 		if (args.length < 1 || !("-n".equalsIgnoreCase(args[0])))
 			startPoint.buildStartingTrough();
@@ -469,7 +412,7 @@ public class TesseractUHC extends JavaPlugin {
 	 * @return response
 	 */
 	private String cCdc() {
-		cancelCountdown();
+		match.cancelCountdown();
 		return OK_COLOR + "Countdown cancelled!";
 		
 	}
@@ -486,11 +429,11 @@ public class TesseractUHC extends JavaPlugin {
 			return ERROR_COLOR +"Please specify 'on' or 'off'";
 
 		if (args[0].equalsIgnoreCase("on")) {
-			setChatMuted(true);
+			match.setChatMuted(true);
 			return OK_COLOR + "Chat muted!";
 		}
 		if (args[0].equalsIgnoreCase("off")) {
-			setChatMuted(false);
+			match.setChatMuted(false);
 			return OK_COLOR + "Chat unmuted!";
 		}
 		
@@ -511,7 +454,7 @@ public class TesseractUHC extends JavaPlugin {
 			scriptFile = "announcement.txt"; 
 		else
 			scriptFile = args[0];
-		playChatScript(scriptFile, true);
+		match.playChatScript(scriptFile, true);
 		return OK_COLOR + "Starting chat script";
 	}
 	
@@ -524,12 +467,12 @@ public class TesseractUHC extends JavaPlugin {
 	 */
 	private String cPvp(String[] args) {
 		if (args.length < 1)
-			return OK_COLOR + "PVP is " + (pvp ? "on" : "off");
+			return OK_COLOR + "PVP is " + (match.getPVP() ? "on" : "off");
 		
 		if (args[0].equalsIgnoreCase("off") || args[0].equals("0")) {
-			setPVP(false);
+			match.setPVP(false);
 		} else if (args[0].equalsIgnoreCase("on") || args[0].equals("1")) {
-			setPVP(true);
+			match.setPVP(true);
 		} else {
 			return ERROR_COLOR + "Argument '" + args[0] + "' not understood";
 		}
@@ -546,12 +489,12 @@ public class TesseractUHC extends JavaPlugin {
 	 */
 	private String cPermaday(String[] args) {
 		if (args.length < 1)
-			return OK_COLOR + "Permaday is " + (permaday ? "on" : "off");
+			return OK_COLOR + "Permaday is " + (match.getPermaday() ? "on" : "off");
 		
 		if (args[0].equalsIgnoreCase("off") || args[0].equals("0")) {
-			setPermaday(false);
+			match.setPermaday(false);
 		} else if (args[0].equalsIgnoreCase("on") || args[0].equals("1")) {
-			setPermaday(true);
+			match.setPermaday(true);
 		} else {
 			return ERROR_COLOR + "Argument '" + args[0] + "' not understood";
 		}
@@ -568,12 +511,12 @@ public class TesseractUHC extends JavaPlugin {
 	 */
 	private String cDeathban(String[] args) {
 		if (args.length < 1)
-			return OK_COLOR + "Deathban is " + (deathban ? "on" : "off");
+			return OK_COLOR + "Deathban is " + (match.getDeathban() ? "on" : "off");
 		
 		if (args[0].equalsIgnoreCase("off") || args[0].equals("0")) {
-			setDeathban(false);
+			match.setDeathban(false);
 		} else if (args[0].equalsIgnoreCase("on") || args[0].equals("1")) {
-			setDeathban(true);
+			match.setDeathban(true);
 		} else {
 			return ERROR_COLOR + "Argument '" + args[0] + "' not understood";
 		}
@@ -589,7 +532,7 @@ public class TesseractUHC extends JavaPlugin {
 	 * @return response
 	 */
 	private String cClearstarts() {
-		clearStartPoints();
+		match.clearStartPoints();
 		return OK_COLOR + "Start list cleared";
 	}
 	
@@ -601,8 +544,8 @@ public class TesseractUHC extends JavaPlugin {
 	 * @return response
 	 */
 	private String cLoadstarts() {
-		loadStartPoints();
-		return OK_COLOR.toString() + startPoints.size() + " start points loaded";
+		match.loadStartPoints();
+		return OK_COLOR.toString() + match.countAvailableStartPoints() + " start points loaded";
 	}
 	
 	/**
@@ -613,7 +556,7 @@ public class TesseractUHC extends JavaPlugin {
 	 * @return response
 	 */
 	private String cSavestarts() {
-		if (saveStartPoints() == true) {
+		if (match.saveStartPoints() == true) {
 			return OK_COLOR + "Start points were saved!";
 		} else {
 			return ERROR_COLOR + "Start points could not be saved.";
@@ -628,6 +571,7 @@ public class TesseractUHC extends JavaPlugin {
 	 * @return response
 	 */
 	private String cListstarts() {
+		HashMap<Integer, UhcStartPoint> startPoints = match.getStartPoints();
 		if (startPoints.size()==0)
 			return ERROR_COLOR + "There are no starts";
 
@@ -654,7 +598,7 @@ public class TesseractUHC extends JavaPlugin {
 	private String cListplayers() {
 		String response = "Players in the match:\n";
 		
-		for (UhcPlayer up : getUhcPlayers()) {
+		for (UhcPlayer up : match.getUhcPlayers()) {
 			response += (up.isDead() ? ERROR_COLOR + "[D] " : OK_COLOR);
 			
 			response += up.getName();
@@ -677,7 +621,7 @@ public class TesseractUHC extends JavaPlugin {
 	 */
 	private String cLaunch()  {
 		// launch all players
-		launchAll();
+		match.launchAll();
 		return OK_COLOR + "Launching complete";
 	}
 	
@@ -692,14 +636,14 @@ public class TesseractUHC extends JavaPlugin {
 		if (args.length == 0) {
 			return ERROR_COLOR + "Please specify player to relaunch";
 		} else {
-			Player p = server.getPlayer(args[0]);
+			Player p = getServer().getPlayer(args[0]);
 			if (p == null)
 				return ERROR_COLOR + "Player " + args[0] + " not found";
 			
 			if (p.isOp())
 				return ERROR_COLOR + "Player should be deopped before launching";
 			
-			boolean success = relaunch(p);
+			boolean success = match.relaunch(p);
 			if (success)
 				return OK_COLOR + "Relaunched " + p.getDisplayName();
 			else 
@@ -718,9 +662,8 @@ public class TesseractUHC extends JavaPlugin {
 		if (args.length == 0 || args.length > 2)
 			return ERROR_COLOR + "Specify world radius and countdown duration";
 		
-		
 		try {
-			nextRadius = Integer.parseInt(args[0]);
+			match.setNextRadius(Integer.parseInt(args[0]));
 		} catch (NumberFormatException e) {
 			return ERROR_COLOR + "World radius must be specified as an integer";
 		}
@@ -730,7 +673,7 @@ public class TesseractUHC extends JavaPlugin {
 		if (args.length == 2)
 			countLength = Integer.parseInt(args[1]);
 		
-		if (startCountdown(countLength, "World border will move to +/- " + nextRadius + " x and z", "World border is now at +/- " + nextRadius + " x and z!", CountdownType.WORLD_REDUCE))
+		if (match.startCountdown(countLength, "World border will move to +/- " + match.getNextRadius() + " x and z", "World border is now at +/- " + match.getNextRadius()  + " x and z!", CountdownType.WORLD_REDUCE))
 			return OK_COLOR + "Countdown started";
 		else 
 			return ERROR_COLOR + "Countdown already in progress!"; 
@@ -752,7 +695,7 @@ public class TesseractUHC extends JavaPlugin {
 		if (args.length == 1)
 			countLength = Integer.parseInt(args[0]);
 		
-		if (startCountdown(countLength, "PvP will be enabled", "PvP is now enabled!", CountdownType.PVP))
+		if (match.startCountdown(countLength, "PvP will be enabled", "PvP is now enabled!", CountdownType.PVP))
 			return OK_COLOR + "Countdown started";
 		else 
 			return ERROR_COLOR + "Countdown already in progress!"; 
@@ -769,10 +712,10 @@ public class TesseractUHC extends JavaPlugin {
 		if (args.length > 1)
 			return ERROR_COLOR + "Usage: /match [seconds]";
 		
-		if (playersInMatch < 2)
+		if (match.countPlayers() < 2)
 			return ERROR_COLOR + "Not enough players to start";
 		
-		if (!launchingPlayers)
+		if (!match.getLaunchingPlayers())
 			return ERROR_COLOR + "Launch players first!";
 		
 		int countLength = 300;
@@ -780,7 +723,7 @@ public class TesseractUHC extends JavaPlugin {
 		if (args.length == 1)
 			countLength = Integer.parseInt(args[0]);
 		
-		if (startCountdown(countLength, "The match will begin", "GO!", CountdownType.MATCH))
+		if (match.startCountdown(countLength, "The match will begin", "GO!", CountdownType.MATCH))
 			return OK_COLOR + "Countdown started";
 		else 
 			return ERROR_COLOR + "Countdown already in progress!"; 
@@ -807,7 +750,7 @@ public class TesseractUHC extends JavaPlugin {
 		getServer().broadcast(ALERT_COLOR + "[N]" + ChatColor.WHITE + " <" + sender.getDisplayName() + "> " + ALERT_COLOR + s,
 				Server.BROADCAST_CHANNEL_ADMINISTRATIVE);
 
-		setLastNotifierLocation(sender.getLocation());
+		match.setLastNotifierLocation(sender.getLocation());
 
 		return sender.isOp() ? null : OK_COLOR + "Administrators have been notified.";
 	}
@@ -819,10 +762,11 @@ public class TesseractUHC extends JavaPlugin {
 	 * @return response
 	 */
 	private String cTpn(Player sender) {
-		if (lastNotifierLocation == null)
+		Location l = match.getLastNotifierLocation();
+		if (l == null)
 			return ERROR_COLOR + "No notification.";
 
-		doTeleport(sender, lastNotifierLocation);
+		doTeleport(sender, l);
 		return null;
 	}
 
@@ -833,10 +777,11 @@ public class TesseractUHC extends JavaPlugin {
 	 * @return response
 	 */
 	private String cTpd(Player sender) {
-		if (lastDeathLocation == null)
+		Location l = match.getLastDeathLocation();
+		if (l == null)
 			return ERROR_COLOR + "Nobody has died.";
 
-		doTeleport(sender, lastDeathLocation);
+		doTeleport(sender, l);
 		return null;
 	}
 
@@ -847,10 +792,11 @@ public class TesseractUHC extends JavaPlugin {
 	 * @return response
 	 */
 	private String cTpl(Player sender) {
-		if (lastLogoutLocation == null)
+		Location l = match.getLastLogoutLocation();
+		if (l == null)
 			return ERROR_COLOR + "Nobody has logged out.";
 
-		doTeleport(sender, lastLogoutLocation);
+		doTeleport(sender, l);
 		return null;
 	}
 
@@ -866,7 +812,7 @@ public class TesseractUHC extends JavaPlugin {
 		if (args.length != 1)
 			return ERROR_COLOR + "Incorrect number of arguments for /tps";
 		
-		UhcStartPoint destination = findStartPoint(args[0]);
+		UhcStartPoint destination = match.findStartPoint(args[0]);
 		
 		if (destination != null) {
 			doTeleport(sender,destination.getLocation());
@@ -886,10 +832,10 @@ public class TesseractUHC extends JavaPlugin {
 	private String cTp(Player sender, String[] args) {
 		
 		if (args.length == 0) {
-			if (lastEventLocation == null)
+			if (match.getLastEventLocation() == null)
 				return ERROR_COLOR + "You haven't specified to who you want to teleport.";
 
-			doTeleport(sender, lastEventLocation);
+			doTeleport(sender, match.getLastEventLocation());
 			return null;
 		}
 		
@@ -914,7 +860,7 @@ public class TesseractUHC extends JavaPlugin {
 			return OK_COLOR + "Teleported " + from.getName() + " to " + to.getName();
 		}
 		if(args.length==3){
-			// Teleport sender to coords in overworld
+			// Teleport sender to coords in their current world
 			Double x;
 			Double y;
 			Double z;
@@ -926,12 +872,12 @@ public class TesseractUHC extends JavaPlugin {
 				return ERROR_COLOR + "Invalid coordinates";
 			}
 			
-			Location to = new Location(world,x,y,z);
+			Location to = new Location(sender.getWorld(),x,y,z);
 			doTeleport(sender,to);
 			return null;
 		}
 		if(args.length==4){
-			// Teleport a player to coords in overworld
+			// Teleport a player to coords in their current world
 			Player from = getServer().getPlayer(args[0]);
 			if (from == null || !from.isOnline())
 				return ERROR_COLOR + "Player " + args[0] + " not found";
@@ -946,7 +892,7 @@ public class TesseractUHC extends JavaPlugin {
 				return ERROR_COLOR + "Invalid coordinates";
 			}
 			
-			Location to = new Location(world,x,y,z);
+			Location to = new Location(from.getWorld(),x,y,z);
 			doTeleport(from,to);
 			return OK_COLOR + from.getName() + " has been teleported";
 			
@@ -976,7 +922,7 @@ public class TesseractUHC extends JavaPlugin {
 		}
 
 		if(args.length==4){
-			// Teleport a player to coords in overworld
+			// Teleport a player to coords in their current world
 			Player from = getServer().getPlayer(args[0]);
 			if (from == null || !from.isOnline())
 				return ERROR_COLOR + "Player " + args[0] + " not found";
@@ -991,7 +937,7 @@ public class TesseractUHC extends JavaPlugin {
 				return ERROR_COLOR + "Invalid coordinates";
 			}
 			
-			Location to = new Location(world,x,y,z);
+			Location to = new Location(from.getWorld(),x,y,z);
 			doTeleport(from,to);
 			return OK_COLOR + from.getName() + " has been teleported";
 			
@@ -1007,7 +953,7 @@ public class TesseractUHC extends JavaPlugin {
 	 * @return response
 	 */
 	private String cTp0(Player sender) {
-		sender.teleport(world.getSpawnLocation());
+		sender.teleport(match.getStartingWorld().getSpawnLocation());
 		return OK_COLOR + "Teleported to spawn";
 	}
 	
@@ -1019,7 +965,7 @@ public class TesseractUHC extends JavaPlugin {
 	 * @return response
 	 */
 	private String cTpall(Player sender) {
-		for (Player p : world.getPlayers()) {
+		for (Player p : getServer().getOnlinePlayers()) {
 			if (p.getGameMode() != GameMode.CREATIVE) {
 				p.teleport(sender);
 				p.sendMessage(OK_COLOR + "You have been teleported!");
@@ -1034,9 +980,9 @@ public class TesseractUHC extends JavaPlugin {
 	 * @return response
 	 */
 	private String cRenewall() {
-		for (Player p : world.getPlayers()) {
+		for (Player p : getServer().getOnlinePlayers()) {
 			if (p.getGameMode() != GameMode.CREATIVE) {
-				renew(p);
+				match.renew(p);
 				p.sendMessage(OK_COLOR + "You have been healed and fed!");
 			}
 		}
@@ -1060,7 +1006,7 @@ public class TesseractUHC extends JavaPlugin {
 			if (p == null) {
 				response += ERROR_COLOR + "Player " + args[i] + " has not been found on the server." + "\n";
 			} else {
-				renew(p);
+				match.renew(p);
 				p.sendMessage(OK_COLOR + "You have been healed and fed!");
 				response += OK_COLOR + "Renewed " + p.getName() + "\n";
 			}
@@ -1075,9 +1021,9 @@ public class TesseractUHC extends JavaPlugin {
 	 * @return response
 	 */
 	private String cClearinvall() {
-		for (Player p : world.getPlayers()) {
+		for (Player p : getServer().getOnlinePlayers()) {
 			if (p.getGameMode() != GameMode.CREATIVE) {
-				clearInventory(p);
+				match.clearInventory(p);
 				p.sendMessage(OK_COLOR + "Your inventory has been cleared");
 			}
 		}
@@ -1100,7 +1046,7 @@ public class TesseractUHC extends JavaPlugin {
 			if (p == null) {
 				response += ERROR_COLOR + "Player " + args[i] + " has not been found on the server." + "\n";
 			} else {
-				clearInventory(p);
+				match.clearInventory(p);
 				p.sendMessage(OK_COLOR + "Your inventory has been cleared");
 				response += OK_COLOR + "Cleared inventory of " + p.getName() + "\n";
 			}
@@ -1115,8 +1061,8 @@ public class TesseractUHC extends JavaPlugin {
 	 * @return response
 	 */
 	private String cFeedall() {
-		for (Player p : world.getPlayers()) {
-			feed(p);
+		for (Player p : getServer().getOnlinePlayers()) {
+			match.feed(p);
 			p.sendMessage(OK_COLOR + "You have been fed");
 		}
 		return OK_COLOR + "Fed all players.";
@@ -1138,7 +1084,7 @@ public class TesseractUHC extends JavaPlugin {
 			if (p == null) {
 				response += ERROR_COLOR + "Player " + args[i] + " has not been found on the server." + "\n";
 			} else {
-				feed(p);
+				match.feed(p);
 				p.sendMessage(OK_COLOR + "You have been fed");
 				response += OK_COLOR + "Restored food levels of " + p.getName() + "\n";
 			}
@@ -1153,8 +1099,8 @@ public class TesseractUHC extends JavaPlugin {
 	 * @return response
 	 */
 	private String cHealall() {
-		for (Player p : world.getPlayers()) {
-			heal(p);
+		for (Player p : getServer().getOnlinePlayers()) {
+			match.heal(p);
 			p.sendMessage(OK_COLOR + "You have been healed");
 		}
 		return OK_COLOR + "Healed all players.";
@@ -1176,7 +1122,7 @@ public class TesseractUHC extends JavaPlugin {
 			if (p == null)
 				response += ERROR_COLOR + "Player " + args[i] + " has not been found on the server." + "\n";
 
-			heal(p);
+			match.heal(p);
 			p.sendMessage(OK_COLOR + "You have been healed");
 			response += OK_COLOR + "Restored health of " + p.getName() + "\n";
 		}
@@ -1192,129 +1138,10 @@ public class TesseractUHC extends JavaPlugin {
 	 * @return response
 	 */
 	private String cButcher() {
-		butcherHostile();
+		match.butcherHostile();
 		return "Hostile mobs have been butchered";
 	}
 
-	
-	/**
-	 * Set time to midday, to keep permaday in effect.
-	 */
-	private void keepPermaday() {
-		this.world.setTime(6000);
-	}
-
-	/**
-	 * Enables / disables PVP on all worlds
-	 * 
-	 * @param pvp Whether PVP is to be allowed
-	 */
-	public void setPVP(boolean pvp) {
-		this.pvp = pvp;
-		for(World w : server.getWorlds()) {
-			w.setPVP(pvp);
-		}
-	
-		getServer().broadcast(OK_COLOR + "PVP has been " + (pvp ? "enabled" : "disabled") + "!", Server.BROADCAST_CHANNEL_ADMINISTRATIVE);
-	
-	}
-
-	/**
-	 * Enables / disables permaday
-	 * 
-	 * @param p whether permaday is to be on or off
-	 */
-	public void setPermaday(boolean p) {
-		if (p == permaday) return;
-		
-		this.permaday=p;
-	
-		getServer().broadcast(OK_COLOR + "Permaday has been " + (permaday ? "enabled" : "disabled") + "!", Server.BROADCAST_CHANNEL_ADMINISTRATIVE);
-		
-		
-		if (permaday) {
-			this.world.setTime(6000);
-			permadayTaskId = getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
-				public void run() {
-					keepPermaday();
-				}
-			}, 1200L, 1200L);
-			
-		} else {
-			getServer().getScheduler().cancelTask(permadayTaskId);
-		}
-	}
-
-	/**
-	 * Check whether deathban is in effect
-	 * 
-	 * @return Whether deathban is enabled
-	 */
-	public boolean getDeathban() {
-		return deathban;
-	}
-
-	/**
-	 * Set deathban on/off
-	 * 
-	 * @param d Whether deathban is to be enabled
-	 */
-	public void setDeathban(boolean d) {
-		this.deathban = d;
-		getServer().broadcast(OK_COLOR + "Deathban has been " + (deathban ? "enabled" : "disabled") + "!", Server.BROADCAST_CHANNEL_ADMINISTRATIVE);
-	}
-
-	/**
-	 * Try to find a start point from a user-provided search string.
-	 * 
-	 * @param searchParam The string to search for - a player name, or a start number may be sent
-	 * @return The start point, or null if not found.
-	 */
-	public UhcStartPoint findStartPoint(String searchParam) {
-		UhcPlayer up = this.getUhcPlayer(searchParam);
-		if (up != null) {
-			// Argument matches a player
-			return up.getStartPoint();
-			
-		} else {
-			try {
-				int i = Integer.parseInt(searchParam);
-				return startPoints.get(i);
-			} catch (Exception e) {
-				return null;
-			}
-		}
-		
-	}
-
-	/**
-	 * Set a death location for teleporters
-	 * 
-	 * @param l The location to be stored
-	 */
-	public void setLastDeathLocation(Location l) {
-		lastDeathLocation = l;
-		lastEventLocation = l;
-	}
-
-	/**
-	 * Set a notification location for teleporters
-	 * 
-	 * @param l The location to be stored
-	 */
-	public void setLastNotifierLocation(Location l) {
-		lastNotifierLocation = l;
-		lastEventLocation = l;
-	}
-
-	/**
-	 * Set a logout location for teleporters
-	 * 
-	 * @param l The location to be stored
-	 */
-	public void setLastLogoutLocation(Location l) {
-		lastLogoutLocation = l;
-	}
 	
 	/**
 	 * Teleport one player to another. If player is opped, fancy
@@ -1446,868 +1273,11 @@ public class TesseractUHC extends JavaPlugin {
 		streamer.teleport(tpl);
 	}
 
+	public UhcMatch getMatch() {
+		return match;
+	}
 
 
 	
 
-	
-	/**
-	 * Remove all hostile mobs in the overworld
-	 */
-	public void butcherHostile() {
-		for (Entity entity : world.getEntitiesByClass(LivingEntity.class)) {
-			if (entity instanceof Monster || entity instanceof MagmaCube || entity instanceof Slime || entity instanceof EnderDragon
-					|| entity instanceof Ghast)
-				entity.remove();
-		}
-	}
-	
-	/**
-	 * Heal, feed, clear XP, inventory and potion effects of the given player
-	 * 
-	 * @param p The player to be renewed
-	 */
-	public void renew(Player p) {
-		heal(p);
-		feed(p);
-		clearXP(p);
-		clearPotionEffects(p);
-		clearInventory(p);
-	}
-
-
-	/**
-	 * Heal the given player
-	 * 
-	 * @param p The player to be healed
-	 */
-	public void heal(Player p) {
-		p.setHealth(20);
-	}
-
-	/**
-	 * Feed the given player
-	 * 
-	 * @param p The player to be fed
-	 */
-	public void feed(Player p) {
-		p.setFoodLevel(20);
-		p.setExhaustion(0.0F);
-		p.setSaturation(5.0F);
-	}
-
-	/**
-	 * Reset XP of the given player
-	 * 
-	 * @param p The player
-	 */
-	public void clearXP(Player p) {
-		p.setTotalExperience(0);
-		p.setExp(0);
-		p.setLevel(0);
-	}
-
-	/**
-	 * Clear potion effects of the given player
-	 * 
-	 * @param p The player
-	 */
-	public void clearPotionEffects(Player p) {
-		for (PotionEffect pe : p.getActivePotionEffects()) {
-			p.removePotionEffect(pe.getType());
-		}
-	}
-
-	/**
-	 * Clear inventory and ender chest of the given player
-	 * 
-	 * @param player
-	 */
-	public void clearInventory(Player player) {
-		PlayerInventory i = player.getInventory();
-		i.clear();
-		i.setHelmet(null);
-		i.setChestplate(null);
-		i.setLeggings(null);
-		i.setBoots(null);
-		
-		player.getEnderChest().clear();
-		
-	}
-	
-	/**
-	 * Start the match
-	 * 
-	 * Butcher hostile mobs, turn off permaday, turn on PVP, put all players in survival and reset all players.
-	 */
-	public void startMatch() {
-		matchStarted = true;
-		world.setTime(0);
-		butcherHostile();
-		for (Player p : world.getPlayers()) {
-			if (p.getGameMode() != GameMode.CREATIVE) {
-				feed(p);
-				clearXP(p);
-				clearPotionEffects(p);
-				heal(p);
-				p.setGameMode(GameMode.SURVIVAL);
-			}
-		}
-		setPermaday(false);
-		setPVP(true);
-		startMatchTimer();
-		setVanish();
-	}
-	
-	/**
-	 * End the match
-	 * 
-	 * Announce the total match duration
-	 */
-	public void endMatch() {
-		announceMatchTime(true);
-		stopMatchTimer();
-		matchEnded = true;
-		// Put all players into creative
-		for (Player p : getServer().getOnlinePlayers()) p.setGameMode(GameMode.CREATIVE);
-		setVanish();
-
-	}
-	
-	/**
-	 * Initiates a countdown
-	 * 
-	 * @param countdownLength the number of seconds to count down
-	 * @param eventName The name of the event to be announced
-	 * @param endMessage The message to display at the end of the countdown
-	 * @return Whether the countdown was started
-	 */
-	public boolean startCountdown(Integer countdownLength, String eventName, String endMessage, CountdownType type) {
-		if (countdown>0) return false;
-		countdown = countdownLength;
-		countdownEvent = eventName;
-		countdownEndMessage = endMessage;
-		countdownType = type;
-		countdown();
-		return true;
-	}
-	
-	/**
-	 * Continues the countdown in progress
-	 */
-	private void countdown() {
-		if (countdown < 0)
-			return;
-		
-		if (countdown == 0) {
-			if (countdownType == CountdownType.MATCH) {
-				this.startMatch();
-			} else if (countdownType == CountdownType.PVP) {
-				this.setPVP(true);
-			} else if (countdownType == CountdownType.WORLD_REDUCE) {
-				if (UhcUtil.setWorldRadius(world,nextRadius)) {
-					getServer().broadcast(OK_COLOR + "Border reduced to " + nextRadius, Server.BROADCAST_CHANNEL_ADMINISTRATIVE);
-				} else {
-					getServer().broadcast(ERROR_COLOR + "Unable to reduce border. Is WorldBorder installed?", Server.BROADCAST_CHANNEL_ADMINISTRATIVE);
-				}
-			}
-			getServer().broadcastMessage(MAIN_COLOR + countdownEndMessage);
-			return;
-		}
-		
-		if (countdown >= 60) {
-			if (countdown % 60 == 0) {
-				int minutes = countdown / 60;
-				getServer().broadcastMessage(ChatColor.RED + countdownEvent + " in " + minutes + " minute" + (minutes == 1? "":"s"));
-			}
-		} else if (countdown % 15 == 0) {
-			getServer().broadcastMessage(ChatColor.RED + countdownEvent + " in " + countdown + " seconds");
-		} else if (countdown <= 5) { 
-			getServer().broadcastMessage(ChatColor.RED + "" + countdown + "...");
-		}
-		
-		countdown--;
-		getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable() {
-			public void run() {
-				countdown();
-			}
-		}, 20L);
-	}
-	
-	/**
-	 * Cancels a running countdown
-	 */
-	public void cancelCountdown() {
-		countdown = -1;
-	}
-	
-	/**
-	 * Starts the match timer
-	 */
-	private void startMatchTimer() {
-		matchStartTime = Calendar.getInstance();
-		matchTimer = getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
-			public void run() {
-				announceMatchTime(false);
-			}
-		}, 36000L, 36000L);
-	}
-	
-	/**
-	 * Stops the match timer
-	 */
-	private void stopMatchTimer() {
-		if (matchTimer != -1) {
-			getServer().getScheduler().cancelTask(matchTimer);
-		}
-	}
-	
-	/**
-	 * Announce the current match time in chat
-	 * 
-	 * @param precise Whether to give a precise time (00:00:00) instead of (xx minutes)
-	 */
-	public void announceMatchTime(boolean precise) {
-		getServer().broadcastMessage(MAIN_COLOR + "Match time: " + SIDE_COLOR + UhcUtil.formatDuration(matchStartTime, Calendar.getInstance(), precise));
-	}
-	
-
-	/**
-	 * Plays a chat script
-	 * 
-	 * @param filename The file to read the chat script from
-	 * @param muteChat Whether other chat should be muted
-	 */
-	public void playChatScript(String filename, boolean muteChat) {
-		if (muteChat) this.setChatMuted(true);
-		chatScript = UhcUtil.readFile(filename);
-		if (chatScript != null)
-			continueChatScript();
-	}
-	
-	/**
-	 * Output next line of current chat script, unmuting the chat if it's finished.
-	 */
-	private void continueChatScript() {
-		getServer().broadcastMessage(ChatColor.GREEN + chatScript.get(0));
-		chatScript.remove(0);
-		if (chatScript.size() > 0) {
-			getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable() {
-				public void run() {
-					continueChatScript();
-				}
-			}, 30L);
-		} else {
-			this.setChatMuted(false);
-			chatScript = null;
-		}
-		
-	}
-	
-	/**
-	 * Get all players currently registered with the game
-	 * 
-	 * @return All registered players
-	 */
-	public Collection<UhcPlayer> getUhcPlayers() {
-		return uhcPlayers.values();
-	}
-	
-	
-	/**
-	 * Create a new player and add them to the game
-	 * 
-	 * @param name The player's name
-	 * @param sp The player's start point
-	 * @return The newly created player, or null if they already existed
-	 */
-	public UhcPlayer createUhcPlayer(String name, UhcStartPoint sp) {
-		// Fail if player exists
-		if (existsUhcPlayer(name)) return null;
-		
-		UhcPlayer up = new UhcPlayer(name, sp);
-		uhcPlayers.put(name.toLowerCase(), up);
-		return up;
-	}
-	
-	/**
-	 * Check if a player exists
-	 * 
-	 * @param name Player name to check (case insensitive)
-	 * @return Whether the player exists
-	 */
-	public boolean existsUhcPlayer(String name) {
-		return uhcPlayers.containsKey(name.toLowerCase());
-	}
-	
-	/**
-	 * Get a specific UhcPlayer by name
-	 * 
-	 * @param name The exact name of the player to be found  (case insensitive)
-	 * @return The UhcPlayer, or null if not found
-	 */
-	public UhcPlayer getUhcPlayer(String name) {
-		return uhcPlayers.get(name.toLowerCase());
-	}
-
-	
-	/**
-	 * Get a specific UhcPlayer matching the given Bukkit Player
-	 * 
-	 * @param playerToGet The Player to look for
-	 * @return The UhcPlayer, or null if not found
-	 */
-	public UhcPlayer getUhcPlayer(Player playerToGet) {
-		return getUhcPlayer(playerToGet.getName());
-	}
-	
-	/**
-	 * Add the supplied player and assign them a start point
-	 * 
-	 * @param p The player to add
-	 * @return success or failure
-	 */
-	public boolean addPlayer(Player p) {
-		// Check that we are not dealing with an op here
-		if (p.isOp()) return false;
-		
-		// Check that there are available start points
-		if (availableStartPoints.size() < 1) return false;
-		
-		// Check that the player doesn't exist 
-		if (existsUhcPlayer(p.getName())) return false;
-		
-		// Get them a start point
-		Random rand = new Random();
-		UhcStartPoint start = availableStartPoints.remove(rand.nextInt(availableStartPoints.size()));
-		
-		// Create the player
-		UhcPlayer up = createUhcPlayer(p.getName(), start);
-		start.setUhcPlayer(up);
-
-		playersInMatch++;
-		
-		start.makeSign();
-
-		return true;
-	}
-
-	/**
-	 * Launch the specified player only
-	 * 
-	 * @param p The UhcPlayer to be launched
-	 * @return success or failure
-	 */
-	public boolean launch(UhcPlayer up) {
-
-		// If player already launched, ignore
-		if (up.isLaunched()) return false;
-		
-		// Get the player
-		Player p = getServer().getPlayer(up.getName());
-		
-		// If player not online, return
-		if (p == null) return false;
-		
-		// Teleport the player to the start point
-		p.setGameMode(GameMode.ADVENTURE);
-		doTeleport(p, up.getStartPoint().getLocation());
-		renew(p);
-		
-		up.setLaunched(true);
-
-		return true;
-
-
-		
-	}
-	
-	/**
-	 * Re-teleport the specified player
-	 * 
-	 * @param p The player to be relaunched
-	 */
-	public boolean relaunch(Player p) {
-		UhcPlayer up = getUhcPlayer(p);
-		if (up == null) return false;
-		
-		return p.teleport(up.getStartPoint().getLocation());
-	}
-	
-	/**
-	 * Remove the given player, removing them from the match and freeing up a start point.
-	 * 
-	 * The player will be teleported back to spawn if they are still on the server
-	 * 
-	 * @param name The player to be removed
-	 * @return The removed player, or null if failed
-	 */
-	public UhcPlayer removePlayer(String name) {
-		UhcPlayer up = uhcPlayers.remove(name);
-		Player p = getServer().getPlayer(name);
-		
-		if (up != null) {
-			// Free up the start point
-			UhcStartPoint sp = up.getStartPoint();
-			if (sp != null) {
-				sp.setUhcPlayer(null);
-				playersInMatch--;
-				sp.makeSign();
-				availableStartPoints.add(sp);
-				if (matchStarted) {
-					getServer().broadcastMessage(ChatColor.GOLD + up.getName() + " has been removed from the match");
-					announcePlayersRemaining();
-				}
-			}
-		}
-		
-		// Teleport the player if possible
-		if (p != null) doTeleport(p,world.getSpawnLocation());
-		
-		return up;
-	}
-
-
-	/**
-	 * Start the launching phase, and launch all players who have been added to the game
-	 */
-	public void launchAll() {
-		launchingPlayers=true;
-		disableSpawnKeeper();
-		setVanish(); // Update vanish status
-		for(UhcPlayer up : getUhcPlayers()) launch(up);
-	}
-	
-	
-	public void enableSpawnKeeper() {
-		spawnKeeperTask = getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
-			public void run() {
-				runSpawnKeeper();
-			}
-		}, 20L, 20L);
-	}
-
-	public void disableSpawnKeeper() {
-		getServer().getScheduler().cancelTask(spawnKeeperTask);
-	}
-	
-	public void runSpawnKeeper() {
-		for (Player p : getServer().getOnlinePlayers()) {
-			if (!p.isOp() && p.getLocation().getY() < 128) {
-				doTeleport(p, world.getSpawnLocation());
-			}
-		}
-	}
-	
-	/**
-	 * Create a new start point at a given location
-	 * 
-	 * @param number The start point's number
-	 * @param l The location of the start point
-	 * @return The created start point
-	 */
-	public UhcStartPoint createStartPoint(int number, Location l) {
-		// Check there is not already a start point with this number		
-		if (startPoints.containsKey(number))
-			return null;
-		
-		UhcStartPoint sp = new UhcStartPoint(number, l);
-		startPoints.put(number,  sp);
-		availableStartPoints.add(sp);
-		
-		return sp;
-	}
-	
-	/**
-	 * Create a new start point at a given location
-	 * 
-	 * @param number The start point's number
-	 * @param world The world to create the start point
-	 * @param x x coordinate of the start point
-	 * @param y y coordinate of the start point
-	 * @param z z coordinate of the start point
-	 * @return The created start point
-	 */
-	public UhcStartPoint createStartPoint(int number, World world, Double x, Double y, Double z) {
-		return createStartPoint(number, new Location(world, x, y, z));
-	}
-	
-	/**
-	 * Create a new start point at a given location, giving it the next available number
-	 * 
-	 * @param l The location of the start point
-	 * @return The created start point
-	 */
-	public UhcStartPoint createStartPoint(Location l) {
-		return createStartPoint(getNextAvailableStartNumber(), l);
-	}
-
-	/**
-	 * Create a new start point at a given location, giving it the next available number
-	 * 
-	 * @param world The world to create the start point
-	 * @param x x coordinate of the start point
-	 * @param y y coordinate of the start point
-	 * @param z z coordinate of the start point
-	 * @return The created start point
-	 */
-	public UhcStartPoint createStartPoint(World world, Double x, Double y, Double z) {
-		return createStartPoint(new Location(world, x, y, z));
-	}
-		
-	/**
-	 * Clear all start points
-	 */
-	public void clearStartPoints() {
-		startPoints.clear();
-		availableStartPoints.clear();
-
-	}
-	
-	/**
-	 * Determine the lowest unused start number
-	 * 
-	 * @return The lowest available start point number
-	 */
-	public int getNextAvailableStartNumber() {
-		int n = 1;
-		while (startPoints.containsKey(n))
-			n++;
-		return n;
-	}
-	
-	/**
-	 * Attempt to load start points from the default file
-	 * 
-	 * @return Whether the operation succeeded
-	 */
-	public Boolean loadStartPoints() { return this.loadStartPoints(DEFAULT_START_POINTS_FILE); }
-	
-	
-	/**
-	 * Attempt to load start points from the specified file
-	 * 
-	 * @param filename The file to load start points from
-	 * @return Whether the operation succeeded
-	 */
-	public Boolean loadStartPoints(String filename) {
-		File fStarts = UhcUtil.getWorldDataFile(filename, true);
-		
-		if (fStarts == null) return false;
-		
-		clearStartPoints();
-		
-		try {
-			FileReader fr = new FileReader(fStarts);
-			BufferedReader in = new BufferedReader(fr);
-			String s = in.readLine();
-
-			while (s != null) {
-				String[] data = s.split(",");
-				if (data.length == 4) {
-					try {
-						int n = Integer.parseInt(data[0]);
-						double x = Double.parseDouble(data[1]);
-						double y = Double.parseDouble(data[2]);
-						double z = Double.parseDouble(data[3]);
-						UhcStartPoint sp = createStartPoint (n, world, x, y, z);
-						if (sp == null) {
-							server.broadcast("Duplicate start point: " + n, Server.BROADCAST_CHANNEL_ADMINISTRATIVE);
-
-						}
-					} catch (NumberFormatException e) {
-						server.broadcast("Bad entry in locations file: " + s, Server.BROADCAST_CHANNEL_ADMINISTRATIVE);
-					}
-					
-				} else {
-					server.broadcast("Bad entry in locations file: " + s, Server.BROADCAST_CHANNEL_ADMINISTRATIVE);
-				}
-				
-				s = in.readLine();
-			}
-
-			in.close();
-			fr.close();
-			return true;
-			
-		} catch (IOException e) {
-			return false;
-		}
-	}
-	
-	/**
-	 * Save start points to the default file
-	 * 
-	 * @return Whether the operation succeeded
-	 */
-	public Boolean saveStartPoints() { return this.saveStartPoints(DEFAULT_START_POINTS_FILE); }
-	
-	/**
-	 * Save start points to a file
-	 * 
-	 * @param filename File to save start points to
-	 * @return Whether the operation succeeded
-	 */
-	public boolean saveStartPoints(String filename) {
-		File fStarts = UhcUtil.getWorldDataFile(filename, false);
-		if (fStarts == null) return false;
-
-		try {
-			FileWriter fw = new FileWriter(fStarts);
-			BufferedWriter out = new BufferedWriter(fw);
-			for (UhcStartPoint sp : startPoints.values()) {
-				out.write(sp.getNumber() + "," + sp.getX() + "," + sp.getY() + "," + sp.getZ() + "\n");
-			}
-			out.close();
-			fw.close();
-			return true;
-		} catch (IOException e) {
-			return false;
-		}
-		
-	}
-	
-
-	
-	/**
-	 * @return Whether chat is currently muted
-	 */
-	public boolean isChatMuted() {
-		return chatMuted;
-	}
-	
-	/**
-	 * Mute or unmute chat
-	 * 
-	 * @param muted Status to be set
-	 */
-	public void setChatMuted(Boolean muted) {
-		chatMuted = muted;
-	}
-
-	/**
-	 * @return Whether player launching has started yet
-	 */
-	public Boolean getLaunchingPlayers() {
-		return launchingPlayers;
-	}
-
-	/**
-	 * Get the bonus items to be dropped by a PVP-killed player in addition to their inventory
-	 * 
-	 * @return The ItemStack to be dropped
-	 */
-	public ItemStack getKillerBonus() {
-		if (!config.getBoolean("killerbonus.enabled")) return null;
-		
-		if (config.getInt("killerbonus.id") != 0 && config.getInt("killerbonus.quantity") != 0)
-			return new ItemStack(config.getInt("killerbonus.id"), config.getInt("killerbonus.quantity"));
-		else
-			return null;
-	}
-
-	/**
-	 * Apply the mining fatigue game mechanic
-	 * 
-	 * Players who mine stone below a certain depth increase their hunger or take damage
-	 * 
-	 * @param player The player to act upon
-	 * @param blockY The Y coordinate of the mined block
-	 */
-	public void doMiningFatigue(Player player, int blockY) {
-		if (!config.getBoolean("miningfatigue.enabled")) return;
-		if (blockY > config.getInt("miningfatigue.maxy")) return;
-		UhcPlayer up = getUhcPlayer(player);
-		if (up == null) return;
-		up.incMineCount();
-		if (up.getMineCount() >= config.getInt("miningfatigue.blocks")) {
-			up.resetMineCount();
-			if (config.getInt("miningfatigue.exhaustion") > 0) {
-				// Increase player's exhaustion by specified amount
-				player.setExhaustion(player.getExhaustion() + config.getInt("miningfatigue.exhaustion"));
-			}
-			if (config.getInt("miningfatigue.damage") > 0) {
-				// Apply specified damage to player
-				player.damage(config.getInt("miningfatigue.damage"));
-			}
-		}
-
-		
-	}
-
-	/**
-	 * @return Whether the game is underway
-	 */
-	public Boolean isMatchStarted() {
-		return matchStarted;
-	}
-
-	/**
-	 * @return The number of players still in the match
-	 */
-	public int getPlayersInMatch() {
-		return playersInMatch;
-	}
-
-	/**
-	 * Process the death of a player
-	 * 
-	 * @param up The player who died
-	 */
-	public void handlePlayerDeath(UhcPlayer up) {
-		if (up.isDead()) return;
-		up.setDead(true);
-		playersInMatch--;
-		getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable() {
-			public void run() {
-				announcePlayersRemaining();
-			}
-		});
-	}
-
-	/**
-	 * Publicly announce how many players are still in the match 
-	 */
-	private void announcePlayersRemaining() {
-		// Make no announcement if final player was killed
-		if (playersInMatch < 1) return;
-		
-		String message;
-		if (playersInMatch == 1) {
-			message = getSurvivingPlayerList() + " is the winner!";
-			endMatch();
-		} else if (playersInMatch <= 4) {
-			message = playersInMatch + " players remain: " + getSurvivingPlayerList();
-		} else {
-			message = playersInMatch + " players remain";
-		}
-		
-		getServer().broadcast(OK_COLOR + message, Server.BROADCAST_CHANNEL_USERS);
-	}
-
-	/**
-	 * Get a list of surviving players
-	 * 
-	 * @return A comma-separated list of surviving players
-	 */
-	private String getSurvivingPlayerList() {
-		String survivors = "";
-		
-		for (UhcPlayer up : getUhcPlayers())
-			if (up.isLaunched() && !up.isDead()) survivors += up.getName() + ", ";;
-		
-		if (survivors.length() > 2)
-			survivors = survivors.substring(0,survivors.length()-2);
-		
-		return survivors;
-		
-	}
-	
-
-
-	/**
-	 * @return Whether the match is over
-	 */
-	public boolean isMatchEnded() {
-		return matchEnded;
-	}
-	
-	/**
-	 * @return Whether we are in the launch or match period
-	 */
-	public boolean inLaunchOrMatch() {
-		return (getLaunchingPlayers() && !isMatchEnded());
-	}
-
-	/**
-	 * Show a spectator the contents of a player's inventory.
-	 * 
-	 * @param spectator The player who is asking to see the inventory
-	 * @param player The player being observed
-	 */
-	public boolean showInventory(Player spectator, Player player) {
-
-		Inventory i = getInventoryView(player);
-		if (i == null) return false;
-		
-		spectator.openInventory(i);
-		return true;
-	}
-
-	/**
-	 * Gets a copy of a player's current inventory, including armor/health/hunger details.
-	 *
-	 * @author AuthorBlues
-	 * @param player The player to be viewed
-	 * @return inventory The player's inventory
-	 *
-	 */
-	public Inventory getInventoryView(Player player)
-	{
-
-		PlayerInventory pInventory = player.getInventory();
-		Inventory inventoryView = Bukkit.getServer().createInventory(null,
-			pInventory.getSize() + 9, player.getDisplayName() + "'s Inventory");
-
-		ItemStack[] oldContents = pInventory.getContents();
-		ItemStack[] newContents = inventoryView.getContents();
-
-		for (int i = 0; i < oldContents.length; ++i)
-			if (oldContents[i] != null) newContents[i] = oldContents[i];
-
-		newContents[oldContents.length + 0] = pInventory.getHelmet();
-		newContents[oldContents.length + 1] = pInventory.getChestplate();
-		newContents[oldContents.length + 2] = pInventory.getLeggings();
-		newContents[oldContents.length + 3] = pInventory.getBoots();
-
-		newContents[oldContents.length + 7] = new ItemStack(Material.APPLE, player.getHealth());
-		newContents[oldContents.length + 8] = new ItemStack(Material.COOKED_BEEF, player.getFoodLevel());
-
-		for (int i = 0; i < oldContents.length; ++i)
-			if (newContents[i] != null) newContents[i] = newContents[i].clone();
-
-		inventoryView.setContents(newContents);
-		return inventoryView;
-	}
-	
-
-	/**
-	 * Set the correct vanish status for all players on the server
-	 * 
-	 * @param p1
-	 */
-	public void setVanish() {
-		for(Player p : getServer().getOnlinePlayers()) {
-			setVanish(p);
-		}
-	}
-
-	/**
-	 * Set the correct vanish status for the player in relation to all other players
-	 * 
-	 * @param p The player to update
-	 */
-	public void setVanish(Player p) {
-		for (Player p2 : getServer().getOnlinePlayers()) {
-			setVanish(p, p2);
-			setVanish(p2, p);
-		}
-	}
-	
-	/**
-	 * Set the correct vanish status between two players
-	 * 
-	 * @param viewer Player viewing
-	 * @param viewed Player being viewed
-	 */
-	public void setVanish(Player viewer, Player viewed) {
-		if (viewer == viewed) return;
-		
-		// An op should be invisible to a non-op if the match is launching and not ended
-		if (!viewer.isOp() && viewed.isOp() && inLaunchOrMatch()) {
-			viewer.hidePlayer(viewed);
-		} else {
-			viewer.showPlayer(viewed);
-		}
-	}
 }
