@@ -21,8 +21,6 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Server;
 import org.bukkit.World;
-import org.bukkit.block.Chest;
-import org.bukkit.block.Sign;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.EnderDragon;
@@ -461,7 +459,7 @@ public class TesseractUHC extends JavaPlugin {
 		UhcStartPoint startPoint = createStartPoint(world, x,y,z);
 		
 		if (args.length < 1 || !("-n".equalsIgnoreCase(args[0])))
-			buildStartingTrough(startPoint);
+			startPoint.buildStartingTrough();
 		
 		return OK_COLOR + "Start point added";
 		
@@ -1471,87 +1469,7 @@ public class TesseractUHC extends JavaPlugin {
 
 
 	
-	/**
-	 * Build a starting trough at the specified start point, and puts a starter chest and sign there.
-	 * 
-	 * @param sp The start point where the trough will be created
-	 */
-	public void buildStartingTrough(UhcStartPoint sp) {
-		int x = sp.getLocation().getBlockX();
-		int y = sp.getLocation().getBlockY();
-		int z = sp.getLocation().getBlockZ();
-		world.getBlockAt(x,y-1,z).setType(Material.CHEST);
-		Inventory chest = ((Chest) world.getBlockAt(x,y-1,z).getState()).getBlockInventory();
-		chest.setItem(3,new ItemStack(Material.CARROT_STICK, 1));
-		chest.setItem(4,new ItemStack(Material.STONE_SWORD, 1));
-		chest.setItem(5,new ItemStack(Material.WATCH, 1));
-		
-		chest.setItem(12,new ItemStack(Material.STONE_PICKAXE, 1));
-		chest.setItem(13,new ItemStack(Material.LEATHER_CHESTPLATE, 1));
-		chest.setItem(14,new ItemStack(Material.STONE_SPADE, 1));
-		
-		chest.setItem(21,new ItemStack(Material.SADDLE, 1));
-		chest.setItem(22,new ItemStack(Material.STONE_AXE, 1));
-		chest.setItem(23,new ItemStack(Material.MONSTER_EGG, 1, (short) 90));
-		
-		
-		world.getBlockAt(x,y-2,z).setType(Material.GLASS);
-		
-		world.getBlockAt(x-1,y-1,z).setType(Material.GLOWSTONE);
-		world.getBlockAt(x-1,y,z).setType(Material.GLASS);
-		world.getBlockAt(x-1,y+1,z).setType(Material.GLASS);
-		
-		world.getBlockAt(x+1,y-1,z).setType(Material.GLOWSTONE);
-		world.getBlockAt(x+1,y,z).setType(Material.GLASS);
-		world.getBlockAt(x+1,y+1,z).setType(Material.GLASS);
-		
-		world.getBlockAt(x,y-1,z-1).setType(Material.GLOWSTONE);
-		world.getBlockAt(x,y,z-1).setType(Material.GLASS);
-		world.getBlockAt(x,y+1,z-1).setType(Material.GLASS);
 
-		world.getBlockAt(x,y-1,z+1).setType(Material.GLOWSTONE);
-		world.getBlockAt(x,y,z+1).setType(Material.GLASS);
-		world.getBlockAt(x,y+1,z+1).setType(Material.GLASS);
-		
-		makeStartSign(sp);
-	}
-	
-	/**
-	 * Make a default start sign
-	 * 
-	 * @param sp The start point to make the sign at
-	 */
-	public void makeStartSign(UhcStartPoint sp) {
-		UhcPlayer up = sp.getUhcPlayer();
-		if (up == null) 
-			makeStartSign(sp, "Player " + sp.getNumber());
-		else
-			makeStartSign(sp, up.getName());
-			
-	}
-	
-	/**
-	 * Make a start sign with specific text
-	 * 
-	 * @param sp The start point to make the sign at
-	 * @param text The text to write on the sign
-	 */
-	public void makeStartSign(UhcStartPoint sp, String text) {
-		int x = sp.getLocation().getBlockX();
-		int y = sp.getLocation().getBlockY();
-		int z = sp.getLocation().getBlockZ();
-		world.getBlockAt(x,y,z+2).setType(Material.SIGN_POST);
-		
-		Sign s = (Sign) world.getBlockAt(x,y,z+2).getState();
-		
-		s.setLine(0, "");
-		s.setLine(1, text);
-		s.setLine(2, "");
-		s.setLine(3, "");
-
-		s.update();
-	}
-	
 	
 	/**
 	 * Remove all hostile mobs in the overworld
@@ -1889,7 +1807,7 @@ public class TesseractUHC extends JavaPlugin {
 
 		playersInMatch++;
 		
-		makeStartSign(start);
+		start.makeSign();
 
 		return true;
 	}
@@ -1954,7 +1872,7 @@ public class TesseractUHC extends JavaPlugin {
 			if (sp != null) {
 				sp.setUhcPlayer(null);
 				playersInMatch--;
-				makeStartSign(sp);
+				sp.makeSign();
 				availableStartPoints.add(sp);
 				if (matchStarted) {
 					getServer().broadcastMessage(ChatColor.GOLD + up.getName() + " has been removed from the match");
