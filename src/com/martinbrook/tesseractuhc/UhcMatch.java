@@ -66,11 +66,16 @@ public class UhcMatch {
 	private boolean pvp = false;
 	private int spawnKeeperTask = -1;
 	private FileConfiguration config;
+	private TesseractUHC plugin;
+	private Server server;
 	
-	public UhcMatch(World startingWorld, FileConfiguration config) {
+	public UhcMatch(TesseractUHC plugin, World startingWorld, FileConfiguration config) {
 
 		this.startingWorld = startingWorld;
 		this.config = config;
+		this.plugin = plugin;
+		this.server = plugin.getServer();
+		
 		this.initialise();
 		
 	}
@@ -154,8 +159,7 @@ public class UhcMatch {
 	}
 
 	private void broadcast(String string, String permission) {
-
-		TesseractUHC.getInstance().getServer().broadcast(string, permission);
+		server.broadcast(string, permission);
 	}
 	
 	/**
@@ -233,14 +237,14 @@ public class UhcMatch {
 		
 		if (permaday) {
 			startingWorld.setTime(6000);
-			permadayTaskId = TesseractUHC.getInstance().getServer().getScheduler().scheduleSyncRepeatingTask(TesseractUHC.getInstance(), new Runnable() {
+			permadayTaskId = server.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
 				public void run() {
 					keepPermaday();
 				}
 			}, 1200L, 1200L);
 			
 		} else {
-			TesseractUHC.getInstance().getServer().getScheduler().cancelTask(permadayTaskId);
+			server.getScheduler().cancelTask(permadayTaskId);
 		}
 	}
 	
@@ -418,7 +422,7 @@ public class UhcMatch {
 		matchStarted = true;
 		startingWorld.setTime(0);
 		butcherHostile();
-		for (Player p : TesseractUHC.getInstance().getServer().getOnlinePlayers()) {
+		for (Player p : server.getOnlinePlayers()) {
 			if (p.getGameMode() != GameMode.CREATIVE) {
 				feed(p);
 				clearXP(p);
@@ -443,7 +447,7 @@ public class UhcMatch {
 		stopMatchTimer();
 		matchEnded = true;
 		// Put all players into creative
-		for (Player p : TesseractUHC.getInstance().getServer().getOnlinePlayers()) p.setGameMode(GameMode.CREATIVE);
+		for (Player p : server.getOnlinePlayers()) p.setGameMode(GameMode.CREATIVE);
 		setVanish();
 
 	}
@@ -501,7 +505,7 @@ public class UhcMatch {
 		}
 		
 		countdown--;
-		TesseractUHC.getInstance().getServer().getScheduler().scheduleSyncDelayedTask(TesseractUHC.getInstance(), new Runnable() {
+		server.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
 			public void run() {
 				countdown();
 			}
@@ -520,7 +524,7 @@ public class UhcMatch {
 	 */
 	private void startMatchTimer() {
 		matchStartTime = Calendar.getInstance();
-		matchTimer = TesseractUHC.getInstance().getServer().getScheduler().scheduleSyncRepeatingTask(TesseractUHC.getInstance(), new Runnable() {
+		matchTimer = server.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
 			public void run() {
 				announceMatchTime(false);
 			}
@@ -532,7 +536,7 @@ public class UhcMatch {
 	 */
 	private void stopMatchTimer() {
 		if (matchTimer != -1) {
-			TesseractUHC.getInstance().getServer().getScheduler().cancelTask(matchTimer);
+			server.getScheduler().cancelTask(matchTimer);
 		}
 	}
 	
@@ -566,7 +570,7 @@ public class UhcMatch {
 		broadcast(ChatColor.GREEN + chatScript.get(0));
 		chatScript.remove(0);
 		if (chatScript.size() > 0) {
-			TesseractUHC.getInstance().getServer().getScheduler().scheduleSyncDelayedTask(TesseractUHC.getInstance(), new Runnable() {
+			server.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
 				public void run() {
 					continueChatScript();
 				}
@@ -678,14 +682,14 @@ public class UhcMatch {
 		if (up.isLaunched()) return false;
 		
 		// Get the player
-		Player p = TesseractUHC.getInstance().getServer().getPlayer(up.getName());
+		Player p = server.getPlayer(up.getName());
 		
 		// If player not online, return
 		if (p == null) return false;
 		
 		// Teleport the player to the start point
 		p.setGameMode(GameMode.ADVENTURE);
-		TesseractUHC.getInstance().doTeleport(p, up.getStartPoint().getLocation());
+		plugin.doTeleport(p, up.getStartPoint().getLocation());
 		renew(p);
 		
 		up.setLaunched(true);
@@ -718,7 +722,7 @@ public class UhcMatch {
 	 */
 	public UhcPlayer removePlayer(String name) {
 		UhcPlayer up = uhcPlayers.remove(name);
-		Player p = TesseractUHC.getInstance().getServer().getPlayer(name);
+		Player p = server.getPlayer(name);
 		
 		if (up != null) {
 			// Free up the start point
@@ -736,7 +740,7 @@ public class UhcMatch {
 		}
 		
 		// Teleport the player if possible
-		if (p != null) TesseractUHC.getInstance().doTeleport(p,startingWorld.getSpawnLocation());
+		if (p != null) plugin.doTeleport(p,startingWorld.getSpawnLocation());
 		
 		return up;
 	}
@@ -754,7 +758,7 @@ public class UhcMatch {
 	
 	
 	public void enableSpawnKeeper() {
-		spawnKeeperTask = TesseractUHC.getInstance().getServer().getScheduler().scheduleSyncRepeatingTask(TesseractUHC.getInstance(), new Runnable() {
+		spawnKeeperTask = server.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
 			public void run() {
 				runSpawnKeeper();
 			}
@@ -762,13 +766,13 @@ public class UhcMatch {
 	}
 
 	public void disableSpawnKeeper() {
-		TesseractUHC.getInstance().getServer().getScheduler().cancelTask(spawnKeeperTask);
+		server.getScheduler().cancelTask(spawnKeeperTask);
 	}
 	
 	public void runSpawnKeeper() {
-		for (Player p : TesseractUHC.getInstance().getServer().getOnlinePlayers()) {
+		for (Player p : server.getOnlinePlayers()) {
 			if (!p.isOp() && p.getLocation().getY() < 128) {
-				TesseractUHC.getInstance().doTeleport(p, startingWorld.getSpawnLocation());
+				plugin.doTeleport(p, startingWorld.getSpawnLocation());
 			}
 		}
 	}
@@ -942,7 +946,7 @@ public class UhcMatch {
 		if (up.isDead()) return;
 		up.setDead(true);
 		playersInMatch--;
-		TesseractUHC.getInstance().getServer().getScheduler().scheduleSyncDelayedTask(TesseractUHC.getInstance(), new Runnable() {
+		server.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
 			public void run() {
 				announcePlayersRemaining();
 			}
@@ -1061,7 +1065,7 @@ public class UhcMatch {
 	 * @param p1
 	 */
 	public void setVanish() {
-		for(Player p : TesseractUHC.getInstance().getServer().getOnlinePlayers()) {
+		for(Player p : server.getOnlinePlayers()) {
 			setVanish(p);
 		}
 	}
@@ -1072,7 +1076,7 @@ public class UhcMatch {
 	 * @param p The player to update
 	 */
 	public void setVanish(Player p) {
-		for (Player p2 : TesseractUHC.getInstance().getServer().getOnlinePlayers()) {
+		for (Player p2 : server.getOnlinePlayers()) {
 			setVanish(p, p2);
 			setVanish(p2, p);
 		}

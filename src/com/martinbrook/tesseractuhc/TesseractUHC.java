@@ -37,7 +37,7 @@ public class TesseractUHC extends JavaPlugin {
 		instance = this;
 
 		saveDefaultConfig();
-		this.match = new UhcMatch(getServer().getWorlds().get(0), getConfig());
+		this.match = new UhcMatch(this, getServer().getWorlds().get(0), getConfig());
 	
 		l = new UhcMatchListener(match);
 		this.getServer().getPluginManager().registerEvents(l, this);
