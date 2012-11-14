@@ -23,6 +23,7 @@ import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.EnderDragon;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Ghast;
@@ -62,14 +63,6 @@ public class TesseractUHC extends JavaPlugin {
 	private Boolean launchingPlayers = false;
 	private Boolean matchStarted = false;
 	private HashMap<String, UhcPlayer> uhcPlayers = new HashMap<String, UhcPlayer>(32);
-	private Boolean killerBonusEnabled = false;
-	private int killerBonusItemID = 0;
-	private int killerBonusItemQuantity = 0;
-	private Boolean miningFatigueEnabled;
-	private int miningFatigueBlocks;
-	private int miningFatigueExhaustion;
-	private int miningFatigueDamage;
-	private int miningFatigueMaxY;
 	private static String DEFAULT_START_POINTS_FILE = "starts.txt";
 	private int playersInMatch = 0;
 	private int nextRadius;
@@ -79,6 +72,7 @@ public class TesseractUHC extends JavaPlugin {
 	private ArrayList<Location> calculatedStarts = null;
 	private boolean pvp = false;
 	private int spawnKeeperTask = -1;
+	private FileConfiguration config;
 	
 	/**
 	 * Get the singleton instance of UhcTools
@@ -100,12 +94,14 @@ public class TesseractUHC extends JavaPlugin {
 		this.server = this.getServer();
 		this.world = getServer().getWorlds().get(0);
 		
-		loadConfigValues();
+		saveDefaultConfig();
+		this.config = getConfig();
 		
 		loadStartPoints();
 		setPermaday(true);
 		setPVP(false);
 		setVanish();
+		setDeathban(config.getBoolean("deathban"));
 		enableSpawnKeeper();
 	}
 	
@@ -1202,22 +1198,6 @@ public class TesseractUHC extends JavaPlugin {
 
 	
 	/**
-	 * Load configuration settings into variables
-	 */
-	private void loadConfigValues() {
-		saveDefaultConfig();
-		killerBonusEnabled = getConfig().getBoolean("killerbonus.enabled");
-		killerBonusItemID = getConfig().getInt("killerbonus.id");
-		killerBonusItemQuantity = getConfig().getInt("killerbonus.quantity");
-		miningFatigueEnabled = getConfig().getBoolean("miningfatigue.enabled");
-		miningFatigueBlocks = getConfig().getInt("miningfatigue.blocks");
-		miningFatigueExhaustion = getConfig().getInt("miningfatigue.exhaustion");
-		miningFatigueDamage = getConfig().getInt("miningfatigue.damage");
-		miningFatigueMaxY = getConfig().getInt("miningfatigue.maxy");
-		deathban = getConfig().getBoolean("deathban");
-	}
-
-	/**
 	 * Set time to midday, to keep permaday in effect.
 	 */
 	private void keepPermaday() {
@@ -2118,9 +2098,10 @@ public class TesseractUHC extends JavaPlugin {
 	 * @return The ItemStack to be dropped
 	 */
 	public ItemStack getKillerBonus() {
-		if (!killerBonusEnabled) return null;
-		if (killerBonusItemID != 0 && killerBonusItemQuantity != 0)
-			return new ItemStack(killerBonusItemID, killerBonusItemQuantity);
+		if (!config.getBoolean("killerbonus.enabled")) return null;
+		
+		if (config.getInt("killerbonus.id") != 0 && config.getInt("killerbonus.quantity") != 0)
+			return new ItemStack(config.getInt("killerbonus.id"), config.getInt("killerbonus.quantity"));
 		else
 			return null;
 	}
@@ -2134,20 +2115,20 @@ public class TesseractUHC extends JavaPlugin {
 	 * @param blockY The Y coordinate of the mined block
 	 */
 	public void doMiningFatigue(Player player, int blockY) {
-		if (!miningFatigueEnabled) return;
-		if (blockY > miningFatigueMaxY) return;
+		if (!config.getBoolean("miningfatigue.enabled")) return;
+		if (blockY > config.getInt("miningfatigue.maxy")) return;
 		UhcPlayer up = getUhcPlayer(player);
 		if (up == null) return;
 		up.incMineCount();
-		if (up.getMineCount() >= miningFatigueBlocks) {
+		if (up.getMineCount() >= config.getInt("miningfatigue.blocks")) {
 			up.resetMineCount();
-			if (miningFatigueExhaustion > 0) {
+			if (config.getInt("miningfatigue.exhaustion") > 0) {
 				// Increase player's exhaustion by specified amount
-				player.setExhaustion(player.getExhaustion() + miningFatigueExhaustion);
+				player.setExhaustion(player.getExhaustion() + config.getInt("miningfatigue.exhaustion"));
 			}
-			if (miningFatigueDamage > 0) {
+			if (config.getInt("miningfatigue.damage") > 0) {
 				// Apply specified damage to player
-				player.damage(miningFatigueDamage);
+				player.damage(config.getInt("miningfatigue.damage"));
 			}
 		}
 
