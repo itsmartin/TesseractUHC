@@ -71,7 +71,7 @@ public class UhcUtil {
 	 *
 	 * @return The data folder for the plugin, or null if it couldn't be created
 	 */
-	private static File getPluginFolder() {
+	public static File getPluginFolder() {
 	    File pluginFolder = TesseractUHC.getInstance().getDataFolder();
 	    if (!pluginFolder.isDirectory()){
 	        if (!pluginFolder.mkdirs()) {
@@ -87,7 +87,7 @@ public class UhcUtil {
 	 * 
 	 * @return The world folder
 	 */
-	private static File getWorldFolder() {
+	public static File getWorldFolder() {
 		File worldFolder = TesseractUHC.getInstance().getMatch().getStartingWorld().getWorldFolder();
 		if (worldFolder.isDirectory()) return worldFolder;
 		else return null;

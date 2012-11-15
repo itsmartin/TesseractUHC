@@ -1,15 +1,11 @@
 package com.martinbrook.tesseractuhc;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Random;
 
 import org.bukkit.Bukkit;
@@ -19,7 +15,8 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Server;
 import org.bukkit.World;
-import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.Configuration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.EnderDragon;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Ghast;
@@ -56,7 +53,7 @@ public class UhcMatch {
 	private Boolean launchingPlayers = false;
 	private Boolean matchStarted = false;
 	private HashMap<String, UhcPlayer> uhcPlayers = new HashMap<String, UhcPlayer>(32);
-	public static String DEFAULT_START_POINTS_FILE = "starts.txt";
+	public static String DEFAULT_MATCHDATA_FILE = "matchdata.yml";
 	private int playersInMatch = 0;
 	private int nextRadius;
 	private Calendar matchStartTime;
@@ -65,91 +62,125 @@ public class UhcMatch {
 	private ArrayList<Location> calculatedStarts = null;
 	private boolean pvp = false;
 	private int spawnKeeperTask = -1;
-	private FileConfiguration config;
+	private YamlConfiguration md; // Match data
 	private TesseractUHC plugin;
 	private Server server;
+	private Configuration defaults;
 	
-	public UhcMatch(TesseractUHC plugin, World startingWorld, FileConfiguration config) {
+	public UhcMatch(TesseractUHC plugin, World startingWorld, Configuration defaults) {
 
 		this.startingWorld = startingWorld;
-		this.config = config;
 		this.plugin = plugin;
 		this.server = plugin.getServer();
+		this.defaults = defaults;
 		
 		this.initialise();
 		
 	}
 	
 	private void initialise() {
-		loadStartPoints();
+		loadData();
 		setPermaday(true);
 		setPVP(false);
 		setVanish();
-		setDeathban(config.getBoolean("deathban"));
+		setDeathban(md.getBoolean("deathban"));
 		enableSpawnKeeper();
 	}
 	
 	
 	
 	/**
-	 * Attempt to load start points from the default file
-	 * 
-	 * @return Whether the operation succeeded
+	 * Load match data from the default file. If it does not exist, load defaults.
 	 */
-	public Boolean loadStartPoints() { return this.loadStartPoints(DEFAULT_START_POINTS_FILE); }
+	public void loadData() { 
+		this.clearData();
+		
+		try {
+			md = YamlConfiguration.loadConfiguration(UhcUtil.getDataFile(startingWorld.getWorldFolder(), DEFAULT_MATCHDATA_FILE, true));
+			this.loadStartPoints();
+		} catch (Exception e) {
+			this.loadDefaultData();
+		}
+		
+	}
 	
 	
 	/**
-	 * Attempt to load start points from the specified file
+	 * Set up a default matchdata object
+	 */
+	private void loadDefaultData() {
+		md = new YamlConfiguration();
+		md.addDefaults(defaults);
+	}
+	
+	/**
+	 * Create UhcStartPoint objects from the locations in matchdata field (md)
+	 */
+	private void loadStartPoints() {
+		List<String> startData = md.getStringList("starts");
+		for (String startDataEntry : startData) {
+			String[] data = startDataEntry.split(",");
+			if (data.length == 4) {
+				try {
+					int n = Integer.parseInt(data[0]);
+					double x = Double.parseDouble(data[1]);
+					double y = Double.parseDouble(data[2]);
+					double z = Double.parseDouble(data[3]);
+					UhcStartPoint sp = createStartPoint (n, startingWorld, x, y, z);
+					if (sp == null) {
+						adminBroadcast("Duplicate start point: " + n);
+
+					}
+				} catch (NumberFormatException e) {
+					adminBroadcast("Bad start point definition in match data file: " + startDataEntry);
+				}
+
+			} else {
+				adminBroadcast("Bad start point definition in match data file: " + startDataEntry);
+			}
+		}
+
+	}
+	
+	/**
+	 * Update matchdata (md) from the existing UhcStartPoints.
+	 */
+	private void saveStartPoints() {
+		ArrayList<String> startData = new ArrayList<String>();
+		for (UhcStartPoint sp : startPoints.values()) {
+			startData.add(sp.getNumber() + "," + sp.getX() + "," + sp.getY() + "," + sp.getZ());
+		}
+		
+		md.set("starts",startData);
+
+	}
+
+	/**
+	 * Save start points to the default file
 	 * 
-	 * @param filename The file to load start points from
 	 * @return Whether the operation succeeded
 	 */
-	public Boolean loadStartPoints(String filename) {
-		File fStarts = UhcUtil.getWorldDataFile(filename, true);
-		
-		if (fStarts == null) return false;
-		
-		clearStartPoints();
+	public Boolean saveData() {
+		this.saveStartPoints();
 		
 		try {
-			FileReader fr = new FileReader(fStarts);
-			BufferedReader in = new BufferedReader(fr);
-			String s = in.readLine();
-
-			while (s != null) {
-				String[] data = s.split(",");
-				if (data.length == 4) {
-					try {
-						int n = Integer.parseInt(data[0]);
-						double x = Double.parseDouble(data[1]);
-						double y = Double.parseDouble(data[2]);
-						double z = Double.parseDouble(data[3]);
-						UhcStartPoint sp = createStartPoint (n, startingWorld, x, y, z);
-						if (sp == null) {
-							adminBroadcast("Duplicate start point: " + n);
-
-						}
-					} catch (NumberFormatException e) {
-						adminBroadcast("Bad entry in locations file: " + s);
-					}
-					
-				} else {
-					adminBroadcast("Bad entry in locations file: " + s);
-				}
-				
-				s = in.readLine();
-			}
-
-			in.close();
-			fr.close();
-			return true;
-			
+			md.save(UhcUtil.getDataFile(UhcUtil.getWorldFolder(), DEFAULT_MATCHDATA_FILE, false));
 		} catch (IOException e) {
 			return false;
 		}
+		return true;
 	}
+
+
+	/**
+	 * Clear all start points
+	 */
+	public void clearData() {
+		startPoints.clear();
+		availableStartPoints.clear();
 	
+	}
+
 	private void adminBroadcast(String string) {
 		broadcast(string,Server.BROADCAST_CHANNEL_ADMINISTRATIVE);
 	}
@@ -161,39 +192,6 @@ public class UhcMatch {
 	private void broadcast(String string, String permission) {
 		server.broadcast(string, permission);
 	}
-	
-	/**
-	 * Save start points to the default file
-	 * 
-	 * @return Whether the operation succeeded
-	 */
-	public Boolean saveStartPoints() { return this.saveStartPoints(DEFAULT_START_POINTS_FILE); }
-	
-	/**
-	 * Save start points to a file
-	 * 
-	 * @param filename File to save start points to
-	 * @return Whether the operation succeeded
-	 */
-	public boolean saveStartPoints(String filename) {
-		File fStarts = UhcUtil.getWorldDataFile(filename, false);
-		if (fStarts == null) return false;
-
-		try {
-			FileWriter fw = new FileWriter(fStarts);
-			BufferedWriter out = new BufferedWriter(fw);
-			for (UhcStartPoint sp : startPoints.values()) {
-				out.write(sp.getNumber() + "," + sp.getX() + "," + sp.getY() + "," + sp.getZ() + "\n");
-			}
-			out.close();
-			fw.close();
-			return true;
-		} catch (IOException e) {
-			return false;
-		}
-		
-	}
-
 	
 	/**
 	 * Set time to midday, to keep permaday in effect.
@@ -833,15 +831,6 @@ public class UhcMatch {
 	}
 		
 	/**
-	 * Clear all start points
-	 */
-	public void clearStartPoints() {
-		startPoints.clear();
-		availableStartPoints.clear();
-
-	}
-	
-	/**
 	 * Determine the lowest unused start number
 	 * 
 	 * @return The lowest available start point number
@@ -886,10 +875,10 @@ public class UhcMatch {
 	 * @return The ItemStack to be dropped
 	 */
 	public ItemStack getKillerBonus() {
-		if (!config.getBoolean("killerbonus.enabled")) return null;
+		if (!md.getBoolean("killerbonus.enabled")) return null;
 		
-		if (config.getInt("killerbonus.id") != 0 && config.getInt("killerbonus.quantity") != 0)
-			return new ItemStack(config.getInt("killerbonus.id"), config.getInt("killerbonus.quantity"));
+		if (md.getInt("killerbonus.id") != 0 && md.getInt("killerbonus.quantity") != 0)
+			return new ItemStack(md.getInt("killerbonus.id"), md.getInt("killerbonus.quantity"));
 		else
 			return null;
 	}
@@ -903,20 +892,20 @@ public class UhcMatch {
 	 * @param blockY The Y coordinate of the mined block
 	 */
 	public void doMiningFatigue(Player player, int blockY) {
-		if (!config.getBoolean("miningfatigue.enabled")) return;
-		if (blockY > config.getInt("miningfatigue.maxy")) return;
+		if (!md.getBoolean("miningfatigue.enabled")) return;
+		if (blockY > md.getInt("miningfatigue.maxy")) return;
 		UhcPlayer up = getUhcPlayer(player);
 		if (up == null) return;
 		up.incMineCount();
-		if (up.getMineCount() >= config.getInt("miningfatigue.blocks")) {
+		if (up.getMineCount() >= md.getInt("miningfatigue.blocks")) {
 			up.resetMineCount();
-			if (config.getInt("miningfatigue.exhaustion") > 0) {
+			if (md.getInt("miningfatigue.exhaustion") > 0) {
 				// Increase player's exhaustion by specified amount
-				player.setExhaustion(player.getExhaustion() + config.getInt("miningfatigue.exhaustion"));
+				player.setExhaustion(player.getExhaustion() + md.getInt("miningfatigue.exhaustion"));
 			}
-			if (config.getInt("miningfatigue.damage") > 0) {
+			if (md.getInt("miningfatigue.damage") > 0) {
 				// Apply specified damage to player
-				player.damage(config.getInt("miningfatigue.damage"));
+				player.damage(md.getInt("miningfatigue.damage"));
 			}
 		}
 

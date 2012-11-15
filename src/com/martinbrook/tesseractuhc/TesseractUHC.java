@@ -47,7 +47,7 @@ public class TesseractUHC extends JavaPlugin {
 	}
 	
 	public void onDisable(){
-		match.saveStartPoints();
+		match.saveData();
 	}
 	
 	@Override
@@ -525,13 +525,13 @@ public class TesseractUHC extends JavaPlugin {
 			return OK_COLOR + "Start point " + startPoint.getNumber() + " added at your current location";
 			
 		} else if ("clear".equalsIgnoreCase(args[0])) {
-			match.clearStartPoints();
+			match.clearData();
 			return OK_COLOR + "Match data cleared";
 		} else if ("reload".equalsIgnoreCase(args[0])) {
-			match.loadStartPoints();
+			match.loadData();
 			return OK_COLOR + "Match data loaded. " + match.countAvailableStartPoints() + " start points.";
 		} else if ("save".equalsIgnoreCase(args[0])) {
-			if (match.saveStartPoints() == true) {
+			if (match.saveData() == true) {
 				return OK_COLOR + "Match data saved!";
 			} else {
 				return ERROR_COLOR + "Match data could not be saved.";
