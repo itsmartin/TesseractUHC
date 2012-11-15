@@ -66,20 +66,20 @@ public class UhcStartPoint {
 		
 		// Four sides
 		b.getRelative(-1,-1,0).setType(Material.GLOWSTONE);
-		b.getRelative(-1,0,0).setType(Material.GLOWSTONE);
-		b.getRelative(-1,1,0).setType(Material.GLOWSTONE);
+		b.getRelative(-1,0,0).setType(Material.GLASS);
+		b.getRelative(-1,1,0).setType(Material.GLASS);
 		
 		b.getRelative(1,-1,0).setType(Material.GLOWSTONE);
-		b.getRelative(1,0,0).setType(Material.GLOWSTONE);
-		b.getRelative(1,1,0).setType(Material.GLOWSTONE);
+		b.getRelative(1,0,0).setType(Material.GLASS);
+		b.getRelative(1,1,0).setType(Material.GLASS);
 
 		b.getRelative(0,-1,-1).setType(Material.GLOWSTONE);
-		b.getRelative(0,0,-1).setType(Material.GLOWSTONE);
-		b.getRelative(0,1,-1).setType(Material.GLOWSTONE);
+		b.getRelative(0,0,-1).setType(Material.GLASS);
+		b.getRelative(0,1,-1).setType(Material.GLASS);
 
 		b.getRelative(0,-1,1).setType(Material.GLOWSTONE);
-		b.getRelative(0,0,1).setType(Material.GLOWSTONE);
-		b.getRelative(0,1,1).setType(Material.GLOWSTONE);
+		b.getRelative(0,0,1).setType(Material.GLASS);
+		b.getRelative(0,1,1).setType(Material.GLASS);
 		
 		ItemStack[] defaultStarterChest = new ItemStack[27];
 		
