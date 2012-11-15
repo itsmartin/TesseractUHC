@@ -91,9 +91,9 @@ public class UhcStartPoint {
 		defaultStarterChest[13] = new ItemStack(Material.LEATHER_CHESTPLATE, 1);
 		defaultStarterChest[14] = new ItemStack(Material.STONE_SPADE, 1);
 		
-		defaultStarterChest[15] = new ItemStack(Material.SADDLE, 1);
-		defaultStarterChest[16] = new ItemStack(Material.STONE_AXE, 1);
-		defaultStarterChest[17] = new ItemStack(Material.MONSTER_EGG, 1, (short) 90);		
+		defaultStarterChest[21] = new ItemStack(Material.SADDLE, 1);
+		defaultStarterChest[22] = new ItemStack(Material.STONE_AXE, 1);
+		defaultStarterChest[23] = new ItemStack(Material.MONSTER_EGG, 1, (short) 90);		
 		
 		makeChest(defaultStarterChest);
 		makeSign();
