@@ -56,27 +56,30 @@ public class UhcStartPoint {
 	 *
 	 */
 	public void buildStartingTrough() {
-		
+
+		// Get the block containing the player's feet
+		Block b = location.getBlock();
+				
 		// Two blocks of glass below player
-		location.add(0,-2,0).getBlock().setType(Material.GLASS);
-		location.add(0,-1,0).getBlock().setType(Material.GLASS);
+		b.getRelative(0,-2,0).setType(Material.GLASS);
+		b.getRelative(0,-1,0).setType(Material.GLASS);
 		
 		// Four sides
-		location.add(-1,-1,0).getBlock().setType(Material.GLOWSTONE);
-		location.add(-1,0,0).getBlock().setType(Material.GLOWSTONE);
-		location.add(-1,1,0).getBlock().setType(Material.GLOWSTONE);
+		b.getRelative(-1,-1,0).setType(Material.GLOWSTONE);
+		b.getRelative(-1,0,0).setType(Material.GLOWSTONE);
+		b.getRelative(-1,1,0).setType(Material.GLOWSTONE);
 		
-		location.add(1,-1,0).getBlock().setType(Material.GLOWSTONE);
-		location.add(1,0,0).getBlock().setType(Material.GLOWSTONE);
-		location.add(1,1,0).getBlock().setType(Material.GLOWSTONE);
+		b.getRelative(1,-1,0).setType(Material.GLOWSTONE);
+		b.getRelative(1,0,0).setType(Material.GLOWSTONE);
+		b.getRelative(1,1,0).setType(Material.GLOWSTONE);
 
-		location.add(0,-1,-1).getBlock().setType(Material.GLOWSTONE);
-		location.add(0,0,-1).getBlock().setType(Material.GLOWSTONE);
-		location.add(0,1,-1).getBlock().setType(Material.GLOWSTONE);
+		b.getRelative(0,-1,-1).setType(Material.GLOWSTONE);
+		b.getRelative(0,0,-1).setType(Material.GLOWSTONE);
+		b.getRelative(0,1,-1).setType(Material.GLOWSTONE);
 
-		location.add(0,-1,1).getBlock().setType(Material.GLOWSTONE);
-		location.add(0,0,1).getBlock().setType(Material.GLOWSTONE);
-		location.add(0,1,1).getBlock().setType(Material.GLOWSTONE);
+		b.getRelative(0,-1,1).setType(Material.GLOWSTONE);
+		b.getRelative(0,0,1).setType(Material.GLOWSTONE);
+		b.getRelative(0,1,1).setType(Material.GLOWSTONE);
 		
 		ItemStack[] defaultStarterChest = new ItemStack[27];
 		
@@ -100,7 +103,8 @@ public class UhcStartPoint {
 	 * Make a starting chest with specified contents
 	 */
 	public void makeChest(ItemStack[] items) {
-		Block b = location.add(0,-1,0).getBlock();
+		
+		Block b = location.getBlock().getRelative(0,-1,0);
 		b.setType(Material.CHEST);
 		
 		Inventory chest = ((Chest) b.getState()).getBlockInventory();
@@ -123,7 +127,7 @@ public class UhcStartPoint {
 	 * @param text The text to write on the sign
 	 */
 	public void makeSign(String text) {
-		Block b = location.add(0,0,2).getBlock();
+		Block b = location.getBlock().getRelative(0,0,2);
 		b.setType(Material.SIGN_POST);
 		
 		Sign s = (Sign) b.getState();
