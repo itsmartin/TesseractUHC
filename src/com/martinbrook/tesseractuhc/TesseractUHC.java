@@ -103,10 +103,10 @@ public class TesseractUHC extends JavaPlugin {
 			response = cVi(sender, args);
 		} else if (cmd.equals("setspawn")) {
 			response = cSetspawn(sender);
-		} else if (cmd.equals("makestart")) {
-			response = cMakestart(sender,args);
 		} else if (cmd.equals("notify") || cmd.equals("n")) {
 			response = cNotify(sender, args);
+		} else if (cmd.equals("uhc")) {
+			response = cUhc(sender, args);
 		} else {
 			success = false;
 		}
@@ -168,14 +168,8 @@ public class TesseractUHC extends JavaPlugin {
 			response = cPermaday(args);
 		} else if (cmd.equals("deathban")) {
 			response = cDeathban(args);
-		} else if (cmd.equals("clearstarts")) {
-			response = cClearstarts();
-		} else if (cmd.equals("loadstarts")) {
-			response = cLoadstarts();
-		} else if (cmd.equals("savestarts")) {
-			response = cSavestarts();
-		} else if (cmd.equals("liststarts")) {
-			response = cListstarts();
+		} else if (cmd.equals("uhc")) {
+			response = cUhc(sender, args);
 		} else if (cmd.equals("listplayers")) {
 			response = cListplayers();
 		} else if (cmd.equals("launch")) {
@@ -382,27 +376,7 @@ public class TesseractUHC extends JavaPlugin {
 		return OK_COLOR + "This world's spawn point has been set to " + newSpawn.getBlockX() + "," + newSpawn.getBlockY() + "," + newSpawn.getBlockZ();
 	}
 
-	/**
-	 * Carry out the /makestart command
-	 * 
-	 * @param sender the sender of the command
-	 * @param args arguments
-	 * @return response
-	 */
-	private String cMakestart(Player sender, String[] args) {
-		Location l = sender.getLocation();
-		double x = l.getBlockX() + 0.5;
-		double y = l.getBlockY();
-		double z = l.getBlockZ() + 0.5;
-		
-		UhcStartPoint startPoint = match.createStartPoint(x,y,z);
-		
-		if (args.length < 1 || !("-n".equalsIgnoreCase(args[0])))
-			startPoint.buildStartingTrough();
-		
-		return OK_COLOR + "Start point added";
-		
-	}
+
 	
 	/**
 	 * Carry out the /cdc command
@@ -525,68 +499,64 @@ public class TesseractUHC extends JavaPlugin {
 	}
 	
 	/**
-	 * Carry out the /clearstarts command
+	 * Carry out the /uhc command
 	 * 
 	 * @param sender the sender of the command
 	 * @param args arguments
 	 * @return response
 	 */
-	private String cClearstarts() {
-		match.clearStartPoints();
-		return OK_COLOR + "Start list cleared";
-	}
-	
-	/**
-	 * Carry out the /loadstarts command
-	 * 
-	 * @param sender the sender of the command
-	 * @param args arguments
-	 * @return response
-	 */
-	private String cLoadstarts() {
-		match.loadStartPoints();
-		return OK_COLOR.toString() + match.countAvailableStartPoints() + " start points loaded";
-	}
-	
-	/**
-	 * Carry out the /savestarts command
-	 * 
-	 * @param sender the sender of the command
-	 * @param args arguments
-	 * @return response
-	 */
-	private String cSavestarts() {
-		if (match.saveStartPoints() == true) {
-			return OK_COLOR + "Start points were saved!";
-		} else {
-			return ERROR_COLOR + "Start points could not be saved.";
+	private String cUhc(CommandSender sender, String[] args) {
+		if (args.length<1) {
+			return ERROR_COLOR + "Please specify an action.";
 		}
-	}
-	
-	/**
-	 * Carry out the /liststarts command
-	 * 
-	 * @param sender the sender of the command
-	 * @param args arguments
-	 * @return response
-	 */
-	private String cListstarts() {
-		HashMap<Integer, UhcStartPoint> startPoints = match.getStartPoints();
-		if (startPoints.size()==0)
-			return ERROR_COLOR + "There are no starts";
+		
+		
+		if (sender instanceof Player && ("startpoint".equalsIgnoreCase(args[0]) || "sp".equalsIgnoreCase(args[0]))) {
+			Location l = ((Player) sender).getLocation();
+			double x = l.getBlockX() + 0.5;
+			double y = l.getBlockY();
+			double z = l.getBlockZ() + 0.5;
+			
+			UhcStartPoint startPoint = match.createStartPoint(x,y,z);
+			
+			if (args.length < 2 || !("-n".equalsIgnoreCase(args[1])))
+				startPoint.buildStartingTrough();
+			
+			return OK_COLOR + "Start point " + startPoint.getNumber() + " added at your current location";
+			
+		} else if ("clear".equalsIgnoreCase(args[0])) {
+			match.clearStartPoints();
+			return OK_COLOR + "Match data cleared";
+		} else if ("reload".equalsIgnoreCase(args[0])) {
+			match.loadStartPoints();
+			return OK_COLOR + "Match data loaded. " + match.countAvailableStartPoints() + " start points.";
+		} else if ("save".equalsIgnoreCase(args[0])) {
+			if (match.saveStartPoints() == true) {
+				return OK_COLOR + "Match data saved!";
+			} else {
+				return ERROR_COLOR + "Match data could not be saved.";
+			}
+		} else if ("liststarts".equalsIgnoreCase(args[0])) {
+			HashMap<Integer, UhcStartPoint> startPoints = match.getStartPoints();
+			if (startPoints.size()==0)
+				return ERROR_COLOR + "There are no starts";
 
-		String response = "";
-		for (UhcStartPoint sp : startPoints.values()) {
-			UhcPlayer p = sp.getUhcPlayer();
-			
-			response += (sp.getNumber());
-			
-			if (p != null) response += " (" + p.getName() + ")";
-			
-			response += ": " + sp.getX() + "," + sp.getY() + "," + sp.getZ() + "\n";
+			String response = "";
+			for (UhcStartPoint sp : startPoints.values()) {
+				UhcPlayer p = sp.getUhcPlayer();
+				
+				response += (sp.getNumber());
+				
+				if (p != null) response += " (" + p.getName() + ")";
+				
+				response += ": " + sp.getX() + "," + sp.getY() + "," + sp.getZ() + "\n";
+			}
+			return response;
 		}
-		return response;
+		
+		return ERROR_COLOR + "Command not understood";
 	}
+
 	
 	/**
 	 * Carry out the /listplayers command

@@ -95,21 +95,9 @@ commands:
  deathban:
   description: Enable/disable deathban
   usage: /deathban on | off
- clearstarts:
-  description: Clear saved start points
-  usage: /clearstarts
- loadstarts:
-  description: Load start points from disk
-  usage: /loadstarts
- savestarts:
-  description: Save start points from disk
-  usage: /savestarts
- liststarts:
-  description: List start points
-  usage: /liststarts
- makestart:
-  description: Create a start point at the current location
-  usage: /makestart
+ uhc:
+  description: UHC match configuration commands
+  usage: /uhc commandtype parameters
  listplayers:
   description: List all players, and their start points and status
   usage: /listplayers
