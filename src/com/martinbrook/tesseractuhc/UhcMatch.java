@@ -93,15 +93,13 @@ public class UhcMatch {
 	 * Load match data from the default file. If it does not exist, load defaults.
 	 */
 	public void loadData() { 
-		this.clearData();
-		
 		try {
 			md = YamlConfiguration.loadConfiguration(UhcUtil.getDataFile(startingWorld.getWorldFolder(), DEFAULT_MATCHDATA_FILE, true));
-			this.loadStartPoints();
 		} catch (Exception e) {
 			this.loadDefaultData();
 		}
 		
+		this.loadStartPoints();
 	}
 	
 	
@@ -111,12 +109,17 @@ public class UhcMatch {
 	private void loadDefaultData() {
 		md = new YamlConfiguration();
 		md.addDefaults(defaults);
+		
+		this.saveData();
 	}
 	
 	/**
 	 * Create UhcStartPoint objects from the locations in matchdata field (md)
 	 */
 	private void loadStartPoints() {
+		startPoints.clear();
+		availableStartPoints.clear();
+		
 		List<String> startData = md.getStringList("starts");
 		for (String startDataEntry : startData) {
 			String[] data = startDataEntry.split(",");
@@ -126,7 +129,7 @@ public class UhcMatch {
 					double x = Double.parseDouble(data[1]);
 					double y = Double.parseDouble(data[2]);
 					double z = Double.parseDouble(data[3]);
-					UhcStartPoint sp = createStartPoint (n, startingWorld, x, y, z);
+					UhcStartPoint sp = createStartPoint (n, startingWorld, x, y, z, false);
 					if (sp == null) {
 						adminBroadcast("Duplicate start point: " + n);
 
@@ -160,25 +163,25 @@ public class UhcMatch {
 	 * 
 	 * @return Whether the operation succeeded
 	 */
-	public Boolean saveData() {
+	public void saveData() {
 		this.saveStartPoints();
 		
 		try {
 			md.save(UhcUtil.getDataFile(UhcUtil.getWorldFolder(), DEFAULT_MATCHDATA_FILE, false));
 		} catch (IOException e) {
-			return false;
+			adminBroadcast(TesseractUHC.ALERT_COLOR + "Warning: Could not save match data");
 		}
-		return true;
 	}
 
 
 	/**
-	 * Clear all start points
+	 * Clear all match data
 	 */
 	public void clearData() {
 		startPoints.clear();
 		availableStartPoints.clear();
-	
+		
+		this.loadDefaultData();
 	}
 
 	private void adminBroadcast(String string) {
@@ -780,14 +783,17 @@ public class UhcMatch {
 	 * 
 	 * @param number The start point's number
 	 * @param l The location of the start point
+	 * @param buildTrough Whether to add a starting trough
 	 * @return The created start point
 	 */
-	public UhcStartPoint createStartPoint(int number, Location l) {
+	private UhcStartPoint createStartPoint(int number, Location l, Boolean buildTrough) {
 		// Check there is not already a start point with this number		
 		if (startPoints.containsKey(number))
 			return null;
 		
 		UhcStartPoint sp = new UhcStartPoint(number, l);
+		if (buildTrough) sp.buildStartingTrough();
+		
 		startPoints.put(number,  sp);
 		availableStartPoints.add(sp);
 		
@@ -795,40 +801,48 @@ public class UhcMatch {
 	}
 	
 	/**
-	 * Create a new start point at a given location
+	 * Create a new start point at a given location, with optional starting trough
 	 * 
 	 * @param number The start point's number
 	 * @param world The world to create the start point
 	 * @param x x coordinate of the start point
 	 * @param y y coordinate of the start point
 	 * @param z z coordinate of the start point
+	 * @param buildTrough Whether to add a starting trough
 	 * @return The created start point
 	 */
-	public UhcStartPoint createStartPoint(int number, World world, Double x, Double y, Double z) {
-		return createStartPoint(number, new Location(world, x, y, z));
+	private UhcStartPoint createStartPoint(int number, World world, Double x, Double y, Double z, Boolean buildTrough) {
+		return createStartPoint(number, new Location(world, x, y, z), buildTrough);
 	}
 	
 	/**
 	 * Create a new start point at a given location, giving it the next available number
 	 * 
 	 * @param l The location of the start point
+	 * @param buildTrough Whether to add a starting trough
 	 * @return The created start point
 	 */
-	public UhcStartPoint createStartPoint(Location l) {
-		return createStartPoint(getNextAvailableStartNumber(), l);
+	private UhcStartPoint createStartPoint(Location l, Boolean buildTrough) {
+		return createStartPoint(getNextAvailableStartNumber(), l, buildTrough);
 	}
 
 	/**
-	 * Create a new start point at a given location, giving it the next available number
+	 * Add a new start point at a given location, giving it the next available number.
+	 * 
+	 * This function will also update the saved match data.
 	 * 
 	 * @param x x coordinate of the start point
 	 * @param y y coordinate of the start point
 	 * @param z z coordinate of the start point
+	 * @param buildTrough Whether to add a starting trough
 	 * @return The created start point
 	 */
-	public UhcStartPoint createStartPoint(Double x, Double y, Double z) {
-		return createStartPoint(new Location(startingWorld, x, y, z));
+	public UhcStartPoint addStartPoint(Double x, Double y, Double z, Boolean buildTrough) {
+		UhcStartPoint sp = createStartPoint(new Location(startingWorld, x, y, z), buildTrough);
+		if (sp != null) this.saveData();
+		return sp;
 	}
+	
 		
 	/**
 	 * Determine the lowest unused start number

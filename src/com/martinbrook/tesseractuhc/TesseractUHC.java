@@ -517,26 +517,14 @@ public class TesseractUHC extends JavaPlugin {
 			double y = l.getBlockY();
 			double z = l.getBlockZ() + 0.5;
 			
-			UhcStartPoint startPoint = match.createStartPoint(x,y,z);
-			
-			if (args.length < 2 || !("-n".equalsIgnoreCase(args[1])))
-				startPoint.buildStartingTrough();
+			UhcStartPoint startPoint = match.addStartPoint(x, y, z, args.length < 2 || !("-n".equalsIgnoreCase(args[1])));
 			
 			return OK_COLOR + "Start point " + startPoint.getNumber() + " added at your current location";
 			
 		} else if ("clear".equalsIgnoreCase(args[0])) {
 			match.clearData();
 			return OK_COLOR + "Match data cleared";
-		} else if ("reload".equalsIgnoreCase(args[0])) {
-			match.loadData();
-			return OK_COLOR + "Match data loaded. " + match.countAvailableStartPoints() + " start points.";
-		} else if ("save".equalsIgnoreCase(args[0])) {
-			if (match.saveData() == true) {
-				return OK_COLOR + "Match data saved!";
-			} else {
-				return ERROR_COLOR + "Match data could not be saved.";
-			}
-		} else if ("liststarts".equalsIgnoreCase(args[0])) {
+		} else if ("starts".equalsIgnoreCase(args[0])) {
 			HashMap<Integer, UhcStartPoint> startPoints = match.getStartPoints();
 			if (startPoints.size()==0)
 				return ERROR_COLOR + "There are no starts";
