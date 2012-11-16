@@ -33,8 +33,8 @@ public class UhcUtil {
 			// The string
 			return String.format("%02d:%02d:%02d", hours, minutes, seconds);
 		} else {
-			int minutes = (d + 30) / 60;
-			return minutes + " minute" + (minutes == 1 ? "s" : "");
+			int minutes = d / 60;
+			return minutes + " minute" + (minutes != 1 ? "s" : "");
 			
 		}
 		
