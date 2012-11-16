@@ -548,6 +548,12 @@ public class TesseractUHC extends JavaPlugin {
 			if (value == null)
 				return ERROR_COLOR + "No such match parameter as " + parameter;
 			return OK_COLOR + parameter + " = " + value;
+		} else if (sender instanceof Player && "setbonus".equalsIgnoreCase(args[0])) {
+			match.setBonusChest(((Player) sender).getEnderChest().getContents());
+			return OK_COLOR + "Bonus chest saved from your ender chest";
+		} else if (sender instanceof Player && "getbonus".equalsIgnoreCase(args[0])) {
+			((Player) sender).getEnderChest().setContents(match.getBonusChest());
+			return OK_COLOR + "Bonus chest loaded into your ender chest";
 		}
 		
 		return ERROR_COLOR + "Command not understood";

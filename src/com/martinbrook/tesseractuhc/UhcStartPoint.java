@@ -60,9 +60,8 @@ public class UhcStartPoint {
 		// Get the block containing the player's feet
 		Block b = location.getBlock();
 				
-		// Two blocks of glass below player
+		// Block of glass below chest
 		b.getRelative(0,-2,0).setType(Material.GLASS);
-		b.getRelative(0,-1,0).setType(Material.GLASS);
 		
 		// Four sides
 		b.getRelative(-1,-1,0).setType(Material.GLOWSTONE);
@@ -81,35 +80,24 @@ public class UhcStartPoint {
 		b.getRelative(0,0,1).setType(Material.GLASS);
 		b.getRelative(0,1,1).setType(Material.GLASS);
 		
-		ItemStack[] defaultStarterChest = new ItemStack[27];
+		Block chestBlock = b.getRelative(0,-1,0);
+		if (chestBlock.getType() != Material.CHEST) chestBlock.setType(Material.CHEST);
 		
-		defaultStarterChest[3] = new ItemStack(Material.CARROT_STICK, 1);
-		defaultStarterChest[4] = new ItemStack(Material.STONE_SWORD, 1);
-		defaultStarterChest[5] = new ItemStack(Material.WATCH, 1);
-		
-		defaultStarterChest[12] = new ItemStack(Material.STONE_PICKAXE, 1);
-		defaultStarterChest[13] = new ItemStack(Material.LEATHER_CHESTPLATE, 1);
-		defaultStarterChest[14] = new ItemStack(Material.STONE_SPADE, 1);
-		
-		defaultStarterChest[21] = new ItemStack(Material.SADDLE, 1);
-		defaultStarterChest[22] = new ItemStack(Material.STONE_AXE, 1);
-		defaultStarterChest[23] = new ItemStack(Material.MONSTER_EGG, 1, (short) 90);		
-		
-		makeChest(defaultStarterChest);
 		makeSign();
 	}
 	
+
 	/**
-	 * Make a starting chest with specified contents
+	 * Fill the starting chest with specified contents
 	 */
-	public void makeChest(ItemStack[] items) {
-		
+	public void fillChest(ItemStack[] items) {
 		Block b = location.getBlock().getRelative(0,-1,0);
-		b.setType(Material.CHEST);
+		if (b.getType() != Material.CHEST) b.setType(Material.CHEST);
 		
 		Inventory chest = ((Chest) b.getState()).getBlockInventory();
 		chest.setContents(items);
 	}
+	
 	
 	/**
 	 * Make a default start sign

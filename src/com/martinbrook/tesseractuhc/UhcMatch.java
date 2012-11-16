@@ -68,6 +68,8 @@ public class UhcMatch {
 	private TesseractUHC plugin;
 	private Server server;
 	private Configuration defaults;
+	private ItemStack[] bonusChest = new ItemStack[27];
+
 	
 	public UhcMatch(TesseractUHC plugin, World startingWorld, Configuration defaults) {
 
@@ -97,6 +99,7 @@ public class UhcMatch {
 		
 		setDefaultMatchParameters();
 		
+		// Load start points
 		startPoints.clear();
 		availableStartPoints.clear();
 		
@@ -120,6 +123,18 @@ public class UhcMatch {
 
 			} else {
 				adminBroadcast("Bad start point definition in match data file: " + startDataEntry);
+			}
+		}
+		
+		// Load saved bonus chest
+		List<?> data = md.getList("bonuschest");
+		
+		if (data != null) {
+		
+			for (int i = 0; i < 27; i++) {
+				Object o = data.get(i);
+				if (o != null && o instanceof ItemStack)
+					bonusChest[i] = (ItemStack) o;
 			}
 		}
 	}
@@ -654,6 +669,7 @@ public class UhcMatch {
 		playersInMatch++;
 		
 		start.makeSign();
+		start.fillChest(bonusChest);
 
 		return true;
 	}
@@ -674,6 +690,7 @@ public class UhcMatch {
 		
 		// If player not online, return
 		if (p == null) return false;
+		
 		
 		// Teleport the player to the start point
 		p.setGameMode(GameMode.ADVENTURE);
@@ -719,6 +736,7 @@ public class UhcMatch {
 				sp.setUhcPlayer(null);
 				playersInMatch--;
 				sp.makeSign();
+				sp.fillChest(new ItemStack[27]);
 				availableStartPoints.add(sp);
 				if (matchStarted) {
 					broadcast(ChatColor.GOLD + up.getName() + " has been removed from the match");
@@ -1225,6 +1243,28 @@ public class UhcMatch {
 	 */
 	public boolean getDeathban() {
 		return md.getBoolean("deathban");
+	}
+
+	/**
+	 * Update the contents of the match "bonus chest"
+	 * 
+	 * @param p The player
+	 */
+	public void setBonusChest(ItemStack [] bonusChest) {
+		this.bonusChest = bonusChest;
+		md.set("bonuschest", bonusChest);
+		this.saveMatchParameters();
+		
+	}
+
+
+	/**
+	 * Get the contents of the match "bonus chest"
+	 * 
+	 * @return The contents of the bonus chest
+	 */
+	public ItemStack[] getBonusChest() {
+		return bonusChest;
 	}
 
 }

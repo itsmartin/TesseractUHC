@@ -6,3 +6,41 @@ killerbonus:
 miningfatigue:
  gold: 4
  diamond: 16
+bonuschest:
+- null
+- null
+- null
+- ==: org.bukkit.inventory.ItemStack
+  type: CARROT_STICK
+- ==: org.bukkit.inventory.ItemStack
+  type: STONE_SWORD
+- ==: org.bukkit.inventory.ItemStack
+  type: WATCH
+- null
+- null
+- null
+- null
+- null
+- null
+- ==: org.bukkit.inventory.ItemStack
+  type: STONE_PICKAXE
+- ==: org.bukkit.inventory.ItemStack
+  type: LEATHER_CHESTPLATE
+- ==: org.bukkit.inventory.ItemStack
+  type: STONE_SPADE
+- null
+- null
+- null
+- null
+- null
+- null
+- ==: org.bukkit.inventory.ItemStack
+  type: SADDLE
+- ==: org.bukkit.inventory.ItemStack
+  type: STONE_AXE
+- ==: org.bukkit.inventory.ItemStack
+  type: MONSTER_EGG
+  damage: 90
+- null
+- null
+- null
