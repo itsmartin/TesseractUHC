@@ -4,5 +4,5 @@ killerbonus:
  id: 266
  quantity: 4
 miningfatigue:
- gold: 0.5
- diamond: 2
+ gold: 4
+ diamond: 16
