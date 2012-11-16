@@ -793,13 +793,14 @@ public class TesseractUHC extends JavaPlugin {
 		if (match.countPlayers() < 2)
 			return ERROR_COLOR + "Not enough players to start";
 		
-		if (!match.getLaunchingPlayers())
-			return ERROR_COLOR + "Launch players first!";
-		
 		int countLength = 300;
 		
 		if (args.length == 1)
 			countLength = Integer.parseInt(args[0]);
+		
+		if (countLength < 120 && !match.getLaunchingPlayers())
+			return ERROR_COLOR + "Countdown less than 2 minutes - you must launch players first!";
+		
 		
 		if (match.startCountdown(countLength, "The match will begin", "GO!", CountdownType.MATCH))
 			return OK_COLOR + "Countdown started";

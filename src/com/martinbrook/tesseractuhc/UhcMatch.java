@@ -480,6 +480,10 @@ public class UhcMatch {
 		if (countdown < 0)
 			return;
 		
+		// Launch players when a match countdown drops below 2 minutes
+		if (countdown < 120 && countdownType == CountdownType.MATCH && !getLaunchingPlayers())
+			launchAll();
+		
 		if (countdown == 0) {
 			if (countdownType == CountdownType.MATCH) {
 				this.startMatch();
