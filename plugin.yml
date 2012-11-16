@@ -92,9 +92,6 @@ commands:
  permaday:
   description: Enable/disable permaday
   usage: /permaday on | off
- deathban:
-  description: Enable/disable deathban
-  usage: /deathban on | off
  uhc:
   description: UHC match configuration commands
   usage: /uhc commandtype parameters

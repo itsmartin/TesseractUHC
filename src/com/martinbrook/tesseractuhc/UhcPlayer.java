@@ -7,7 +7,6 @@ public class UhcPlayer {
 	private boolean launched = false;
 	private UhcStartPoint startPoint;
 
-	private int mineCount = 0;
 	private boolean dead = false;
 	
 	public UhcPlayer(String n, UhcStartPoint sp) {
@@ -43,17 +42,6 @@ public class UhcPlayer {
 		return startPoint;
 	}
 
-	public int getMineCount() {
-		return mineCount;
-	}
-	
-	public void resetMineCount() {
-		mineCount = 0;
-	}
-
-	public void incMineCount() {
-		mineCount ++;
-	}
 
 	public boolean isDead() {
 		return dead;

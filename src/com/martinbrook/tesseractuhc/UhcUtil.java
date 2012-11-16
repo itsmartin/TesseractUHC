@@ -265,4 +265,22 @@ public class UhcUtil {
 	
 	}
 	
+	/**
+	 * Convert a string to a boolean.
+	 * 
+	 * true, on, yes, y, 1 => True
+	 * false, off, no, n, 0 => False
+	 * 
+	 * @param s The string to check
+	 * @return Boolean value, or null if not parsable
+	 */
+	public static Boolean stringToBoolean(String s) {
+		if ("true".equalsIgnoreCase(s) || "on".equalsIgnoreCase(s) || "yes".equalsIgnoreCase(s) || "y".equalsIgnoreCase(s) || "1".equals(s))
+			return true;
+		if ("false".equalsIgnoreCase(s) || "off".equalsIgnoreCase(s) || "no".equalsIgnoreCase(s) || "n".equalsIgnoreCase(s) || "0".equals(s))
+			return false;
+		return null;
+		
+	}
+	
 }

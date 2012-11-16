@@ -6,6 +6,7 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 import org.bukkit.Bukkit;
@@ -47,13 +48,14 @@ public class UhcMatch {
 	private CountdownType countdownType;
 	private Boolean permaday = false;
 	private int permadayTaskId;
-	private Boolean deathban = false;
 	
 	private ArrayList<UhcStartPoint> availableStartPoints = new ArrayList<UhcStartPoint>();
 	private Boolean launchingPlayers = false;
 	private Boolean matchStarted = false;
 	private HashMap<String, UhcPlayer> uhcPlayers = new HashMap<String, UhcPlayer>(32);
-	public static String DEFAULT_MATCHDATA_FILE = "matchdata.yml";
+	public static String DEFAULT_MATCHDATA_FILE = "uhcmatch.yml";
+	public static int GOLD_LAYER = 32;
+	public static int DIAMOND_LAYER = 16;
 	private int playersInMatch = 0;
 	private int nextRadius;
 	private Calendar matchStartTime;
@@ -74,49 +76,27 @@ public class UhcMatch {
 		this.server = plugin.getServer();
 		this.defaults = defaults;
 		
-		this.initialise();
+		this.loadMatchParameters();
+		this.setPermaday(true);
+		this.setPVP(false);
+		this.setVanish();
+		this.enableSpawnKeeper();
 		
 	}
-	
-	private void initialise() {
-		loadData();
-		setPermaday(true);
-		setPVP(false);
-		setVanish();
-		setDeathban(md.getBoolean("deathban"));
-		enableSpawnKeeper();
-	}
-	
-	
 	
 	/**
 	 * Load match data from the default file. If it does not exist, load defaults.
 	 */
-	public void loadData() { 
+	public void loadMatchParameters() { 
 		try {
 			md = YamlConfiguration.loadConfiguration(UhcUtil.getDataFile(startingWorld.getWorldFolder(), DEFAULT_MATCHDATA_FILE, true));
+
 		} catch (Exception e) {
-			this.loadDefaultData();
+			md = new YamlConfiguration();
 		}
 		
-		this.loadStartPoints();
-	}
-	
-	
-	/**
-	 * Set up a default matchdata object
-	 */
-	private void loadDefaultData() {
-		md = new YamlConfiguration();
-		md.addDefaults(defaults);
+		setDefaultMatchParameters();
 		
-		this.saveData();
-	}
-	
-	/**
-	 * Create UhcStartPoint objects from the locations in matchdata field (md)
-	 */
-	private void loadStartPoints() {
 		startPoints.clear();
 		availableStartPoints.clear();
 		
@@ -142,32 +122,40 @@ public class UhcMatch {
 				adminBroadcast("Bad start point definition in match data file: " + startDataEntry);
 			}
 		}
-
 	}
 	
+	
 	/**
-	 * Update matchdata (md) from the existing UhcStartPoints.
+	 * Set up a default matchdata object
 	 */
-	private void saveStartPoints() {
+	private void setDefaultMatchParameters() {
+		
+		Map<String, Object> mapDefaults = defaults.getValues(true);
+		for (Map.Entry<String, Object> m : mapDefaults.entrySet()) {
+			if (!md.contains(m.getKey())) {
+				md.set(m.getKey(), m.getValue());
+			}
+		}
+		
+		this.saveMatchParameters();
+	}
+
+	
+	/**
+	 * Save start points to the default file
+	 * 
+	 * @return Whether the operation succeeded
+	 */
+	public void saveMatchParameters() {
 		ArrayList<String> startData = new ArrayList<String>();
 		for (UhcStartPoint sp : startPoints.values()) {
 			startData.add(sp.getNumber() + "," + sp.getX() + "," + sp.getY() + "," + sp.getZ());
 		}
 		
 		md.set("starts",startData);
-
-	}
-
-	/**
-	 * Save start points to the default file
-	 * 
-	 * @return Whether the operation succeeded
-	 */
-	public void saveData() {
-		this.saveStartPoints();
 		
 		try {
-			md.save(UhcUtil.getDataFile(UhcUtil.getWorldFolder(), DEFAULT_MATCHDATA_FILE, false));
+			md.save(UhcUtil.getDataFile(startingWorld.getWorldFolder(), DEFAULT_MATCHDATA_FILE, false));
 		} catch (IOException e) {
 			adminBroadcast(TesseractUHC.ALERT_COLOR + "Warning: Could not save match data");
 		}
@@ -175,23 +163,39 @@ public class UhcMatch {
 
 
 	/**
-	 * Clear all match data
+	 * Reset all match parameters to default values
 	 */
-	public void clearData() {
+	public void resetMatchParameters() {
 		startPoints.clear();
 		availableStartPoints.clear();
-		
-		this.loadDefaultData();
+		md = new YamlConfiguration();
+		this.setDefaultMatchParameters();
 	}
 
+	/**
+	 * Send a message to all ops
+	 * 
+	 * @param string The message to be sent
+	 */
 	private void adminBroadcast(String string) {
 		broadcast(string,Server.BROADCAST_CHANNEL_ADMINISTRATIVE);
 	}
 	
+	/**
+	 * Send a message to all players on the server
+	 * 
+	 * @param string The message to be sent
+	 */
 	private void broadcast(String string) {
 		broadcast(string,Server.BROADCAST_CHANNEL_USERS);
 	}
 
+	/**
+	 * Send a message to specific players on the server
+	 * 
+	 * @param string The message to be sent
+	 * @param permission The permission level to send the message to
+	 */
 	private void broadcast(String string, String permission) {
 		server.broadcast(string, permission);
 	}
@@ -257,24 +261,7 @@ public class UhcMatch {
 		return this.permaday;
 	}
 
-	/**
-	 * Check whether deathban is in effect
-	 * 
-	 * @return Whether deathban is enabled
-	 */
-	public boolean getDeathban() {
-		return deathban;
-	}
 
-	/**
-	 * Set deathban on/off
-	 * 
-	 * @param d Whether deathban is to be enabled
-	 */
-	public void setDeathban(boolean d) {
-		this.deathban = d;
-		adminBroadcast(TesseractUHC.OK_COLOR + "Deathban has been " + (deathban ? "enabled" : "disabled") + "!");
-	}
 
 	/**
 	 * Try to find a start point from a user-provided search string.
@@ -839,7 +826,7 @@ public class UhcMatch {
 	 */
 	public UhcStartPoint addStartPoint(Double x, Double y, Double z, Boolean buildTrough) {
 		UhcStartPoint sp = createStartPoint(new Location(startingWorld, x, y, z), buildTrough);
-		if (sp != null) this.saveData();
+		if (sp != null) this.saveMatchParameters();
 		return sp;
 	}
 	
@@ -884,46 +871,26 @@ public class UhcMatch {
 	}
 
 	/**
-	 * Get the bonus items to be dropped by a PVP-killed player in addition to their inventory
-	 * 
-	 * @return The ItemStack to be dropped
-	 */
-	public ItemStack getKillerBonus() {
-		if (!md.getBoolean("killerbonus.enabled")) return null;
-		
-		if (md.getInt("killerbonus.id") != 0 && md.getInt("killerbonus.quantity") != 0)
-			return new ItemStack(md.getInt("killerbonus.id"), md.getInt("killerbonus.quantity"));
-		else
-			return null;
-	}
-
-	/**
 	 * Apply the mining fatigue game mechanic
 	 * 
-	 * Players who mine stone below a certain depth increase their hunger or take damage
+	 * Players who mine stone below a certain depth increase their hunger
 	 * 
 	 * @param player The player to act upon
 	 * @param blockY The Y coordinate of the mined block
 	 */
 	public void doMiningFatigue(Player player, int blockY) {
-		if (!md.getBoolean("miningfatigue.enabled")) return;
-		if (blockY > md.getInt("miningfatigue.maxy")) return;
-		UhcPlayer up = getUhcPlayer(player);
-		if (up == null) return;
-		up.incMineCount();
-		if (up.getMineCount() >= md.getInt("miningfatigue.blocks")) {
-			up.resetMineCount();
-			if (md.getInt("miningfatigue.exhaustion") > 0) {
-				// Increase player's exhaustion by specified amount
-				player.setExhaustion(player.getExhaustion() + md.getInt("miningfatigue.exhaustion"));
-			}
-			if (md.getInt("miningfatigue.damage") > 0) {
-				// Apply specified damage to player
-				player.damage(md.getInt("miningfatigue.damage"));
-			}
-		}
-
+		Double exhaustion = 0.0;
 		
+		if (blockY < DIAMOND_LAYER) {
+			exhaustion = this.getMiningFatigueDiamond(); 
+		} else if (blockY < GOLD_LAYER) {
+			exhaustion = this.getMiningFatigueGold();
+		}
+		
+		if (exhaustion > 0)
+			player.setExhaustion((float) (player.getExhaustion() + exhaustion));
+
+				
 	}
 
 	/**
@@ -1152,6 +1119,112 @@ public class UhcMatch {
 
 	public Location getLastLogoutLocation() {
 		return lastLogoutLocation;
+	}
+	
+
+	/**
+	 * Set the length of the initial no-PVP period
+	 * 
+	 * @param nopvp The duration of the no-PVP period, in seconds
+	 */
+	public void setNopvp(int nopvp) {
+		md.set("nopvp", nopvp);
+		saveMatchParameters();
+	}
+
+	/**
+	 * Get the length of the initial no-PVP period
+	 * 
+	 * @return The duration of the no-PVP period, in seconds
+	 */
+	public int getNopvp() {
+		return md.getInt("nopvp");
+	}
+
+	/**
+	 * Set the mining fatigue penalties.
+	 * 
+	 * @param gold Exhaustion penalty to add when mining at the gold layer
+	 * @param diamond Exhaustion penalty to add when mining at the diamond layer
+	 */
+	public void setMiningFatigue(double gold, double diamond) {
+		md.set("miningfatigue.gold", gold);
+		md.set("miningfatigue.diamond", diamond);
+		saveMatchParameters();
+	}
+
+
+	/**
+	 * Get the current exhaustion penalty for mining at the gold layer
+	 * 
+	 * @return Exhaustion penalty to add when mining at the gold layer
+	 */
+	public double getMiningFatigueGold() {
+		return md.getDouble("miningfatigue.gold");
+	}
+
+	/**
+	 * Get the current exhaustion penalty for mining at the diamond layer
+	 * 
+	 * @return Exhaustion penalty to add when mining at the diamond layer
+	 */
+	public double getMiningFatigueDiamond() {
+		return md.getDouble("miningfatigue.diamond");
+	}
+
+	/**
+	 * Set the bonus items dropped in a PVP kill. One of the specified item will be dropped.
+	 * 
+	 * @param id The item ID to give a pvp killer
+	 */
+	public void setKillerBonus(int id) { setKillerBonus(id,1); }
+	
+	/**
+	 * Set the bonus items dropped in a PVP kill.
+	 * 
+	 * @param id The item ID to give a pvp killer
+	 * @param quantity The number of items to drop
+	 */
+	public void setKillerBonus(int id, int quantity) {
+		if (id == 0) quantity = 0;
+		md.set("killerbonus.id", id);
+		md.set("killerbonus.quantity", quantity);
+		saveMatchParameters();
+		
+	}
+
+	/**
+	 * Get the bonus items to be dropped by a PVP-killed player in addition to their inventory
+	 * 
+	 * @return The ItemStack to be dropped
+	 */
+	public ItemStack getKillerBonus() {
+		int id = md.getInt("killerbonus.id");
+		int quantity = md.getInt("killerbonus.quantity");
+		
+		if (id == 0 || quantity == 0) return null;
+		
+		return new ItemStack(id, quantity);
+	}
+
+	/**
+	 * Set deathban on/off
+	 * 
+	 * @param d Whether deathban is to be enabled
+	 */
+	public void setDeathban(boolean d) {
+		md.set("deathban", d);
+		this.saveMatchParameters();
+		adminBroadcast(TesseractUHC.OK_COLOR + "Deathban has been " + (d ? "enabled" : "disabled") + "!");
+	}
+
+	/**
+	 * Check whether deathban is in effect
+	 * 
+	 * @return Whether deathban is enabled
+	 */
+	public boolean getDeathban() {
+		return md.getBoolean("deathban");
 	}
 
 }

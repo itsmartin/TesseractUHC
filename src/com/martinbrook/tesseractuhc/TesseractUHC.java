@@ -12,6 +12,7 @@ import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class TesseractUHC extends JavaPlugin {
@@ -47,7 +48,7 @@ public class TesseractUHC extends JavaPlugin {
 	}
 	
 	public void onDisable(){
-		match.saveData();
+		match.saveMatchParameters();
 	}
 	
 	@Override
@@ -166,8 +167,6 @@ public class TesseractUHC extends JavaPlugin {
 			response = cMuteall(args);
 		} else if (cmd.equals("permaday")) {
 			response = cPermaday(args);
-		} else if (cmd.equals("deathban")) {
-			response = cDeathban(args);
 		} else if (cmd.equals("uhc")) {
 			response = cUhc(sender, args);
 		} else if (cmd.equals("listplayers")) {
@@ -475,28 +474,7 @@ public class TesseractUHC extends JavaPlugin {
 		return null;
 
 	}
-	
-	/**
-	 * Carry out the /deathban command
-	 * 
-	 * @param sender the sender of the command
-	 * @param args arguments
-	 * @return response
-	 */
-	private String cDeathban(String[] args) {
-		if (args.length < 1)
-			return OK_COLOR + "Deathban is " + (match.getDeathban() ? "on" : "off");
-		
-		if (args[0].equalsIgnoreCase("off") || args[0].equals("0")) {
-			match.setDeathban(false);
-		} else if (args[0].equalsIgnoreCase("on") || args[0].equals("1")) {
-			match.setDeathban(true);
-		} else {
-			return ERROR_COLOR + "Argument '" + args[0] + "' not understood";
-		}
-		return null;
 
-	}
 	
 	/**
 	 * Carry out the /uhc command
@@ -521,9 +499,9 @@ public class TesseractUHC extends JavaPlugin {
 			
 			return OK_COLOR + "Start point " + startPoint.getNumber() + " added at your current location";
 			
-		} else if ("clear".equalsIgnoreCase(args[0])) {
-			match.clearData();
-			return OK_COLOR + "Match data cleared";
+		} else if ("reset".equalsIgnoreCase(args[0])) {
+			match.resetMatchParameters();
+			return OK_COLOR + "Match data reset to default values";
 		} else if ("starts".equalsIgnoreCase(args[0])) {
 			HashMap<Integer, UhcStartPoint> startPoints = match.getStartPoints();
 			if (startPoints.size()==0)
@@ -540,12 +518,148 @@ public class TesseractUHC extends JavaPlugin {
 				response += ": " + sp.getX() + "," + sp.getY() + "," + sp.getZ() + "\n";
 			}
 			return response;
+		} else if ("params".equalsIgnoreCase(args[0])) {
+			return this.listMatchParameters();
+		} else if ("set".equalsIgnoreCase(args[0])) {
+			if (args.length < 3)
+				return ERROR_COLOR + "Invalid command";
+
+			String parameter = args[1].toLowerCase();
+
+			String value = "";
+			for (int i = 2; i < args.length; i++) {
+				value += args[i] + " ";
+			}
+			value = value.substring(0, value.length()-1);
+			if (this.setMatchParameter(parameter, value)) {
+				value = this.getMatchParameter(parameter);
+				if (value == null)
+					return ERROR_COLOR + "Error getting value of " + parameter;
+				return OK_COLOR + parameter + " = " + value;
+
+			} else
+				return ERROR_COLOR + "Unable to set value of " + parameter;
+
+		} else if ("get".equalsIgnoreCase(args[0])) {
+			if (args.length < 2)
+				return ERROR_COLOR + "Invalid command";
+			String parameter = args[1].toLowerCase();
+			String value = this.getMatchParameter(parameter);
+			if (value == null)
+				return ERROR_COLOR + "No such match parameter as " + parameter;
+			return OK_COLOR + parameter + " = " + value;
 		}
 		
 		return ERROR_COLOR + "Command not understood";
 	}
 
 	
+	private String listMatchParameters() {
+		String response = "";
+		response += "deathban: " + getMatchParameter("deathban") + "\n";
+		response += "killerbonus: " + getMatchParameter("killerbonus") + "\n";
+		response += "miningfatigue: " + getMatchParameter("miningfatigue") + "\n";
+		response += "nopvp: " + getMatchParameter("nopvp") + "\n";
+
+		
+		return response;
+	}
+
+	/**
+	 * Return a human-friendly representation of a specified match parameter
+	 * 
+	 * @param parameter The match parameter to look up
+	 * @return A human-readable version of the parameter's value
+	 */
+	private String getMatchParameter(String parameter) {
+		if ("deathban".equalsIgnoreCase(parameter)) {
+			return (match.getDeathban() ? "On" : "Off");
+		} else if ("killerbonus".equalsIgnoreCase(parameter)) {
+			ItemStack kb = match.getKillerBonus();
+			if (kb == null) return "Off";
+			return kb.getAmount() + " " + kb.getType().toString();
+				
+		} else if ("miningfatigue".equalsIgnoreCase(parameter)) {
+			return match.getMiningFatigueGold() + " at gold, " + match.getMiningFatigueDiamond() + " at diamond";
+			
+		} else if ("nopvp".equalsIgnoreCase(parameter)) {
+			return String.valueOf(match.getNopvp());
+		}
+		
+		return null;
+		
+	}
+
+	private boolean setMatchParameter(String parameter, String value) {
+		// Look up the parameter.
+		
+		if ("deathban".equalsIgnoreCase(parameter)) {
+
+			Boolean v = UhcUtil.stringToBoolean(value);
+			if (v == null) return false;
+			match.setDeathban(v);
+			return true;
+			
+		} else if ("killerbonus".equalsIgnoreCase(parameter)) {
+			Boolean b = UhcUtil.stringToBoolean(value);
+			if (b != null && !b) {
+				match.setKillerBonus(0);
+				return true;
+			}
+			String[] split = value.split(" ");
+			if (split.length > 2)
+				return false;
+			
+			int quantity = 1;
+			
+			try {
+				int id = Integer.parseInt(split[0]);
+				if (split.length > 1)
+					quantity = Integer.parseInt(split[1]);
+				
+				match.setKillerBonus(id, quantity);
+				return true;
+			} catch (NumberFormatException e) {
+				return false;
+			}
+			
+		
+			
+		} else if ("miningfatigue".equalsIgnoreCase(parameter)) {
+			Boolean b = UhcUtil.stringToBoolean(value);
+			if (b != null && !b) {
+				match.setMiningFatigue(0,0);
+				return true;
+			}
+			
+			String[] split = value.split(" ");
+			if (split.length != 2)
+				return false;
+			
+			try {
+				double gold = Double.parseDouble(split[0]);
+				double diamond = Double.parseDouble(split[1]);
+				match.setMiningFatigue(gold, diamond);
+				return true;
+			} catch (NumberFormatException e) {
+				return false;
+			}
+			
+			
+		} else if ("nopvp".equalsIgnoreCase(parameter)) {
+			try {
+				match.setNopvp(Integer.parseInt(value));
+				return true;
+			} catch (NumberFormatException e) {
+				return false;
+			}
+		} else {
+			return false;
+		}
+		
+		
+	}
+
 	/**
 	 * Carry out the /listplayers command
 	 * 

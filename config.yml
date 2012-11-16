@@ -1,11 +1,8 @@
 deathban: true
+nopvp: 300
 killerbonus:
- enabled: true
  id: 266
  quantity: 4
 miningfatigue:
- enabled: true
- blocks: 1
- exhaustion: 1
- damage: 0
- maxy: 20
+ gold: 0.5
+ diamond: 2
