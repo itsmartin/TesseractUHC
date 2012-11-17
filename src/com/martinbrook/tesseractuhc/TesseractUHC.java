@@ -1,6 +1,7 @@
 package com.martinbrook.tesseractuhc;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import org.bukkit.ChatColor;
 
@@ -674,9 +675,10 @@ public class TesseractUHC extends JavaPlugin {
 	 * @return response
 	 */
 	private String cListplayers() {
-		String response = "Players in the match:\n";
+		Collection<UhcPlayer> allPlayers = match.getUhcPlayers();
+		String response = allPlayers.size() + " players in the match (" + match.getPlayersInMatch() + " still alive):\n";
 		
-		for (UhcPlayer up : match.getUhcPlayers()) {
+		for (UhcPlayer up : allPlayers) {
 			response += (up.isDead() ? ERROR_COLOR + "[D] " : OK_COLOR);
 			
 			response += up.getName();
