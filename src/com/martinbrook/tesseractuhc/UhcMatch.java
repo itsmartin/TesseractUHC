@@ -436,9 +436,15 @@ public class UhcMatch {
 			}
 		}
 		setPermaday(false);
-		setPVP(true);
 		startMatchTimer();
 		setVanish();
+		
+		// Set up pvp countdown
+		if (getNopvp() > 0) {
+			startCountdown(getNopvp(), "PvP will be enabled", "PvP is now enabled!", CountdownType.PVP);
+		} else {
+			setPVP(true);
+		}
 	}
 	
 	/**
