@@ -53,6 +53,7 @@ public class UhcMatch {
 	private Boolean launchingPlayers = false;
 	private Boolean matchStarted = false;
 	private HashMap<String, UhcPlayer> uhcPlayers = new HashMap<String, UhcPlayer>(32);
+	private ArrayList<String> launchQueue = new ArrayList<String>();
 	public static String DEFAULT_MATCHDATA_FILE = "uhcmatch.yml";
 	public static int GOLD_LAYER = 32;
 	public static int DIAMOND_LAYER = 16;
@@ -763,10 +764,37 @@ public class UhcMatch {
 		launchingPlayers=true;
 		disableSpawnKeeper();
 		setVanish(); // Update vanish status
-		for(UhcPlayer up : getUhcPlayers()) launch(up);
+
+		// Add all players to the launch queue
+		for(UhcPlayer up : getUhcPlayers())
+			if (!up.isLaunched()) addToLaunchQueue(up);
+
+		// Begin launching
+		launchNext();
 	}
 	
 	
+	private void launchNext() {
+		if (this.launchQueue.size()==0) return;
+		
+		String playerName = this.launchQueue.remove(0);
+		UhcPlayer up = this.getUhcPlayer(playerName);
+		launch(up);
+		
+		server.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
+			public void run() {
+				launchNext();
+			}
+		}, 20L);
+		
+	}
+
+	private void addToLaunchQueue(UhcPlayer up) {
+		this.launchQueue.add(up.getName().toLowerCase());
+	}
+	
+	
+
 	public void enableSpawnKeeper() {
 		spawnKeeperTask = server.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
 			public void run() {
