@@ -31,6 +31,8 @@ import org.bukkit.inventory.ItemStack;
 
 import org.bukkit.ChatColor;
 
+import com.martinbrook.tesseractuhc.notification.DamageNotification;
+
 public class UhcMatchListener implements Listener {
 	private UhcMatch m;
 

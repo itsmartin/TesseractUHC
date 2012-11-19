@@ -34,6 +34,7 @@ import org.bukkit.potion.PotionEffect;
 import com.martinbrook.tesseractuhc.countdown.BorderCountdown;
 import com.martinbrook.tesseractuhc.countdown.MatchCountdown;
 import com.martinbrook.tesseractuhc.countdown.PVPCountdown;
+import com.martinbrook.tesseractuhc.notification.UhcNotification;
 
 public class UhcMatch {
 

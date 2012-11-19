@@ -1,4 +1,4 @@
-package com.martinbrook.tesseractuhc;
+package com.martinbrook.tesseractuhc.notification;
 
 import org.bukkit.entity.AnimalTamer;
 import org.bukkit.entity.Entity;
@@ -6,6 +6,8 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Wolf;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
+
+import com.martinbrook.tesseractuhc.UhcPlayer;
 
 public class DamageNotification extends UhcNotification {
 	private UhcPlayer damaged;

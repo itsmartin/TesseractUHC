@@ -1,4 +1,4 @@
-package com.martinbrook.tesseractuhc;
+package com.martinbrook.tesseractuhc.notification;
 
 public abstract class UhcNotification {
 
