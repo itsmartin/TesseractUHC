@@ -155,8 +155,6 @@ public class TesseractUHC extends JavaPlugin {
 			response = cRenewall();
 		} else if (cmd.equals("match")) {
 			response = cMatch(args);
-		} else if (cmd.equals("cdpvp")) {
-			response = cCdpvp(args);
 		} else if (cmd.equals("cdwb")) {
 			response = cCdwb(args);
 		} else if (cmd.equals("cdc")) {
@@ -740,11 +738,13 @@ public class TesseractUHC extends JavaPlugin {
 	 */
 	private String cCdwb(String[] args) {
 		
+		int newRadius;
+		
 		if (args.length == 0 || args.length > 2)
 			return ERROR_COLOR + "Specify world radius and countdown duration";
 		
 		try {
-			match.setNextRadius(Integer.parseInt(args[0]));
+			newRadius = Integer.parseInt(args[0]);
 		} catch (NumberFormatException e) {
 			return ERROR_COLOR + "World radius must be specified as an integer";
 		}
@@ -754,32 +754,11 @@ public class TesseractUHC extends JavaPlugin {
 		if (args.length == 2)
 			countLength = Integer.parseInt(args[1]);
 		
-		if (match.startCountdown(countLength, "World border will move to +/- " + match.getNextRadius() + " x and z", "World border is now at +/- " + match.getNextRadius()  + " x and z!", CountdownType.WORLD_REDUCE))
+		if (match.startBorderCountdown(countLength, newRadius))
 			return OK_COLOR + "Countdown started";
-		else 
-			return ERROR_COLOR + "Countdown already in progress!"; 
-	}
-
-	/**
-	 * Carry out the /cdpvp command
-	 * 
-	 * @param sender the sender of the command
-	 * @param args arguments
-	 * @return response
-	 */
-	private String cCdpvp(String[] args) {
-		if (args.length > 1)
-			return ERROR_COLOR + "Usage: /cdpvp [seconds]";
-		
-		int countLength = 300;
-		
-		if (args.length == 1)
-			countLength = Integer.parseInt(args[0]);
-		
-		if (match.startCountdown(countLength, "PvP will be enabled", "PvP is now enabled!", CountdownType.PVP))
-			return OK_COLOR + "Countdown started";
-		else 
-			return ERROR_COLOR + "Countdown already in progress!"; 
+		else
+			return ERROR_COLOR + "Unable to start border countdown";
+		 
 	}
 
 	/**
@@ -804,8 +783,7 @@ public class TesseractUHC extends JavaPlugin {
 		if (countLength < 120 && match.getMatchPhase() == MatchPhase.PRE_MATCH && !DEBUG_BUILD)
 			return ERROR_COLOR + "Countdown less than 2 minutes - you must launch players first!";
 		
-		
-		if (match.startCountdown(countLength, "The match will begin", "GO!", CountdownType.MATCH))
+		if (match.startMatchCountdown(countLength))
 			return OK_COLOR + "Countdown started";
 		else 
 			return ERROR_COLOR + "Countdown already in progress!"; 

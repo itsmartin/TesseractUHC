@@ -60,9 +60,6 @@ commands:
  match:
   description: Starts the match countdown
   usage: /match seconds
- cdpvp:
-  description: Starts the PvP countdown
-  usage: /cdpvp seconds
  cdwb:
   description: Starts a world border countdown
   usage: /cdwb newradius seconds

@@ -31,6 +31,10 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.potion.PotionEffect;
 
+import com.martinbrook.tesseractuhc.countdown.BorderCountdown;
+import com.martinbrook.tesseractuhc.countdown.MatchCountdown;
+import com.martinbrook.tesseractuhc.countdown.PVPCountdown;
+
 public class UhcMatch {
 
 	private World startingWorld;
@@ -39,13 +43,9 @@ public class UhcMatch {
 	private Location lastDeathLocation;
 	private Location lastEventLocation;
 	private Location lastLogoutLocation;
-	private int countdown = 0;
-	private String countdownEvent;
-	private String countdownEndMessage;
 
 	private ArrayList<String> chatScript;
 	private Boolean chatMuted = false;
-	private CountdownType countdownType;
 	private Boolean permaday = false;
 	private int permadayTaskId;
 	
@@ -56,7 +56,6 @@ public class UhcMatch {
 	public static int GOLD_LAYER = 32;
 	public static int DIAMOND_LAYER = 16;
 	private int playersInMatch = 0;
-	private int nextRadius;
 	private Calendar matchStartTime;
 	private int matchTimer = -1;
 	private ArrayList<Location> calculatedStarts = null;
@@ -68,6 +67,8 @@ public class UhcMatch {
 	private Configuration defaults;
 	private ItemStack[] bonusChest = new ItemStack[27];
 	private MatchPhase matchPhase = MatchPhase.PRE_MATCH;
+	private MatchCountdown matchCountdown;
+	private BorderCountdown borderCountdown;
 
 	
 	public UhcMatch(TesseractUHC plugin, World startingWorld, Configuration defaults) {
@@ -191,7 +192,7 @@ public class UhcMatch {
 	 * 
 	 * @param string The message to be sent
 	 */
-	private void adminBroadcast(String string) {
+	public void adminBroadcast(String string) {
 		broadcast(string,Server.BROADCAST_CHANNEL_ADMINISTRATIVE);
 	}
 	
@@ -200,7 +201,7 @@ public class UhcMatch {
 	 * 
 	 * @param string The message to be sent
 	 */
-	private void broadcast(String string) {
+	public void broadcast(String string) {
 		broadcast(string,Server.BROADCAST_CHANNEL_USERS);
 	}
 
@@ -421,6 +422,7 @@ public class UhcMatch {
 	 * Butcher hostile mobs, turn off permaday, turn on PVP, put all players in survival and reset all players.
 	 */
 	public void startMatch() {
+		this.matchCountdown = null;
 		matchPhase = MatchPhase.MATCH;
 		startingWorld.setTime(0);
 		butcherHostile();
@@ -439,7 +441,7 @@ public class UhcMatch {
 		
 		// Set up pvp countdown
 		if (getNopvp() > 0) {
-			startCountdown(getNopvp(), "PvP will be enabled", "PvP is now enabled!", CountdownType.PVP);
+			new PVPCountdown(getNopvp(), plugin, this);
 		} else {
 			setPVP(true);
 		}
@@ -460,76 +462,11 @@ public class UhcMatch {
 
 	}
 	
-	/**
-	 * Initiates a countdown
-	 * 
-	 * @param countdownLength the number of seconds to count down
-	 * @param eventName The name of the event to be announced
-	 * @param endMessage The message to display at the end of the countdown
-	 * @return Whether the countdown was started
-	 */
-	public boolean startCountdown(Integer countdownLength, String eventName, String endMessage, CountdownType type) {
-		if (countdown>0) return false;
-		countdown = countdownLength;
-		countdownEvent = eventName;
-		countdownEndMessage = endMessage;
-		countdownType = type;
-		countdown();
-		return true;
+
+	public boolean worldReduce(int nextRadius) {
+		return UhcUtil.setWorldRadius(startingWorld,nextRadius);
 	}
 	
-	/**
-	 * Continues the countdown in progress
-	 */
-	private void countdown() {
-		if (countdown < 0)
-			return;
-		
-		// Launch players when a match countdown drops below 2 minutes
-		if (countdown < 120 && countdownType == CountdownType.MATCH)
-			launchAll();
-		
-		if (countdown == 0) {
-			if (countdownType == CountdownType.MATCH) {
-				this.startMatch();
-			} else if (countdownType == CountdownType.PVP) {
-				this.setPVP(true);
-			} else if (countdownType == CountdownType.WORLD_REDUCE) {
-				if (UhcUtil.setWorldRadius(startingWorld,nextRadius)) {
-					adminBroadcast(TesseractUHC.OK_COLOR + "Border reduced to " + nextRadius);
-				} else {
-					adminBroadcast(TesseractUHC.ERROR_COLOR + "Unable to reduce border. Is WorldBorder installed?");
-				}
-			}
-			broadcast(TesseractUHC.MAIN_COLOR + countdownEndMessage);
-			return;
-		}
-		
-		if (countdown >= 60) {
-			if (countdown % 60 == 0) {
-				int minutes = countdown / 60;
-				broadcast(ChatColor.RED + countdownEvent + " in " + minutes + " minute" + (minutes == 1? "":"s"));
-			}
-		} else if (countdown % 15 == 0) {
-			broadcast(ChatColor.RED + countdownEvent + " in " + countdown + " seconds");
-		} else if (countdown <= 5) { 
-			broadcast(ChatColor.RED + "" + countdown + "...");
-		}
-		
-		countdown--;
-		server.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
-			public void run() {
-				countdown();
-			}
-		}, 20L);
-	}
-	
-	/**
-	 * Cancels a running countdown
-	 */
-	public void cancelCountdown() {
-		countdown = -1;
-	}
 	
 	/**
 	 * Starts the match timer
@@ -1114,14 +1051,6 @@ public class UhcMatch {
 		return availableStartPoints.size();
 	}
 
-	public int getNextRadius() {
-		return nextRadius;
-	}
-
-	public void setNextRadius(int nextRadius) {
-		this.nextRadius = nextRadius;
-	}
-
 	public World getStartingWorld() {
 		return startingWorld;
 	}
@@ -1284,6 +1213,28 @@ public class UhcMatch {
 
 	public void sendNotification(UhcNotification n) {
 		this.broadcast(n.formatForPlayers());
+	}
+
+	public boolean startMatchCountdown(int countLength) {
+		if (this.matchCountdown == null && (this.matchPhase == MatchPhase.LAUNCHING || this.matchPhase == MatchPhase.PRE_MATCH)) {
+			this.matchCountdown = new MatchCountdown(countLength, plugin, this);
+			return true;
+		}
+		return false;
+		
+	}
+	
+	public void cancelCountdown() {
+		if (this.matchCountdown != null) matchCountdown.cancel();
+		
+	}
+
+	public boolean startBorderCountdown(int countLength, int newRadius) {
+		if (this.borderCountdown == null && this.matchPhase == MatchPhase.MATCH) {
+			this.borderCountdown = new BorderCountdown(countLength, plugin, this, newRadius);
+			return true;
+		}
+		return false;
 	}
 
 }
