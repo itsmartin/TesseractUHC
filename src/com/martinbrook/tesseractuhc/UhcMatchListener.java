@@ -66,10 +66,10 @@ public class UhcMatchListener implements Listener {
 		if (e.getResult() != PlayerLoginEvent.Result.ALLOWED) return;
 		
 		// If we are in the pre-launch period, do nothing
-		if (!m.getLaunchingPlayers()) return;
+		if (m.getMatchPhase() == MatchPhase.PRE_MATCH) return;
 		
 		// If match is over, put player in creative, do nothing else
-		if (m.isMatchEnded()) {
+		if (m.getMatchPhase() == MatchPhase.POST_MATCH) {
 			e.getPlayer().setGameMode(GameMode.CREATIVE);
 			return;
 		}
@@ -81,7 +81,7 @@ public class UhcMatchListener implements Listener {
 		UhcPlayer up = m.getUhcPlayer(e.getPlayer());
 		
 		// If the match has not yet started, try to launch the player if necessary
-		if (!m.isMatchStarted()) {
+		if (m.getMatchPhase() == MatchPhase.LAUNCHING) {
 			if (up != null) {
 				// Player is in the match, make sure they are launched
 				m.launch(up);
@@ -136,7 +136,7 @@ public class UhcMatchListener implements Listener {
 		
 		// Handle the death
 		UhcPlayer up = m.getUhcPlayer(p);
-		if (up != null && up.isLaunched() && !up.isDead() && m.isMatchStarted() && !m.isMatchEnded())
+		if (up != null && up.isLaunched() && !up.isDead() && m.getMatchPhase() == MatchPhase.MATCH)
 			m.handlePlayerDeath(up);
 
 	}
@@ -144,7 +144,7 @@ public class UhcMatchListener implements Listener {
 	@EventHandler
 	public void onRespawn(PlayerRespawnEvent e) {
 		// Only do anything if match is in progress
-		if (!m.isMatchStarted() || m.isMatchEnded()) return;
+		if (m.getMatchPhase() != MatchPhase.MATCH) return;
 		
 		Player p = e.getPlayer();
 		
@@ -181,19 +181,19 @@ public class UhcMatchListener implements Listener {
 	
 	@EventHandler(ignoreCancelled = true)
 	public void onPlayerPickupItem(PlayerPickupItemEvent e) {
-		if (e.getPlayer().isOp() && m.inLaunchOrMatch()) e.setCancelled(true);
+		if (e.getPlayer().isOp() && m.getMatchPhase() == MatchPhase.MATCH) e.setCancelled(true);
 	}
 
 	@EventHandler(ignoreCancelled = true)
 	public void onPlayerDropItem(PlayerDropItemEvent e) {
-		if (e.getPlayer().isOp() && m.inLaunchOrMatch()) e.setCancelled(true);
+		if (e.getPlayer().isOp() && m.getMatchPhase() == MatchPhase.MATCH) e.setCancelled(true);
 	}
 
 	@EventHandler(ignoreCancelled = true)
 	public void onEntityTarget(EntityTargetEvent e) {
 		Entity target = e.getTarget();
 		if (target != null && target.getType() == EntityType.PLAYER) {
-			if (((Player) target).isOp() && m.inLaunchOrMatch()) e.setCancelled(true);
+			if (((Player) target).isOp() && m.getMatchPhase() == MatchPhase.MATCH) e.setCancelled(true);
 		}
 	}
 	

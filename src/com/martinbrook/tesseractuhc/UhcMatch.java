@@ -50,8 +50,6 @@ public class UhcMatch {
 	private int permadayTaskId;
 	
 	private ArrayList<UhcStartPoint> availableStartPoints = new ArrayList<UhcStartPoint>();
-	private Boolean launchingPlayers = false;
-	private Boolean matchStarted = false;
 	private HashMap<String, UhcPlayer> uhcPlayers = new HashMap<String, UhcPlayer>(32);
 	private ArrayList<String> launchQueue = new ArrayList<String>();
 	public static String DEFAULT_MATCHDATA_FILE = "uhcmatch.yml";
@@ -61,7 +59,6 @@ public class UhcMatch {
 	private int nextRadius;
 	private Calendar matchStartTime;
 	private int matchTimer = -1;
-	private boolean matchEnded = false;
 	private ArrayList<Location> calculatedStarts = null;
 	private boolean pvp = false;
 	private int spawnKeeperTask = -1;
@@ -70,6 +67,7 @@ public class UhcMatch {
 	private Server server;
 	private Configuration defaults;
 	private ItemStack[] bonusChest = new ItemStack[27];
+	private MatchPhase matchPhase = MatchPhase.PRE_MATCH;
 
 	
 	public UhcMatch(TesseractUHC plugin, World startingWorld, Configuration defaults) {
@@ -423,7 +421,7 @@ public class UhcMatch {
 	 * Butcher hostile mobs, turn off permaday, turn on PVP, put all players in survival and reset all players.
 	 */
 	public void startMatch() {
-		matchStarted = true;
+		matchPhase = MatchPhase.MATCH;
 		startingWorld.setTime(0);
 		butcherHostile();
 		for (Player p : server.getOnlinePlayers()) {
@@ -455,7 +453,7 @@ public class UhcMatch {
 	public void endMatch() {
 		announceMatchTime(true);
 		stopMatchTimer();
-		matchEnded = true;
+		matchPhase = MatchPhase.POST_MATCH;
 		// Put all players into creative
 		for (Player p : server.getOnlinePlayers()) p.setGameMode(GameMode.CREATIVE);
 		setVanish();
@@ -488,7 +486,7 @@ public class UhcMatch {
 			return;
 		
 		// Launch players when a match countdown drops below 2 minutes
-		if (countdown < 120 && countdownType == CountdownType.MATCH && !getLaunchingPlayers())
+		if (countdown < 120 && countdownType == CountdownType.MATCH)
 			launchAll();
 		
 		if (countdown == 0) {
@@ -749,7 +747,7 @@ public class UhcMatch {
 				sp.makeSign();
 				sp.fillChest(new ItemStack[27]);
 				availableStartPoints.add(sp);
-				if (matchStarted) {
+				if (matchPhase == MatchPhase.MATCH) {
 					broadcast(ChatColor.GOLD + up.getName() + " has been removed from the match");
 					announcePlayersRemaining();
 				}
@@ -767,7 +765,7 @@ public class UhcMatch {
 	 * Start the launching phase, and launch all players who have been added to the game
 	 */
 	public void launchAll() {
-		launchingPlayers=true;
+		if (matchPhase == MatchPhase.PRE_MATCH) matchPhase = MatchPhase.LAUNCHING;
 		disableSpawnKeeper();
 		setVanish(); // Update vanish status
 
@@ -919,12 +917,6 @@ public class UhcMatch {
 		chatMuted = muted;
 	}
 
-	/**
-	 * @return Whether player launching has started yet
-	 */
-	public Boolean getLaunchingPlayers() {
-		return launchingPlayers;
-	}
 
 	/**
 	 * Apply the mining fatigue game mechanic
@@ -949,12 +941,6 @@ public class UhcMatch {
 				
 	}
 
-	/**
-	 * @return Whether the game is underway
-	 */
-	public Boolean isMatchStarted() {
-		return matchStarted;
-	}
 
 	/**
 	 * @return The number of players still in the match
@@ -1019,19 +1005,6 @@ public class UhcMatch {
 	
 
 
-	/**
-	 * @return Whether the match is over
-	 */
-	public boolean isMatchEnded() {
-		return matchEnded;
-	}
-	
-	/**
-	 * @return Whether we are in the launch or match period
-	 */
-	public boolean inLaunchOrMatch() {
-		return (getLaunchingPlayers() && !isMatchEnded());
-	}
 
 	/**
 	 * Show a spectator the contents of a player's inventory.
@@ -1118,7 +1091,7 @@ public class UhcMatch {
 		if (viewer == viewed) return;
 		
 		// An op should be invisible to a non-op if the match is launching and not ended
-		if (!viewer.isOp() && viewed.isOp() && inLaunchOrMatch()) {
+		if (!viewer.isOp() && viewed.isOp() && (matchPhase == MatchPhase.LAUNCHING || matchPhase == MatchPhase.MATCH)) {
 			viewer.hidePlayer(viewed);
 		} else {
 			viewer.showPlayer(viewed);
@@ -1303,6 +1276,10 @@ public class UhcMatch {
 	 */
 	public ItemStack[] getBonusChest() {
 		return bonusChest;
+	}
+
+	public MatchPhase getMatchPhase() {
+		return matchPhase;
 	}
 
 }

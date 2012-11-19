@@ -800,7 +800,7 @@ public class TesseractUHC extends JavaPlugin {
 		if (args.length == 1)
 			countLength = Integer.parseInt(args[0]);
 		
-		if (countLength < 120 && !match.getLaunchingPlayers())
+		if (countLength < 120 && match.getMatchPhase() == MatchPhase.PRE_MATCH)
 			return ERROR_COLOR + "Countdown less than 2 minutes - you must launch players first!";
 		
 		
