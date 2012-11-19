@@ -8,6 +8,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
@@ -197,5 +199,36 @@ public class UhcMatchListener implements Listener {
 		}
 	}
 	
+	@EventHandler(ignoreCancelled = true)
+	public void onEntityDamage(EntityDamageEvent e) {
+		// Only interested in players taking damage
+		if (e.getEntityType() != EntityType.PLAYER) return;
+		
+		// Only interested if match is in progress
+		if (m.getMatchPhase() != MatchPhase.MATCH) return;
+		
+		// Only interested in registered players
+		UhcPlayer up = m.getUhcPlayer((Player) e.getEntity());
+		if (up == null) return;
+		
+		m.sendNotification(new DamageNotification(up, e.getDamage(), e.getCause()));
+		
+	}
 	
+	
+	@EventHandler(ignoreCancelled = true)
+	public void onEntityDamageByEntity(EntityDamageByEntityEvent e) {
+		// Only interested in players taking damage
+		if (e.getEntityType() != EntityType.PLAYER) return;
+		
+		// Only interested if match is in progress
+		if (m.getMatchPhase() != MatchPhase.MATCH) return;
+		
+		// Only interested in registered players
+		UhcPlayer up = m.getUhcPlayer((Player) e.getEntity());
+		if (up == null) return;
+		
+		m.sendNotification(new DamageNotification(up, e.getDamage(), e.getCause(), e.getDamager()));
+		
+	}
 }

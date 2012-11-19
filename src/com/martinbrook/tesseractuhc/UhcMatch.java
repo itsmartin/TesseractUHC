@@ -1282,4 +1282,8 @@ public class UhcMatch {
 		return matchPhase;
 	}
 
+	public void sendNotification(UhcNotification n) {
+		this.broadcast(n.formatForPlayers());
+	}
+
 }
