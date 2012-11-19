@@ -21,6 +21,7 @@ public class TesseractUHC extends JavaPlugin {
 	private static TesseractUHC instance = null;
 	public static final ChatColor MAIN_COLOR = ChatColor.GREEN, SIDE_COLOR = ChatColor.GOLD, OK_COLOR = ChatColor.GREEN, ERROR_COLOR = ChatColor.RED,
 			DECISION_COLOR = ChatColor.GOLD, ALERT_COLOR = ChatColor.GREEN;
+	private static final boolean DEBUG_BUILD = false;
 	
 	private UhcMatch match;
 	
@@ -792,7 +793,7 @@ public class TesseractUHC extends JavaPlugin {
 		if (args.length > 1)
 			return ERROR_COLOR + "Usage: /match [seconds]";
 		
-		if (match.countPlayers() < 2)
+		if (match.countPlayers() < 2 && !DEBUG_BUILD)
 			return ERROR_COLOR + "Not enough players to start";
 		
 		int countLength = 300;
@@ -800,7 +801,7 @@ public class TesseractUHC extends JavaPlugin {
 		if (args.length == 1)
 			countLength = Integer.parseInt(args[0]);
 		
-		if (countLength < 120 && match.getMatchPhase() == MatchPhase.PRE_MATCH)
+		if (countLength < 120 && match.getMatchPhase() == MatchPhase.PRE_MATCH && !DEBUG_BUILD)
 			return ERROR_COLOR + "Countdown less than 2 minutes - you must launch players first!";
 		
 		
