@@ -16,6 +16,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import com.martinbrook.tesseractuhc.notification.PlayerMessageNotification;
+
 public class TesseractUHC extends JavaPlugin {
 	private UhcMatchListener l;
 	private static TesseractUHC instance = null;
@@ -807,10 +809,7 @@ public class TesseractUHC extends JavaPlugin {
 			s = s.substring(0, s.length() - 1);
 		}
 
-		getServer().broadcast(ALERT_COLOR + "[N]" + ChatColor.WHITE + " <" + sender.getDisplayName() + "> " + ALERT_COLOR + s,
-				Server.BROADCAST_CHANNEL_ADMINISTRATIVE);
-
-		match.setLastNotifierLocation(sender.getLocation());
+		match.sendNotification(new PlayerMessageNotification(sender, s), sender.getLocation());
 
 		return sender.isOp() ? null : OK_COLOR + "Administrators have been notified.";
 	}

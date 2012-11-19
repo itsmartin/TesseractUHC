@@ -317,7 +317,7 @@ public class UhcMatch {
 	 * 
 	 * @param l The location to be stored
 	 */
-	public void setLastNotifierLocation(Location l) {
+	private void setLastNotifierLocation(Location l) {
 		lastNotifierLocation = l;
 		lastEventLocation = l;
 	}
@@ -1212,7 +1212,8 @@ public class UhcMatch {
 		return matchPhase;
 	}
 
-	public void sendNotification(UhcNotification n) {
+	public void sendNotification(UhcNotification n, Location l) {
+		setLastNotifierLocation(l);
 		this.broadcast(n.formatForPlayers());
 	}
 

@@ -217,7 +217,7 @@ public class UhcMatchListener implements Listener {
 		UhcPlayer up = m.getUhcPlayer((Player) e.getEntity());
 		if (up == null) return;
 		
-		m.sendNotification(new DamageNotification(up, e.getDamage(), e.getCause()));
+		m.sendNotification(new DamageNotification(up, e.getDamage(), e.getCause()), e.getEntity().getLocation());
 		
 	}
 	
@@ -237,7 +237,7 @@ public class UhcMatchListener implements Listener {
 		UhcPlayer up = m.getUhcPlayer((Player) e.getEntity());
 		if (up == null) return;
 		
-		m.sendNotification(new DamageNotification(up, e.getDamage(), e.getCause(), e.getDamager()));
+		m.sendNotification(new DamageNotification(up, e.getDamage(), e.getCause(), e.getDamager()), e.getEntity().getLocation());
 		
 	}
 
