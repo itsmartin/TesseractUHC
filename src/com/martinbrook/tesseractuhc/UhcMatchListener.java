@@ -204,8 +204,11 @@ public class UhcMatchListener implements Listener {
 		// Only interested in players taking damage
 		if (e.getEntityType() != EntityType.PLAYER) return;
 		
-		// Only interested if match is in progress
-		if (m.getMatchPhase() != MatchPhase.MATCH) return;
+		// Only interested if match is in progress. Cancel damage if not.
+		if (m.getMatchPhase() != MatchPhase.MATCH) {
+			e.setCancelled(true);
+			return;
+		}
 		
 		// Only interested in registered players
 		UhcPlayer up = m.getUhcPlayer((Player) e.getEntity());
@@ -221,8 +224,11 @@ public class UhcMatchListener implements Listener {
 		// Only interested in players taking damage
 		if (e.getEntityType() != EntityType.PLAYER) return;
 		
-		// Only interested if match is in progress
-		if (m.getMatchPhase() != MatchPhase.MATCH) return;
+		// Only interested if match is in progress. Cancel damage if not.
+		if (m.getMatchPhase() != MatchPhase.MATCH) {
+			e.setCancelled(true);
+			return;
+		}
 		
 		// Only interested in registered players
 		UhcPlayer up = m.getUhcPlayer((Player) e.getEntity());
