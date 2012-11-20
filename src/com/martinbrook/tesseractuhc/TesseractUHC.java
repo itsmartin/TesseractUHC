@@ -334,7 +334,7 @@ public class TesseractUHC extends JavaPlugin {
 		int added = 0;
 		for (Player p : getServer().getOnlinePlayers()) {
 			if (!p.isOp())
-				if (match.addPlayer(p)) added++;
+				if (match.addSoloPlayer(p)) added++;
 		}
 		if (added > 0)
 			return "" + OK_COLOR + added + " player" + (added == 1? "" : "s") + " added";
@@ -360,7 +360,7 @@ public class TesseractUHC extends JavaPlugin {
 		if (p.isOp())
 			return ERROR_COLOR + "Player should be deopped first!";
 		
-		boolean success = match.addPlayer(p);
+		boolean success = match.addSoloPlayer(p);
 		if (success)
 			return OK_COLOR + "Added player " + p.getDisplayName();
 		else 
@@ -515,11 +515,11 @@ public class TesseractUHC extends JavaPlugin {
 
 			String response = "";
 			for (UhcStartPoint sp : startPoints.values()) {
-				UhcPlayer p = sp.getUhcPlayer();
+				UhcTeam t = sp.getTeam();
 				
 				response += (sp.getNumber());
 				
-				if (p != null) response += " (" + p.getName() + ")";
+				if (t != null) response += " (" + t.getName() + ")";
 				
 				response += ": " + sp.getX() + "," + sp.getY() + "," + sp.getZ() + "\n";
 			}

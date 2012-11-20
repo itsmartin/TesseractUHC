@@ -12,7 +12,7 @@ import org.bukkit.inventory.ItemStack;
 public class UhcStartPoint {
 
 	private Location location;
-	private UhcPlayer uhcPlayer = null;
+	private UhcTeam team = null;
 	private int number;
 
 	public UhcStartPoint(int number, Location location) {
@@ -32,12 +32,12 @@ public class UhcStartPoint {
 		this.location = location;
 	}
 
-	public UhcPlayer getUhcPlayer() {
-		return uhcPlayer;
+	public UhcTeam getTeam() {
+		return team;
 	}
 
-	public void setUhcPlayer(UhcPlayer uhcPlayer) {
-		this.uhcPlayer = uhcPlayer;
+	public void setTeam(UhcTeam team) {
+		this.team = team;
 	}
 
 	public double getX() { return location.getX(); }
@@ -88,6 +88,13 @@ public class UhcStartPoint {
 	
 
 	/**
+	 * Empty the starting chest
+	 */
+	public void emptyChest() {
+		this.fillChest(new ItemStack[27]);
+	}
+	
+	/**
 	 * Fill the starting chest with specified contents
 	 */
 	public void fillChest(ItemStack[] items) {
@@ -103,10 +110,10 @@ public class UhcStartPoint {
 	 * Make a default start sign
 	 */
 	public void makeSign() {
-		if (uhcPlayer == null) 
-			makeSign("Player " + number);
+		if (team == null) 
+			makeSign("Start #" + number);
 		else
-			makeSign(uhcPlayer.getName());
+			makeSign(team.getName());
 	}
 	
 	/**
@@ -115,6 +122,7 @@ public class UhcStartPoint {
 	 * @param text The text to write on the sign
 	 */
 	public void makeSign(String text) {
+		// TODO handle substantially longer text than one short username
 		Block b = location.getBlock().getRelative(0,0,2);
 		b.setType(Material.SIGN_POST);
 		

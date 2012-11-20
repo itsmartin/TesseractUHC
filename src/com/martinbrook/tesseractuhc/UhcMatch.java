@@ -55,11 +55,14 @@ public class UhcMatch {
 	
 	private ArrayList<UhcStartPoint> availableStartPoints = new ArrayList<UhcStartPoint>();
 	private HashMap<String, UhcPlayer> uhcPlayers = new HashMap<String, UhcPlayer>(32);
+	private HashMap<String, UhcTeam> uhcTeams = new HashMap<String, UhcTeam>(32);
+	
 	private ArrayList<String> launchQueue = new ArrayList<String>();
 	public static String DEFAULT_MATCHDATA_FILE = "uhcmatch.yml";
 	public static int GOLD_LAYER = 32;
 	public static int DIAMOND_LAYER = 16;
 	private int playersInMatch = 0;
+	private int teamsInMatch = 0;
 	private Calendar matchStartTime;
 	private int matchTimer = -1;
 	private ArrayList<Location> calculatedStarts = null;
@@ -544,6 +547,14 @@ public class UhcMatch {
 		return uhcPlayers.values();
 	}
 	
+	private UhcTeam createTeam(String identifier, String name, UhcStartPoint startPoint) {
+		// Fail if team exists
+		if (existsTeam(identifier)) return null;
+		
+		UhcTeam team = new UhcTeam(identifier, name, startPoint);
+		uhcTeams.put(identifier.toLowerCase(), team);
+		return team;
+	}
 	
 	/**
 	 * Create a new player and add them to the game
@@ -552,14 +563,17 @@ public class UhcMatch {
 	 * @param sp The player's start point
 	 * @return The newly created player, or null if they already existed
 	 */
-	public UhcPlayer createUhcPlayer(String name, UhcStartPoint sp) {
+	private UhcPlayer createPlayer(String name, UhcTeam team) {
 		// Fail if player exists
 		if (existsUhcPlayer(name)) return null;
 		
-		UhcPlayer up = new UhcPlayer(name, sp);
+		UhcPlayer up = new UhcPlayer(name, team);
+		team.addPlayer(up);
 		uhcPlayers.put(name.toLowerCase(), up);
 		return up;
 	}
+	
+
 	
 	/**
 	 * Check if a player exists
@@ -569,6 +583,26 @@ public class UhcMatch {
 	 */
 	public boolean existsUhcPlayer(String name) {
 		return uhcPlayers.containsKey(name.toLowerCase());
+	}
+	
+	/**
+	 * Check if a team exists
+	 * 
+	 * @param identifier The team identifier to check (case-insensitive)
+	 * @return Whether the team exists
+	 */
+	public boolean existsTeam(String identifier) {
+		return uhcTeams.containsKey(identifier.toLowerCase());
+	}
+
+	/**
+	 * Get a specific UhcTeam by identifier
+	 * 
+	 * @param name The exact name of the player to be found  (case insensitive)
+	 * @return The UhcPlayer, or null if not found
+	 */
+	private UhcTeam getTeam(String identifier) {
+		return uhcTeams.get(identifier.toLowerCase());
 	}
 	
 	/**
@@ -593,30 +627,27 @@ public class UhcMatch {
 	}
 	
 	/**
-	 * Add the supplied player and assign them a start point
+	 * Add the team as detailed, and assign them a start point
 	 * 
-	 * @param p The player to add
+	 * @param identifier The team's short identifier
+	 * @param name The full name of the team
 	 * @return success or failure
 	 */
-	public boolean addPlayer(Player p) {
-		// Check that we are not dealing with an op here
-		if (p.isOp()) return false;
-		
+	public boolean addTeam(String identifier, String name) {
 		// Check that there are available start points
 		if (availableStartPoints.size() < 1) return false;
 		
-		// Check that the player doesn't exist 
-		if (existsUhcPlayer(p.getName())) return false;
+		// Check that the team doesn't exist already 
+		if (existsTeam(identifier)) return false;
 		
 		// Get them a start point
 		Random rand = new Random();
 		UhcStartPoint start = availableStartPoints.remove(rand.nextInt(availableStartPoints.size()));
 		
 		// Create the player
-		UhcPlayer up = createUhcPlayer(p.getName(), start);
-		start.setUhcPlayer(up);
-
-		playersInMatch++;
+		UhcTeam team = createTeam(identifier, name, start);
+		start.setTeam(team);
+		teamsInMatch++;
 		
 		start.makeSign();
 		start.fillChest(bonusChest);
@@ -624,6 +655,59 @@ public class UhcMatch {
 		return true;
 	}
 
+	/**
+	 * Add the supplied player to the specified team
+	 * 
+	 * @param p The player to add
+	 * @param teamIdentifier The team to add them to
+	 * @return success or failure
+	 */
+	public boolean addPlayer(Player p, String teamIdentifier) {
+		// If player is op, fail
+		if (p.isOp()) return false;
+		
+		// If player already exists, fail 
+		if (existsUhcPlayer(p.getName())) return false;
+		
+		// Get the team
+		UhcTeam team = getTeam(teamIdentifier);
+		
+		// If team doesn't exist, fail
+		if (team == null) return false;
+		
+		// Create the player
+		UhcPlayer up = createPlayer(p.getName(), team);
+
+		// If player wasn't created, fail
+		if (up == null) return false;
+		
+		playersInMatch++;
+		return true;
+	}
+	
+	/**
+	 * Add the supplied player as a team of one, creating the team and assigning it a start point
+	 * 
+	 * @param p The player to add
+	 * @return success or failure
+	 */
+	public boolean addSoloPlayer (Player p) {
+		// If player is op, fail
+		if (p.isOp()) return false;
+		
+		// If player already exists, fail 
+		if (existsUhcPlayer(p.getName())) return false;
+		
+		// Create a team of one for the player
+		String teamName = p.getName(); 
+		if (!addTeam(teamName, teamName)) return false;
+		
+		// Add the new player to the team of one, and return the result
+		return addPlayer(p, teamName);
+		
+	}
+	
+	
 	/**
 	 * Launch the specified player only
 	 * 
@@ -668,7 +752,7 @@ public class UhcMatch {
 	}
 	
 	/**
-	 * Remove the given player, removing them from the match and freeing up a start point.
+	 * Remove the given player, removing them from the match, and their team.
 	 * 
 	 * The player will be teleported back to spawn if they are still on the server
 	 * 
@@ -676,22 +760,17 @@ public class UhcMatch {
 	 * @return The removed player, or null if failed
 	 */
 	public UhcPlayer removePlayer(String name) {
-		UhcPlayer up = uhcPlayers.remove(name);
+		UhcPlayer up = uhcPlayers.remove(name.toLowerCase());
 		Player p = server.getPlayer(name);
 		
 		if (up != null) {
-			// Free up the start point
-			UhcStartPoint sp = up.getStartPoint();
-			if (sp != null) {
-				sp.setUhcPlayer(null);
-				playersInMatch--;
-				sp.makeSign();
-				sp.fillChest(new ItemStack[27]);
-				availableStartPoints.add(sp);
-				if (matchPhase == MatchPhase.MATCH) {
-					broadcast(ChatColor.GOLD + up.getName() + " has been removed from the match");
-					announcePlayersRemaining();
-				}
+			// Remove them from their team
+			up.getTeam().removePlayer(up);
+			playersInMatch--;
+			
+			if (matchPhase == MatchPhase.MATCH) {
+				broadcast(ChatColor.GOLD + up.getName() + " has been removed from the match");
+				announcePlayersRemaining();
 			}
 		}
 		
@@ -699,6 +778,33 @@ public class UhcMatch {
 		if (p != null) TeleportUtils.doTeleport(p,startingWorld.getSpawnLocation());
 		
 		return up;
+	}
+	
+	/**
+	 * Remove the given team, which must be empty, from the match, and free up its start point.
+	 * 
+	 * @param identifier The team to remove
+	 * @return Whether the removal succeeded
+	 */
+	public boolean removeTeam(String identifier) {
+		UhcTeam team = uhcTeams.remove(identifier.toLowerCase());
+		
+		// If team not found, fail
+		if (team == null) return false;
+		
+		// If team not empty, fail
+		if (team.playerCount()>0) return false;
+		
+		teamsInMatch--;
+		
+		// Free up the start point
+		UhcStartPoint sp = team.getStartPoint();
+		sp.setTeam(null);
+		sp.makeSign();
+		sp.emptyChest();
+		availableStartPoints.add(sp);
+		
+		return true;
 	}
 
 
@@ -890,6 +996,15 @@ public class UhcMatch {
 		return playersInMatch;
 	}
 
+
+	/**
+	 * @return The number of teams still in the match
+	 */
+	public int getTeamsInMatch() {
+		return teamsInMatch;
+	}
+
+	
 	/**
 	 * Process the death of a player
 	 * 

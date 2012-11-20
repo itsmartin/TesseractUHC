@@ -5,17 +5,17 @@ import org.bukkit.entity.Player;
 public class UhcPlayer {
 	private String name;
 	private boolean launched = false;
-	private UhcStartPoint startPoint;
+	private UhcTeam team;
 
 	private boolean dead = false;
 	
-	public UhcPlayer(String n, UhcStartPoint sp) {
-		this.name = n;
-		this.startPoint = sp;
+	public UhcPlayer(String name, UhcTeam team) {
+		this.name = name;
+		this.team = team;
 	}
 	
-	public UhcPlayer(Player p, UhcStartPoint sp) {
-		this(p.getName(), sp);
+	public UhcPlayer(Player p, UhcTeam team) {
+		this(p.getName(), team);
 	}
 	
 	public String getName() {
@@ -39,7 +39,7 @@ public class UhcPlayer {
 
 
 	public UhcStartPoint getStartPoint() {
-		return startPoint;
+		return team.getStartPoint();
 	}
 
 
@@ -49,6 +49,10 @@ public class UhcPlayer {
 
 	public void setDead(boolean dead) {
 		this.dead = dead;
+	}
+
+	public UhcTeam getTeam() {
+		return team;
 	}
 
 	
