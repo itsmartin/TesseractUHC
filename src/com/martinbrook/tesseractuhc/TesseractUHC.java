@@ -8,7 +8,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
-import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -16,10 +15,13 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import com.martinbrook.tesseractuhc.listeners.ChatListener;
+import com.martinbrook.tesseractuhc.listeners.LoginListener;
+import com.martinbrook.tesseractuhc.listeners.MatchListener;
+import com.martinbrook.tesseractuhc.listeners.SpectateListener;
 import com.martinbrook.tesseractuhc.notification.PlayerMessageNotification;
 
 public class TesseractUHC extends JavaPlugin {
-	private UhcMatchListener l;
 	private static TesseractUHC instance = null;
 	public static final ChatColor MAIN_COLOR = ChatColor.GREEN, SIDE_COLOR = ChatColor.GOLD, OK_COLOR = ChatColor.GREEN, ERROR_COLOR = ChatColor.RED,
 			DECISION_COLOR = ChatColor.GOLD, ALERT_COLOR = ChatColor.GREEN;
@@ -42,10 +44,12 @@ public class TesseractUHC extends JavaPlugin {
 		instance = this;
 
 		saveDefaultConfig();
-		this.match = new UhcMatch(this, getServer().getWorlds().get(0), getConfig());
+		match = new UhcMatch(this, getServer().getWorlds().get(0), getConfig());
 	
-		l = new UhcMatchListener(match);
-		this.getServer().getPluginManager().registerEvents(l, this);
+		getServer().getPluginManager().registerEvents(new ChatListener(match), this);
+		getServer().getPluginManager().registerEvents(new LoginListener(match), this);
+		getServer().getPluginManager().registerEvents(new MatchListener(match), this);
+		getServer().getPluginManager().registerEvents(new SpectateListener(match), this);
 		
 		
 		
