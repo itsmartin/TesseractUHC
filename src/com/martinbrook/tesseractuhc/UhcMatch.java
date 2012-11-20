@@ -35,6 +35,9 @@ import com.martinbrook.tesseractuhc.countdown.BorderCountdown;
 import com.martinbrook.tesseractuhc.countdown.MatchCountdown;
 import com.martinbrook.tesseractuhc.countdown.PVPCountdown;
 import com.martinbrook.tesseractuhc.notification.UhcNotification;
+import com.martinbrook.tesseractuhc.util.FileUtils;
+import com.martinbrook.tesseractuhc.util.TeleportUtils;
+import com.martinbrook.tesseractuhc.util.MatchUtils;
 
 public class UhcMatch {
 
@@ -92,7 +95,7 @@ public class UhcMatch {
 	 */
 	public void loadMatchParameters() { 
 		try {
-			md = YamlConfiguration.loadConfiguration(UhcUtil.getDataFile(startingWorld.getWorldFolder(), DEFAULT_MATCHDATA_FILE, true));
+			md = YamlConfiguration.loadConfiguration(FileUtils.getDataFile(startingWorld.getWorldFolder(), DEFAULT_MATCHDATA_FILE, true));
 
 		} catch (Exception e) {
 			md = new YamlConfiguration();
@@ -171,7 +174,7 @@ public class UhcMatch {
 		md.set("starts",startData);
 		
 		try {
-			md.save(UhcUtil.getDataFile(startingWorld.getWorldFolder(), DEFAULT_MATCHDATA_FILE, false));
+			md.save(FileUtils.getDataFile(startingWorld.getWorldFolder(), DEFAULT_MATCHDATA_FILE, false));
 		} catch (IOException e) {
 			adminBroadcast(TesseractUHC.ALERT_COLOR + "Warning: Could not save match data");
 		}
@@ -465,7 +468,7 @@ public class UhcMatch {
 	
 
 	public boolean worldReduce(int nextRadius) {
-		return UhcUtil.setWorldRadius(startingWorld,nextRadius);
+		return MatchUtils.setWorldRadius(startingWorld,nextRadius);
 	}
 	
 	
@@ -496,7 +499,7 @@ public class UhcMatch {
 	 * @param precise Whether to give a precise time (00:00:00) instead of (xx minutes)
 	 */
 	public void announceMatchTime(boolean precise) {
-		broadcast(TesseractUHC.MAIN_COLOR + "Match time: " + TesseractUHC.SIDE_COLOR + UhcUtil.formatDuration(matchStartTime, Calendar.getInstance(), precise));
+		broadcast(TesseractUHC.MAIN_COLOR + "Match time: " + TesseractUHC.SIDE_COLOR + MatchUtils.formatDuration(matchStartTime, Calendar.getInstance(), precise));
 	}
 	
 
@@ -508,7 +511,7 @@ public class UhcMatch {
 	 */
 	public void playChatScript(String filename, boolean muteChat) {
 		if (muteChat) this.setChatMuted(true);
-		chatScript = UhcUtil.readFile(filename);
+		chatScript = FileUtils.readFile(filename);
 		if (chatScript != null)
 			continueChatScript();
 	}
@@ -641,7 +644,7 @@ public class UhcMatch {
 		
 		// Teleport the player to the start point
 		p.setGameMode(GameMode.ADVENTURE);
-		plugin.doTeleport(p, up.getStartPoint().getLocation());
+		TeleportUtils.doTeleport(p, up.getStartPoint().getLocation());
 		renew(p);
 		
 		up.setLaunched(true);
@@ -693,7 +696,7 @@ public class UhcMatch {
 		}
 		
 		// Teleport the player if possible
-		if (p != null) plugin.doTeleport(p,startingWorld.getSpawnLocation());
+		if (p != null) TeleportUtils.doTeleport(p,startingWorld.getSpawnLocation());
 		
 		return up;
 	}
@@ -752,7 +755,7 @@ public class UhcMatch {
 	public void runSpawnKeeper() {
 		for (Player p : server.getOnlinePlayers()) {
 			if (!p.isOp() && p.getLocation().getY() < 128) {
-				plugin.doTeleport(p, startingWorld.getSpawnLocation());
+				TeleportUtils.doTeleport(p, startingWorld.getSpawnLocation());
 			}
 		}
 	}

@@ -5,10 +5,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import org.bukkit.ChatColor;
 
-import org.bukkit.Chunk;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
-import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -20,6 +18,8 @@ import com.martinbrook.tesseractuhc.listeners.LoginListener;
 import com.martinbrook.tesseractuhc.listeners.MatchListener;
 import com.martinbrook.tesseractuhc.listeners.SpectateListener;
 import com.martinbrook.tesseractuhc.notification.PlayerMessageNotification;
+import com.martinbrook.tesseractuhc.util.TeleportUtils;
+import com.martinbrook.tesseractuhc.util.MatchUtils;
 
 public class TesseractUHC extends JavaPlugin {
 	private static TesseractUHC instance = null;
@@ -274,7 +274,7 @@ public class TesseractUHC extends JavaPlugin {
 		
 		try {
 			int startNumber = Integer.parseInt(args[0]);
-			doTeleport(sender,starts.get(startNumber - 1));
+			TeleportUtils.doTeleport(sender,starts.get(startNumber - 1));
 		} catch (NumberFormatException e) {
 			return ERROR_COLOR + "Please give the start number";
 		} catch (IndexOutOfBoundsException e) {
@@ -291,7 +291,7 @@ public class TesseractUHC extends JavaPlugin {
 	 * @return response
 	 */
 	private String cCalcstarts(String[] args) {
-		ArrayList<Location> starts = UhcUtil.calculateStarts(args);
+		ArrayList<Location> starts = MatchUtils.calculateStarts(args);
 		if (starts == null) return ERROR_COLOR + "No start locations were calculated";
 		
 		String response = OK_COLOR + "" + starts.size() + " start locations calculated: \n";
@@ -607,13 +607,13 @@ public class TesseractUHC extends JavaPlugin {
 		
 		if ("deathban".equalsIgnoreCase(parameter)) {
 
-			Boolean v = UhcUtil.stringToBoolean(value);
+			Boolean v = MatchUtils.stringToBoolean(value);
 			if (v == null) return false;
 			match.setDeathban(v);
 			return true;
 			
 		} else if ("killerbonus".equalsIgnoreCase(parameter)) {
-			Boolean b = UhcUtil.stringToBoolean(value);
+			Boolean b = MatchUtils.stringToBoolean(value);
 			if (b != null && !b) {
 				match.setKillerBonus(0);
 				return true;
@@ -638,7 +638,7 @@ public class TesseractUHC extends JavaPlugin {
 		
 			
 		} else if ("miningfatigue".equalsIgnoreCase(parameter)) {
-			Boolean b = UhcUtil.stringToBoolean(value);
+			Boolean b = MatchUtils.stringToBoolean(value);
 			if (b != null && !b) {
 				match.setMiningFatigue(0,0);
 				return true;
@@ -829,7 +829,7 @@ public class TesseractUHC extends JavaPlugin {
 		if (l == null)
 			return ERROR_COLOR + "No notification.";
 
-		doTeleport(sender, l);
+		TeleportUtils.doTeleport(sender, l);
 		return null;
 	}
 
@@ -844,7 +844,7 @@ public class TesseractUHC extends JavaPlugin {
 		if (l == null)
 			return ERROR_COLOR + "Nobody has died.";
 
-		doTeleport(sender, l);
+		TeleportUtils.doTeleport(sender, l);
 		return null;
 	}
 
@@ -859,7 +859,7 @@ public class TesseractUHC extends JavaPlugin {
 		if (l == null)
 			return ERROR_COLOR + "Nobody has logged out.";
 
-		doTeleport(sender, l);
+		TeleportUtils.doTeleport(sender, l);
 		return null;
 	}
 
@@ -878,7 +878,7 @@ public class TesseractUHC extends JavaPlugin {
 		UhcStartPoint destination = match.findStartPoint(args[0]);
 		
 		if (destination != null) {
-			doTeleport(sender,destination.getLocation());
+			TeleportUtils.doTeleport(sender,destination.getLocation());
 			return null;
 		} else {
 			return ERROR_COLOR + "Unable to find that start point";
@@ -898,7 +898,7 @@ public class TesseractUHC extends JavaPlugin {
 			if (match.getLastEventLocation() == null)
 				return ERROR_COLOR + "You haven't specified to who you want to teleport.";
 
-			doTeleport(sender, match.getLastEventLocation());
+			TeleportUtils.doTeleport(sender, match.getLastEventLocation());
 			return null;
 		}
 		
@@ -906,7 +906,7 @@ public class TesseractUHC extends JavaPlugin {
 			Player to = getServer().getPlayer(args[0]);
 			if (to == null || !to.isOnline())
 				return ERROR_COLOR + "Player " + args[0] + " not found";
-			doTeleport(sender,to,OK_COLOR + "Teleported to " + to.getName());
+			TeleportUtils.doTeleport(sender,to,OK_COLOR + "Teleported to " + to.getName());
 			
 			return null;
 		}
@@ -918,7 +918,7 @@ public class TesseractUHC extends JavaPlugin {
 			Player to = getServer().getPlayer(args[1]);
 			if (to == null || !to.isOnline())
 				return ERROR_COLOR + "Player " + args[1] + " not found";
-			doTeleport(from,to);
+			TeleportUtils.doTeleport(from,to);
 			
 			return OK_COLOR + "Teleported " + from.getName() + " to " + to.getName();
 		}
@@ -936,7 +936,7 @@ public class TesseractUHC extends JavaPlugin {
 			}
 			
 			Location to = new Location(sender.getWorld(),x,y,z);
-			doTeleport(sender,to);
+			TeleportUtils.doTeleport(sender,to);
 			return null;
 		}
 		if(args.length==4){
@@ -956,7 +956,7 @@ public class TesseractUHC extends JavaPlugin {
 			}
 			
 			Location to = new Location(from.getWorld(),x,y,z);
-			doTeleport(from,to);
+			TeleportUtils.doTeleport(from,to);
 			return OK_COLOR + from.getName() + " has been teleported";
 			
 		}
@@ -979,7 +979,7 @@ public class TesseractUHC extends JavaPlugin {
 			Player to = getServer().getPlayer(args[1]);
 			if (to == null || !to.isOnline())
 				return ERROR_COLOR + "Player " + args[1] + " not found";
-			doTeleport(from,to);
+			TeleportUtils.doTeleport(from,to);
 			
 			return OK_COLOR + "Teleported " + from.getName() + " to " + to.getName();
 		}
@@ -1001,7 +1001,7 @@ public class TesseractUHC extends JavaPlugin {
 			}
 			
 			Location to = new Location(from.getWorld(),x,y,z);
-			doTeleport(from,to);
+			TeleportUtils.doTeleport(from,to);
 			return OK_COLOR + from.getName() + " has been teleported";
 			
 		}
@@ -1206,135 +1206,7 @@ public class TesseractUHC extends JavaPlugin {
 	}
 
 	
-	/**
-	 * Teleport one player to another. If player is opped, fancy
-	 * teleport will be done. Adds a custom message to be displayed.
-	 * 
-	 * @param p1 player to be teleported
-	 * @param p2 player to be teleported to
-	 * @param message the message to be displayed
-	 */
-	public void doTeleport(Player p1, Player p2, String message) {
-		//saveTpLocation(p1);
 
-		// if the first player is opped, do fancy teleport.
-		if (!p1.isOp())
-			p1.teleport(p2);
-		else
-			doFancyTeleport(p1, p2);
-
-		// If player is in creative, set them to be in flight
-		if (p1.getGameMode() == GameMode.CREATIVE)
-			p1.setFlying(true);
-
-		// Send the teleport message, if provided
-		if (message != null && !message.isEmpty())
-			p1.sendMessage(OK_COLOR + message);
-	}
-
-	/**
-	 * Teleport one player to another. If player is opped, fancy
-	 * teleport will be done.
-	 * 
-	 * @param p1 player to be teleported
-	 * @param p2 player to be teleported to
-	 */
-	public void doTeleport(Player p1, Player p2) {
-		this.doTeleport(p1, p2, "You have been teleported!");
-	}
-	
-	/**
-	 * Teleport a player to a specific location
-	 * 
-	 * @param p1 player to be teleported
-	 * @param l location to be teleported to
-	 */
-	public void doTeleport(Player p1, Location l) {
-		//saveTpLocation(p1);
-		// Check if the location is loaded
-		World w = l.getWorld();
-		Chunk chunk = w.getChunkAt(l);
-		if (!w.isChunkLoaded(chunk))
-			w.loadChunk(chunk);
-		p1.teleport(l);
-		if (p1.getGameMode() == GameMode.CREATIVE)
-			p1.setFlying(true);
-		p1.sendMessage(OK_COLOR + "You have been teleported!");
-	}
-	
-	/**
-	 * Teleports a player NEAR to another player
-	 * 
-	 * If possible, they will be placed 5 blocks away, facing towards the
-	 * destination player.
-	 * 
-	 * @param streamer the Player who will be fancy-teleported
-	 * @param p the Player they are to be teleported to
-	 */
-	private void doFancyTeleport(Player streamer, Player p) {
-		Location l = p.getLocation();
-
-		Location lp = new Location(l.getWorld(), l.getX(), l.getY(), l.getZ());
-		Location lxp = new Location(l.getWorld(), l.getX(), l.getY(), l.getZ());
-		Location lxn = new Location(l.getWorld(), l.getX(), l.getY(), l.getZ());
-		Location lzp = new Location(l.getWorld(), l.getX(), l.getY(), l.getZ());
-		Location lzn = new Location(l.getWorld(), l.getX(), l.getY(), l.getZ());
-		Location tpl = new Location(l.getWorld(), l.getX(), l.getY(), l.getZ());
-		boolean xp = true, xn = true, zp = true, zn = true;
-
-		for (int i = 0; i < 5; i++) {
-			if (xp) {
-				lxp.setX(lxp.getX() + 1);
-				if (!UhcUtil.isSpaceForPlayer(lxp))
-					xp = false;
-			}
-			if (xn) {
-				lxn.setX(lxn.getX() - 1);
-				if (!UhcUtil.isSpaceForPlayer(lxn))
-					xn = false;
-			}
-			if (zp) {
-				lzp.setZ(lzp.getZ() + 1);
-				if (!UhcUtil.isSpaceForPlayer(lzp))
-					zp = false;
-			}
-			if (zn) {
-				lzn.setZ(lzn.getZ() - 1);
-				if (!UhcUtil.isSpaceForPlayer(lzn))
-					zn = false;
-			}
-		}
-
-		if (!xp)
-			lxp.setX(lxp.getX() - 1);
-		if (!xn)
-			lxn.setX(lxn.getX() + 1);
-		if (!zp)
-			lzp.setZ(lzp.getZ() - 1);
-		if (!zn)
-			lzn.setZ(lzn.getZ() + 1);
-
-		tpl.setYaw(90);
-		tpl.setPitch(0);
-
-		if (lxp.distanceSquared(lp) > tpl.distanceSquared(lp)) {
-			tpl = lxp;
-			tpl.setYaw(90);
-		}
-		if (lxn.distanceSquared(lp) > tpl.distanceSquared(lp)) {
-			tpl = lxn;
-			tpl.setYaw(270);
-		}
-		if (lzp.distanceSquared(lp) > tpl.distanceSquared(lp)) {
-			tpl = lzp;
-			tpl.setYaw(180);
-		}
-		if (lzn.distanceSquared(lp) > tpl.distanceSquared(lp)) {
-			tpl = lzn;
-			tpl.setYaw(0);
-		}
-		streamer.teleport(tpl);
-	}
 
 	public UhcMatch getMatch() {
 		return match;
