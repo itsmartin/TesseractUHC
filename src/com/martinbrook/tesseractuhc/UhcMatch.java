@@ -767,9 +767,9 @@ public class UhcMatch {
 	 * The player will be teleported back to spawn if they are still on the server
 	 * 
 	 * @param name The player to be removed
-	 * @return The removed player, or null if failed
+	 * @return Whether the removal succeeded
 	 */
-	public UhcPlayer removePlayer(String name) {
+	public boolean removePlayer(String name) {
 		UhcPlayer up = uhcPlayers.remove(name.toLowerCase());
 		Player p = server.getPlayer(name);
 		
@@ -792,7 +792,7 @@ public class UhcMatch {
 		// Teleport the player if possible
 		if (p != null) TeleportUtils.doTeleport(p,startingWorld.getSpawnLocation());
 		
-		return up;
+		return true;
 	}
 	
 	/**
@@ -1026,6 +1026,7 @@ public class UhcMatch {
 	 * @param up The player who died
 	 */
 	public void handlePlayerDeath(UhcPlayer up) {
+		// TODO teamify. It may be necessary to decrement teamsInMatch here too, if that was the end of a team
 		if (up.isDead()) return;
 		up.setDead(true);
 		playersInMatch--;
@@ -1040,6 +1041,7 @@ public class UhcMatch {
 	 * Publicly announce how many players are still in the match 
 	 */
 	private void announcePlayersRemaining() {
+		// TODO teamify. Announce teams remaining too.
 		// Make no announcement if final player was killed
 		if (playersInMatch < 1) return;
 		
@@ -1062,6 +1064,7 @@ public class UhcMatch {
 	 * @return A comma-separated list of surviving players
 	 */
 	private String getSurvivingPlayerList() {
+		// TODO teamify
 		String survivors = "";
 		
 		for (UhcPlayer up : getUhcPlayers())

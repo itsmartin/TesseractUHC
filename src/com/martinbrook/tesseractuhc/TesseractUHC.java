@@ -181,8 +181,10 @@ public class TesseractUHC extends JavaPlugin {
 			response = cCalcstarts(args);
 		} else if (cmd.equals("setvanish")) {
 			response = cSetvanish();
-		} else if (cmd.equals("addplayers")) {
-			response = cAddplayers();
+		} else if (cmd.equals("players")) {
+			response = cPlayers(args);
+		} else if (cmd.equals("teams")) {
+			response = cTeams(args);
 		} else if (cmd.equals("matchinfo") || cmd.equals("mi")) {
 			response = cMatchinfo();
 		} else {
@@ -193,6 +195,154 @@ public class TesseractUHC extends JavaPlugin {
 			sender.sendMessage(response);
 		
 		return success;
+	}
+
+	private String cTeams(String[] args) {
+		// teams - lists all teams
+		// teams add identifier name name name - adds a team
+		
+		if (args.length < 1) {
+			String response = "";
+			Collection<UhcTeam> allTeams = match.getTeams();
+			response += allTeams.size() + " teams (" + match.getTeamsInMatch() + " still alive):\n";
+			
+			for (UhcTeam team : allTeams) {
+				response += (team.aliveCount()==0 ? ERROR_COLOR + "[D] " : OK_COLOR);
+				
+				response += team.getName();
+				response += " (start point " + (team.getStartPoint().getNumber()) + ")";
+				response += "\n";
+			}
+			return response;
+		}
+		if (args[0].equalsIgnoreCase("add")) {
+			if (args.length < 2)
+				return ERROR_COLOR + "Specify team to add!";
+			
+			String identifier = args[1];
+			String name = "";
+			
+			if (args.length < 3)
+				name = identifier;
+			else {
+				for (int i = 2; i < args.length; i++) name += args[i] + " ";
+				name = name.substring(0,name.length()-1);
+			}
+				
+			if (!match.addTeam(identifier, name))
+				return ERROR_COLOR + "Could not add team";
+			
+			return OK_COLOR + "Team created";
+			
+		} else if (args[0].equalsIgnoreCase("remove") || args[0].equalsIgnoreCase("rm")) {
+			if (args.length < 2)
+				return ERROR_COLOR + "Specify team to remove!";
+			if (!match.removeTeam(args[1]))
+				return ERROR_COLOR + "Team could not be removed!";
+
+			return OK_COLOR + "Team removed";
+		}
+
+		
+		
+		return null;
+	}
+
+	private String cPlayers(String[] args) {
+		// players - lists all players
+		// players add playername
+		// players add playername teamidentifier
+		// players addall
+
+		if (args.length < 1) {
+
+			String response = "";
+			
+			if (match.isFFA()) {
+				Collection<UhcPlayer> allPlayers = match.getUhcPlayers();
+				response += allPlayers.size() + " players (" + match.getPlayersInMatch() + " still alive):\n";
+				
+				for (UhcPlayer up : allPlayers) {
+					response += (up.isDead() ? ERROR_COLOR + "[D] " : OK_COLOR);
+					
+					response += up.getName();
+					response += " (start point " + (up.getStartPoint().getNumber()) + ")";
+					response += (!up.isLaunched() ? " (unlaunched)" : "");
+					response += "\n";
+				}
+	
+			} else {
+				Collection<UhcTeam> allTeams = match.getTeams();
+				response += allTeams.size() + " teams (" + match.getTeamsInMatch() + " still alive):\n";
+				
+				for (UhcTeam team : allTeams) {
+					response += (team.aliveCount()==0 ? ERROR_COLOR + "[D] " : OK_COLOR);
+					
+					response += team.getName();
+					response += " (start point " + (team.getStartPoint().getNumber()) + ")";
+					response += "\n";
+					for (UhcPlayer up : team.getPlayers()) {
+						response += "  ";
+						response += (up.isDead() ? ERROR_COLOR + "[D] " : OK_COLOR);
+						
+						response += up.getName();
+						response += " (start point " + (up.getStartPoint().getNumber()) + ")";
+						response += (!up.isLaunched() ? " (unlaunched)" : "");
+						response += "\n";
+					}
+				}
+			}
+			
+			
+			return response;
+		}
+		if (args[0].equalsIgnoreCase("add")) {
+			if (args.length < 2)
+				return ERROR_COLOR + "Specify player to add!";
+			
+			Player p = getServer().getPlayer(args[1]);
+			
+			if (p == null)
+				return ERROR_COLOR + "Player " + args[1] + " not found!";
+			
+			if (match.isFFA()) {
+				if (!match.addSoloPlayer(p))
+					return ERROR_COLOR + "Failed to add player";
+				
+				return OK_COLOR + "Player added";
+			} else {
+				if (args.length < 3)
+					return ERROR_COLOR + "Please specify the team! /players add NAME TEAM";
+				if (!match.addPlayer(p, args[2]))
+					return ERROR_COLOR + "Failed to add player " + args[1] + " to team " + args[2];
+				
+				return OK_COLOR + "Player added";
+			}
+				
+		} else if (args[0].equalsIgnoreCase("addall")) {
+			if (!match.isFFA())
+				return ERROR_COLOR + "Cannot auto-add players in a FFA match";
+			
+			int added = 0;
+			for (Player p : getServer().getOnlinePlayers()) {
+				if (!p.isOp())
+					if (match.addSoloPlayer(p)) added++;
+			}
+			if (added > 0)
+				return "" + OK_COLOR + added + " player" + (added == 1? "" : "s") + " added";
+			else
+				return ERROR_COLOR + "No players to add!";
+			
+			
+		} else if (args[0].equalsIgnoreCase("remove") || args[0].equalsIgnoreCase("rm")) {
+			if (args.length < 2)
+				return ERROR_COLOR + "Specify player to remove!";
+			if (!match.removePlayer(args[1]))
+				return ERROR_COLOR + "Player could not be removed!";
+
+			return OK_COLOR + "Player removed";
+		}
+		return null;
 	}
 
 	/**
@@ -228,7 +378,7 @@ public class TesseractUHC extends JavaPlugin {
 	}
 
 	private String pLeave(Player sender, String[] args) {
-		if (match.removePlayer(sender.getName()) == null)
+		if (!match.removePlayer(sender.getName()))
 			return ERROR_COLOR + "Leave failed";
 		else
 			return OK_COLOR + "You have left the match";
@@ -378,27 +528,6 @@ public class TesseractUHC extends JavaPlugin {
 		
 	}
 
-
-	/**
-	 * Carry out the /addplayers command
-	 * 
-	 * @return response
-	 */
-	private String cAddplayers() {
-		if (!match.isFFA())
-			return ERROR_COLOR + "Cannot auto-add players in a FFA match";
-		
-		int added = 0;
-		for (Player p : getServer().getOnlinePlayers()) {
-			if (!p.isOp())
-				if (match.addSoloPlayer(p)) added++;
-		}
-		if (added > 0)
-			return "" + OK_COLOR + added + " player" + (added == 1? "" : "s") + " added";
-		else
-			return ERROR_COLOR + "No players to add!";
-		
-	}
 
 
 	/**
@@ -698,17 +827,10 @@ public class TesseractUHC extends JavaPlugin {
 	 * @return response
 	 */
 	private String cMatchinfo() {
+		// TODO teamify
 		Collection<UhcPlayer> allPlayers = match.getUhcPlayers();
 		String response = allPlayers.size() + " players in the match (" + match.getPlayersInMatch() + " still alive):\n";
-		
-		for (UhcPlayer up : allPlayers) {
-			response += (up.isDead() ? ERROR_COLOR + "[D] " : OK_COLOR);
-			
-			response += up.getName();
-			response += " (start point " + (up.getStartPoint().getNumber()) + ")";
-			response += (!up.isLaunched() ? " (unlaunched)" : "");
-			response += "\n";
-		}
+
 		
 		
 		return response;

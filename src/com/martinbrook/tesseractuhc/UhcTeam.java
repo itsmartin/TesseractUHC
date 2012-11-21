@@ -78,5 +78,9 @@ public class UhcTeam {
 		
 		return alive;
 	}
+	
+	public HashSet<UhcPlayer> getPlayers() {
+		return players;
+	}
 
 }

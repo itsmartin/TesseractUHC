@@ -119,12 +119,15 @@ commands:
  leave:
   description: Leave the match
   usage: /leave
- addplayers:
-  description: Add all online players (FFA only)
-  usage: addplayers
  matchinfo:
   description: Display status of the current match
   usage: /matchinfo
  mi:
   description: Display status of the current match
   usage: /mi
+ players:
+  description: Commands for interacting with players
+  usage: /players add | /players rm | /players
+ teams:
+  description: Commands for interacting with teams
+  usage: /teams add | /teams rm | /teams
