@@ -18,6 +18,7 @@ import com.martinbrook.tesseractuhc.listeners.LoginListener;
 import com.martinbrook.tesseractuhc.listeners.MatchListener;
 import com.martinbrook.tesseractuhc.listeners.SpectateListener;
 import com.martinbrook.tesseractuhc.notification.PlayerMessageNotification;
+import com.martinbrook.tesseractuhc.startpoint.UhcStartPoint;
 import com.martinbrook.tesseractuhc.util.TeleportUtils;
 import com.martinbrook.tesseractuhc.util.MatchUtils;
 

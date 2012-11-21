@@ -2,6 +2,8 @@ package com.martinbrook.tesseractuhc;
 
 import org.bukkit.entity.Player;
 
+import com.martinbrook.tesseractuhc.startpoint.UhcStartPoint;
+
 public class UhcPlayer {
 	private String name;
 	private boolean launched = false;
