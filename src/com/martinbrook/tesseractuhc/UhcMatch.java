@@ -35,6 +35,9 @@ import com.martinbrook.tesseractuhc.countdown.BorderCountdown;
 import com.martinbrook.tesseractuhc.countdown.MatchCountdown;
 import com.martinbrook.tesseractuhc.countdown.PVPCountdown;
 import com.martinbrook.tesseractuhc.notification.UhcNotification;
+import com.martinbrook.tesseractuhc.startpoint.LargeGlassStartPoint;
+import com.martinbrook.tesseractuhc.startpoint.SmallGlassStartPoint;
+import com.martinbrook.tesseractuhc.startpoint.UhcStartPoint;
 import com.martinbrook.tesseractuhc.util.FileUtils;
 import com.martinbrook.tesseractuhc.util.TeleportUtils;
 import com.martinbrook.tesseractuhc.util.MatchUtils;
@@ -893,7 +896,12 @@ public class UhcMatch {
 		if (startPoints.containsKey(number))
 			return null;
 		
-		UhcStartPoint sp = new UhcStartPoint(number, l);
+		UhcStartPoint sp;
+		if (this.isFFA())
+			sp = new SmallGlassStartPoint(number, l, true);
+		else
+			sp = new LargeGlassStartPoint(number, l, true);
+		
 		if (buildTrough) sp.buildStartingTrough();
 		
 		startPoints.put(number,  sp);

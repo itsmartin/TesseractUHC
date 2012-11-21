@@ -2,6 +2,8 @@ package com.martinbrook.tesseractuhc;
 
 import java.util.HashSet;
 
+import com.martinbrook.tesseractuhc.startpoint.UhcStartPoint;
+
 public class UhcTeam {
 	private String identifier;
 	private String name;
