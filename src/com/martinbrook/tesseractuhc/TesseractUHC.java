@@ -165,8 +165,6 @@ public class TesseractUHC extends JavaPlugin {
 			response = cCdwb(args);
 		} else if (cmd.equals("cdc")) {
 			response = cCdc();
-		} else if (cmd.equals("pvp")) {
-			response = cPvp(args);
 		} else if (cmd.equals("chatscript")) {
 			response = cChatscript(args);
 		} else if (cmd.equals("muteall")) {
@@ -471,28 +469,7 @@ public class TesseractUHC extends JavaPlugin {
 		match.playChatScript(scriptFile, true);
 		return OK_COLOR + "Starting chat script";
 	}
-	
-	/**
-	 * Carry out the /pvp command
-	 * 
-	 * @param sender the sender of the command
-	 * @param args arguments
-	 * @return response
-	 */
-	private String cPvp(String[] args) {
-		if (args.length < 1)
-			return OK_COLOR + "PVP is " + (match.getPVP() ? "on" : "off");
-		
-		if (args[0].equalsIgnoreCase("off") || args[0].equals("0")) {
-			match.setPVP(false);
-		} else if (args[0].equalsIgnoreCase("on") || args[0].equals("1")) {
-			match.setPVP(true);
-		} else {
-			return ERROR_COLOR + "Argument '" + args[0] + "' not understood";
-		}
-		return null;
 
-	}
 	
 	/**
 	 * Carry out the /permaday command
