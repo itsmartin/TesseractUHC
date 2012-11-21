@@ -200,6 +200,8 @@ public class TesseractUHC extends JavaPlugin {
 	private String cTeams(String[] args) {
 		// teams - lists all teams
 		// teams add identifier name name name - adds a team
+		if (match.isFFA())
+			return ERROR_COLOR + "This is not a team match. Use /players to list players";
 		
 		if (args.length < 1) {
 			String response = "";
@@ -321,7 +323,7 @@ public class TesseractUHC extends JavaPlugin {
 				
 		} else if (args[0].equalsIgnoreCase("addall")) {
 			if (!match.isFFA())
-				return ERROR_COLOR + "Cannot auto-add players in a FFA match";
+				return ERROR_COLOR + "Cannot auto-add players in a team match";
 			
 			int added = 0;
 			for (Player p : getServer().getOnlinePlayers()) {
