@@ -158,6 +158,7 @@ public class UhcMatch {
 				md.set(m.getKey(), m.getValue());
 			}
 		}
+		System.out.print(md.saveToString());
 		
 		this.saveMatchParameters();
 	}
@@ -601,7 +602,7 @@ public class UhcMatch {
 	 * @param name The exact name of the player to be found  (case insensitive)
 	 * @return The UhcPlayer, or null if not found
 	 */
-	private UhcTeam getTeam(String identifier) {
+	public UhcTeam getTeam(String identifier) {
 		return uhcTeams.get(identifier.toLowerCase());
 	}
 	
@@ -635,7 +636,7 @@ public class UhcMatch {
 	 */
 	public boolean addTeam(String identifier, String name) {
 		// Check that there are available start points
-		if (availableStartPoints.size() < 1) return false;
+		if (!roomForAnotherTeam()) return false;
 		
 		// Check that the team doesn't exist already 
 		if (existsTeam(identifier)) return false;
@@ -653,6 +654,15 @@ public class UhcMatch {
 		start.fillChest(bonusChest);
 
 		return true;
+	}
+	
+	/**
+	 * Checks if there is room for another team to be created
+	 * 
+	 * @return Whether there is another start point
+	 */
+	public boolean roomForAnotherTeam() {
+		return (availableStartPoints.size()>0);
 	}
 
 	/**
@@ -768,8 +778,13 @@ public class UhcMatch {
 			up.getTeam().removePlayer(up);
 			playersInMatch--;
 			
+			// If match is ffa, also remove the empty team
+			if (isFFA())
+				this.removeTeam(name);
+			
+			
 			if (matchPhase == MatchPhase.MATCH) {
-				broadcast(ChatColor.GOLD + up.getName() + " has been removed from the match");
+				broadcast(ChatColor.GOLD + up.getName() + " has left the match");
 				announcePlayersRemaining();
 			}
 		}
@@ -1303,7 +1318,27 @@ public class UhcMatch {
 	public boolean getDeathban() {
 		return md.getBoolean("deathban");
 	}
+	
+	
+	/**
+	 * Set FFA on/off
+	 * 
+	 * @param d Whether FFA is to be enabled
+	 */
+	public void setFFA(boolean d) {
+		md.set("ffa", d);
+		this.saveMatchParameters();
+		adminBroadcast(TesseractUHC.OK_COLOR + "FFA has been " + (d ? "enabled" : "disabled") + "!");
+	}
 
+	/**
+	 * Check whether deathban is in effect
+	 * 
+	 * @return Whether deathban is enabled
+	 */
+	public boolean isFFA() {
+		return md.getBoolean("ffa");
+	}
 	/**
 	 * Update the contents of the match "bonus chest"
 	 * 
@@ -1355,6 +1390,10 @@ public class UhcMatch {
 			return true;
 		}
 		return false;
+	}
+
+	public Collection<UhcTeam> getTeams() {
+		return uhcTeams.values();
 	}
 
 }

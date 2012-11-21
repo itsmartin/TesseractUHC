@@ -1,12 +1,12 @@
 package com.martinbrook.tesseractuhc;
 
-import java.util.Set;
+import java.util.HashSet;
 
 public class UhcTeam {
 	private String identifier;
 	private String name;
 	private UhcStartPoint startPoint;
-	private Set<UhcPlayer> players;
+	private HashSet<UhcPlayer> players = new HashSet<UhcPlayer>();
 	
 	
 	/**

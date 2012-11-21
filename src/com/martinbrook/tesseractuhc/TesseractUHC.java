@@ -175,22 +175,18 @@ public class TesseractUHC extends JavaPlugin {
 			response = cPermaday(args);
 		} else if (cmd.equals("uhc")) {
 			response = cUhc(sender, args);
-		} else if (cmd.equals("listplayers")) {
-			response = cListplayers();
 		} else if (cmd.equals("launch")) {
 			response = cLaunch();
-		} else if (cmd.equals("addplayers")) {
-			response = cAddplayers();
-		} else if (cmd.equals("addplayer")) {
-			response = cAddplayer(args);
-		} else if (cmd.equals("removeplayer") || cmd.equalsIgnoreCase("rmplayer")) {
-			response = cRemoveplayer(args);
 		} else if (cmd.equals("relaunch")) {
 			response = cRelaunch(args);
 		} else if (cmd.equals("calcstarts")) {
 			response = cCalcstarts(args);
 		} else if (cmd.equals("setvanish")) {
 			response = cSetvanish();
+		} else if (cmd.equals("addplayers")) {
+			response = cAddplayers();
+		} else if (cmd.equals("matchinfo") || cmd.equals("mi")) {
+			response = cMatchinfo();
 		} else {
 			success = false;
 		}
@@ -217,6 +213,12 @@ public class TesseractUHC extends JavaPlugin {
 			response = ERROR_COLOR + "The kill command is disabled.";
 		} else if (cmd.equals("notify") || cmd.equals("n")) {
 			response = cNotify(sender, args);
+		} else if (cmd.equals("join")) {
+			response = pJoin(sender, args);
+		} else if (cmd.equals("team")) {
+			response = pTeam(sender, args);
+		} else if (cmd.equals("leave")) {
+			response = pLeave(sender, args);
 		} else {
 			success = false;
 		}
@@ -225,6 +227,79 @@ public class TesseractUHC extends JavaPlugin {
 			sender.sendMessage(response);
 		
 		return success;
+	}
+
+	private String pLeave(Player sender, String[] args) {
+		if (match.removePlayer(sender.getName()) == null)
+			return ERROR_COLOR + "Leave failed";
+		else
+			return OK_COLOR + "You have left the match";
+	}
+
+	private String pTeam(Player sender, String[] args) {
+		if (match.getUhcPlayer(sender) != null)
+			return ERROR_COLOR + "You have already joined this match. Please /leave before creating a new team.";
+		
+		if (match.getMatchPhase() != MatchPhase.PRE_MATCH)
+			return ERROR_COLOR + "The match is already underway. You cannot create a team.";
+		
+		if (match.isFFA())
+			return ERROR_COLOR + "This is a FFA match. There are no teams.";
+		
+		if (!match.roomForAnotherTeam())
+			return ERROR_COLOR + "There are no more team slots left.";
+		
+		if (args.length < 1)
+			return ERROR_COLOR + "Syntax: /team identifier [full name]";
+		
+		String identifier = args[0];
+		String name = "";
+		
+		if (args.length < 2)
+			name = identifier;
+		else {
+			for (int i = 1; i < args.length; i++) name += args[i] + " ";
+			name = name.substring(0,name.length()-1);
+		}
+			
+		if (!match.addTeam(identifier, name))
+			return ERROR_COLOR + "Could not add a new team. Use /join to join an existing team.";
+		
+		if (!match.addPlayer(sender, identifier))
+			return ERROR_COLOR + "An error occurred. The team has been created but you could not be joined to it.";
+		
+		return OK_COLOR + "You have created the team: " + name;
+		
+	}
+
+	private String pJoin(Player sender, String[] args) {
+		if (match.getMatchPhase() != MatchPhase.PRE_MATCH)
+			return ERROR_COLOR + "The match is already underway. You cannot join.";
+		
+		if (match.isFFA()) {
+			if (match.addSoloPlayer(sender)) {
+				return OK_COLOR + "You have joined the match";
+			} else {
+				return ERROR_COLOR + "Unable to join";
+			}
+		}
+		
+		UhcTeam teamToJoin = null;
+				
+		if(args.length > 0) teamToJoin = match.getTeam(args[0]);
+			
+		if (teamToJoin == null) {
+			String response = ERROR_COLOR + "Please specify a team to join. Available teams:\n";
+			for (UhcTeam t : match.getTeams()) {
+				response += t.getIdentifier() + ": " + t.getName() + "\n";
+			}
+			return response;
+		}
+		
+		if (match.addPlayer(sender, teamToJoin.getIdentifier()))
+			return OK_COLOR + "You are now a member of " + teamToJoin.getName();
+		else
+			return ERROR_COLOR + "Unable to join team. Are you already on a team?";
 	}
 
 	private String cSetvanish() {
@@ -307,30 +382,14 @@ public class TesseractUHC extends JavaPlugin {
 
 
 	/**
-	 * Carry out the /removeplayer command
-	 * 
-	 * @param args arguments
-	 * @return response
-	 */
-	private String cRemoveplayer(String[] args) {
-		if (args.length != 1)
-			return ERROR_COLOR + "Please specify the player to be removed";
-		
-		UhcPlayer up = match.removePlayer(args[0]);
-		
-		if (up != null)
-			return OK_COLOR + up.getName() + " removed, start point " + up.getStartPoint().getNumber() + " released";
-		else
-			return ERROR_COLOR + "Player " + args[0] + " not found";
-
-	}
-
-	/**
 	 * Carry out the /addplayers command
 	 * 
 	 * @return response
 	 */
 	private String cAddplayers() {
+		if (!match.isFFA())
+			return ERROR_COLOR + "Cannot auto-add players in a FFA match";
+		
 		int added = 0;
 		for (Player p : getServer().getOnlinePlayers()) {
 			if (!p.isOp())
@@ -341,30 +400,6 @@ public class TesseractUHC extends JavaPlugin {
 		else
 			return ERROR_COLOR + "No players to add!";
 		
-	}
-
-	/**
-	 * Carry out the /addplayer command
-	 * 
-	 * @param args arguments
-	 * @return response
-	 */
-	private String cAddplayer(String[] args) {
-		if (args.length != 1) 
-			return ERROR_COLOR + "Please specify the player to add";
-	
-		Player p = getServer().getPlayer(args[0]);
-		if (p == null)
-			return ERROR_COLOR + "Player " + args[0] + " not found";
-		
-		if (p.isOp())
-			return ERROR_COLOR + "Player should be deopped first!";
-		
-		boolean success = match.addSoloPlayer(p);
-		if (success)
-			return OK_COLOR + "Added player " + p.getDisplayName();
-		else 
-			return ERROR_COLOR + "Player could not be added";
 	}
 
 
@@ -560,7 +595,7 @@ public class TesseractUHC extends JavaPlugin {
 		} else if (sender instanceof Player && "getbonus".equalsIgnoreCase(args[0])) {
 			((Player) sender).getEnderChest().setContents(match.getBonusChest());
 			return OK_COLOR + "Bonus chest loaded into your ender chest";
-		}
+		} 
 		
 		return ERROR_COLOR + "Command not understood";
 	}
@@ -572,6 +607,7 @@ public class TesseractUHC extends JavaPlugin {
 		response += "killerbonus: " + getMatchParameter("killerbonus") + "\n";
 		response += "miningfatigue: " + getMatchParameter("miningfatigue") + "\n";
 		response += "nopvp: " + getMatchParameter("nopvp") + "\n";
+		response += "ffa: " + getMatchParameter("ffa") + "\n";
 
 		
 		return response;
@@ -596,6 +632,8 @@ public class TesseractUHC extends JavaPlugin {
 			
 		} else if ("nopvp".equalsIgnoreCase(parameter)) {
 			return String.valueOf(match.getNopvp());
+		} else if ("ffa".equalsIgnoreCase(parameter)) {
+			return (match.isFFA() ? "Yes" : "No");
 		}
 		
 		return null;
@@ -665,6 +703,11 @@ public class TesseractUHC extends JavaPlugin {
 			} catch (NumberFormatException e) {
 				return false;
 			}
+		} else if ("ffa".equalsIgnoreCase(parameter)) {
+			Boolean v = MatchUtils.stringToBoolean(value);
+			if (v == null) return false;
+			match.setFFA(v);
+			return true;
 		} else {
 			return false;
 		}
@@ -673,13 +716,11 @@ public class TesseractUHC extends JavaPlugin {
 	}
 
 	/**
-	 * Carry out the /listplayers command
+	 * Carry out the /matchinfo or /mi command
 	 * 
-	 * @param sender the sender of the command
-	 * @param args arguments
 	 * @return response
 	 */
-	private String cListplayers() {
+	private String cMatchinfo() {
 		Collection<UhcPlayer> allPlayers = match.getUhcPlayers();
 		String response = allPlayers.size() + " players in the match (" + match.getPlayersInMatch() + " still alive):\n";
 		

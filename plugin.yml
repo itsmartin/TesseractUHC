@@ -92,24 +92,9 @@ commands:
  uhc:
   description: UHC match configuration commands
   usage: /uhc commandtype parameters
- listplayers:
-  description: List all players, and their start points and status
-  usage: /listplayers
  launch:
   description: Launch any players who haven't yet been launched
   usage: /launch
- addplayers:
-  description: Set start points for all players on the server
-  usage: /addplayers
- addplayer:
-  description: Set start point for the specified player
-  usage: /addplayer player
- removeplayer:
-  description: Remove a specific player
-  usage: /removeplayer player
- rmplayer:
-  description: Remove a specific player
-  usage: /rmplayer player
  relaunch:
   description: Relaunch a player
   usage: /relaunch player
@@ -128,3 +113,21 @@ commands:
  setvanish:
   description: Update vanish status of all players on the server
   usage: /setvanish
+ team:
+  description: Create a new team
+  usage: /team identifier fullname
+ join:
+  description: Join a team
+  usage: /join [team]
+ leave:
+  description: Leave the match
+  usage: /leave
+ addplayers:
+  description: Add all online players (FFA only)
+  usage: addplayers
+ matchinfo:
+  description: Display status of the current match
+  usage: /matchinfo
+ mi:
+  description: Display status of the current match
+  usage: /mi
