@@ -899,7 +899,7 @@ public class UhcMatch {
 		UhcStartPoint sp;
 		if (this.isFFA())
 			sp = new SmallGlassStartPoint(number, l, true);
-		else 
+		else
 			sp = new LargeGlassStartPoint(number, l, true);
 		
 		if (buildTrough) sp.buildStartingTrough();

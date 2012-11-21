@@ -62,6 +62,7 @@ public class LargeGlassStartPoint extends UhcStartPoint {
 		b.getRelative(-1,1,2).setType(Material.GLASS);
 		b.getRelative(0,1,2).setType(Material.GLASS);
 		b.getRelative(1,1,2).setType(Material.GLASS);
+
 		
 		// Glowstone corners
 		
