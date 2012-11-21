@@ -158,7 +158,6 @@ public class UhcMatch {
 				md.set(m.getKey(), m.getValue());
 			}
 		}
-		System.out.print(md.saveToString());
 		
 		this.saveMatchParameters();
 	}
