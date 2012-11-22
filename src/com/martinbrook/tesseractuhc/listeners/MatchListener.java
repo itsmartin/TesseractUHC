@@ -21,6 +21,7 @@ import com.martinbrook.tesseractuhc.MatchPhase;
 import com.martinbrook.tesseractuhc.UhcMatch;
 import com.martinbrook.tesseractuhc.UhcPlayer;
 import com.martinbrook.tesseractuhc.notification.DamageNotification;
+import com.martinbrook.tesseractuhc.notification.HealingNotification;
 
 public class MatchListener implements Listener {
 	private UhcMatch m;
@@ -143,7 +144,10 @@ public class MatchListener implements Listener {
 			e.setCancelled(true);
 			return;
 		}
-			
+		
+		// Announce health change (UHC only)
+		if (m.isUHC())
+			m.sendNotification(new HealingNotification(up, e.getAmount(), e.getRegainReason()), e.getEntity().getLocation());
 		
 		// Update player list
 		m.updatePlayerList((Player) e.getEntity(), e.getAmount());
