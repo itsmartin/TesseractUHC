@@ -850,7 +850,7 @@ public class TesseractUHC extends JavaPlugin {
 	private String cLaunch()  {
 		// launch all players
 		match.launchAll();
-		return OK_COLOR + "Launching complete";
+		return OK_COLOR + "Player launching has begun";
 	}
 	
 	/**

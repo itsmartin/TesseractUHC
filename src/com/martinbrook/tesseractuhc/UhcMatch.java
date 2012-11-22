@@ -846,7 +846,10 @@ public class UhcMatch {
 	
 	
 	private void launchNext() {
-		if (this.launchQueue.size()==0) return;
+		if (this.launchQueue.size()==0) {
+			adminBroadcast(TesseractUHC.OK_COLOR + "Launching complete");
+			return;
+		}
 		
 		String playerName = this.launchQueue.remove(0);
 		UhcPlayer up = this.getUhcPlayer(playerName);
