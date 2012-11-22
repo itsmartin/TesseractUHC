@@ -64,8 +64,8 @@ public class UhcMatch {
 	public static String DEFAULT_MATCHDATA_FILE = "uhcmatch.yml";
 	public static int GOLD_LAYER = 32;
 	public static int DIAMOND_LAYER = 16;
-	private int playersInMatch = 0;
-	private int teamsInMatch = 0;
+	private ArrayList<UhcPlayer> playersInMatch = new ArrayList<UhcPlayer>();
+	private ArrayList<UhcTeam> teamsInMatch = new ArrayList<UhcTeam>();
 	private Calendar matchStartTime;
 	private int matchTimer = -1;
 	private ArrayList<Location> calculatedStarts = null;
@@ -651,7 +651,7 @@ public class UhcMatch {
 		// Create the player
 		UhcTeam team = createTeam(identifier, name, start);
 		start.setTeam(team);
-		teamsInMatch++;
+		teamsInMatch.add(team);
 		
 		start.makeSign();
 		start.fillChest(bonusChest);
@@ -694,7 +694,7 @@ public class UhcMatch {
 		// If player wasn't created, fail
 		if (up == null) return false;
 		
-		playersInMatch++;
+		playersInMatch.add(up);
 		return true;
 	}
 	
@@ -781,7 +781,9 @@ public class UhcMatch {
 		if (up != null) {
 			// Remove them from their team
 			up.getTeam().removePlayer(up);
-			playersInMatch--;
+			
+			// Remove them from the match
+			playersInMatch.remove(up);
 			
 			// If match is ffa, also remove the empty team
 			if (isFFA())
@@ -790,7 +792,7 @@ public class UhcMatch {
 			
 			if (matchPhase == MatchPhase.MATCH) {
 				broadcast(ChatColor.GOLD + up.getName() + " has left the match");
-				announcePlayersRemaining();
+				broadcastMatchStatus();
 			}
 		}
 		
@@ -815,7 +817,7 @@ public class UhcMatch {
 		// If team not empty, fail
 		if (team.playerCount()>0) return false;
 		
-		teamsInMatch--;
+		teamsInMatch.remove(team);
 		
 		// Free up the start point
 		UhcStartPoint sp = team.getStartPoint();
@@ -1020,74 +1022,130 @@ public class UhcMatch {
 	/**
 	 * @return The number of players still in the match
 	 */
-	public int getPlayersInMatch() {
-		return playersInMatch;
+	public int countPlayersInMatch() {
+		return playersInMatch.size();
 	}
 
 
 	/**
 	 * @return The number of teams still in the match
 	 */
-	public int getTeamsInMatch() {
-		return teamsInMatch;
+	public int countTeamsInMatch() {
+		return teamsInMatch.size();
 	}
 
 	
+	public void handlePlayerDeath(final UhcPlayer up) {
+		server.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
+			public void run() {
+				processPlayerDeath(up);
+			}
+		});
+		
+	}
+
 	/**
 	 * Process the death of a player
 	 * 
 	 * @param up The player who died
 	 */
-	public void handlePlayerDeath(UhcPlayer up) {
-		// TODO teamify. It may be necessary to decrement teamsInMatch here too, if that was the end of a team
-		if (up.isDead()) return;
+	private void processPlayerDeath(UhcPlayer up) {
+		// Set them as dead
 		up.setDead(true);
-		playersInMatch--;
-		server.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
-			public void run() {
-				announcePlayersRemaining();
+		
+		// Reduce survivor counts
+		playersInMatch.remove(up);
+		if (isFFA() && countPlayersInMatch() == 1) {
+			processVictory(playersInMatch.get(0));
+			return;
+		}
+			
+			
+		UhcTeam team = up.getTeam();
+		
+		if (team != null && team.aliveCount()<1) {
+			teamsInMatch.remove(team);
+			if (!isFFA() && countTeamsInMatch() == 1) {
+				processVictory(teamsInMatch.get(0));
+				return;
 			}
-		});
+		}
+		
+		broadcastMatchStatus();
+	}
+
+	private void processVictory(UhcTeam winner) {
+		broadcast(ChatColor.GOLD + "The winner is: " + winner.getName() + "!");
+		endMatch();
+		
+	}
+
+	private void processVictory(UhcPlayer winner) {
+		broadcast(ChatColor.GOLD + "The winner is: " + winner.getName() + "!");
+		endMatch();
+		
 	}
 
 	/**
 	 * Publicly announce how many players are still in the match 
 	 */
-	private void announcePlayersRemaining() {
-		// TODO teamify. Announce teams remaining too.
-		// Make no announcement if final player was killed
-		if (playersInMatch < 1) return;
+	private void broadcastMatchStatus() {
+		// Make no announcement if match has ended
+		if (matchPhase != MatchPhase.POST_MATCH)
+			broadcast(matchStatusAnnouncement());
 		
-		String message;
-		if (playersInMatch == 1) {
-			message = getSurvivingPlayerList() + " is the winner!";
-			endMatch();
-		} else if (playersInMatch <= 4) {
-			message = playersInMatch + " players remain: " + getSurvivingPlayerList();
-		} else {
-			message = playersInMatch + " players remain";
-		}
-		
-		broadcast(TesseractUHC.OK_COLOR + message);
 	}
 
 	/**
-	 * Get a list of surviving players
+	 * Get the text of a match status announcement
 	 * 
-	 * @return A comma-separated list of surviving players
+	 * @return List of remaining players / teams
 	 */
-	private String getSurvivingPlayerList() {
-		// TODO teamify
-		String survivors = "";
-		
-		for (UhcPlayer up : getUhcPlayers())
-			if (up.isLaunched() && !up.isDead()) survivors += up.getName() + ", ";;
-		
-		if (survivors.length() > 2)
-			survivors = survivors.substring(0,survivors.length()-2);
-		
-		return survivors;
-		
+	public String matchStatusAnnouncement() {
+		if (this.matchPhase == MatchPhase.PRE_MATCH) {
+			if (this.isFFA()) {
+				int c = countPlayersInMatch();
+				return c + " player" + (c != 1 ? "s have" : " has") + " joined";
+			} else {
+				int c = countTeamsInMatch();
+				return c + " team" + (c != 1 ? "s have" : " has") + " joined";
+			}
+		}
+		if (this.isFFA()) {
+			int c = countPlayersInMatch();
+			if (c == 0)
+				return "There are no surviving players";
+			if (c == 1)
+				return "1 surviving player: " + playersInMatch.get(0).getName();
+			
+			if (c <= 4) {
+				String message = c + " surviving players: ";
+				for (UhcPlayer up : playersInMatch)
+					message += up.getName() + ", ";
+				
+				return message.substring(0, message.length()-2);
+			}
+			
+			return c + " surviving players";
+
+		} else {
+			int c = countTeamsInMatch();
+			if (c == 0)
+				return "There are no surviving teams";
+			if (c == 1)
+				return "1 surviving team: " + teamsInMatch.get(0).getName();
+			
+			if (c <= 4) {
+				String message = c + " surviving teams: ";
+				for (UhcTeam t : teamsInMatch)
+					message += t.getName() + ", ";
+				
+				return message.substring(0, message.length()-2);
+			}
+			
+			return c + " surviving teams";
+
+		}
 	}
 	
 
@@ -1203,10 +1261,6 @@ public class UhcMatch {
 
 	public World getStartingWorld() {
 		return startingWorld;
-	}
-
-	public int countPlayers() {
-		return this.playersInMatch;
 	}
 
 	public Location getLastEventLocation() {

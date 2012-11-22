@@ -207,7 +207,7 @@ public class TesseractUHC extends JavaPlugin {
 		if (args.length < 1) {
 			String response = "";
 			Collection<UhcTeam> allTeams = match.getTeams();
-			response += allTeams.size() + " teams (" + match.getTeamsInMatch() + " still alive):\n";
+			response += allTeams.size() + " teams (" + match.countTeamsInMatch() + " still alive):\n";
 			
 			for (UhcTeam team : allTeams) {
 				response += (team.aliveCount()==0 ? ERROR_COLOR + "[D] " : OK_COLOR);
@@ -263,7 +263,7 @@ public class TesseractUHC extends JavaPlugin {
 			
 			if (match.isFFA()) {
 				Collection<UhcPlayer> allPlayers = match.getUhcPlayers();
-				response += allPlayers.size() + " players (" + match.getPlayersInMatch() + " still alive):\n";
+				response += allPlayers.size() + " players (" + match.countPlayersInMatch() + " still alive):\n";
 				
 				for (UhcPlayer up : allPlayers) {
 					response += (up.isDead() ? ERROR_COLOR + "[D] " : OK_COLOR);
@@ -276,7 +276,7 @@ public class TesseractUHC extends JavaPlugin {
 	
 			} else {
 				Collection<UhcTeam> allTeams = match.getTeams();
-				response += allTeams.size() + " teams (" + match.getTeamsInMatch() + " still alive):\n";
+				response += allTeams.size() + " teams (" + match.countTeamsInMatch() + " still alive):\n";
 				
 				for (UhcTeam team : allTeams) {
 					response += (team.aliveCount()==0 ? ERROR_COLOR + "[D] " : OK_COLOR);
@@ -830,14 +830,7 @@ public class TesseractUHC extends JavaPlugin {
 	 * @return response
 	 */
 	private String cMatchinfo() {
-		// TODO teamify
-		Collection<UhcPlayer> allPlayers = match.getUhcPlayers();
-		String response = allPlayers.size() + " players in the match (" + match.getPlayersInMatch() + " still alive):\n";
-
-		
-		
-		return response;
-
+		return match.matchStatusAnnouncement();
 	}
 
 	/**
