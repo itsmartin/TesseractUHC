@@ -1,5 +1,6 @@
 package com.martinbrook.tesseractuhc.listeners;
 
+import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -19,6 +20,29 @@ public class LoginListener implements Listener {
 	@EventHandler
 	public void onJoin(PlayerJoinEvent e) {
 		m.setVanish(e.getPlayer());
+
+		// If player is op, set them to creative, make their name shaded, and exit
+		if (e.getPlayer().isOp()) {
+			e.getPlayer().setGameMode(GameMode.CREATIVE);
+			e.getPlayer().setPlayerListName(ChatColor.DARK_GRAY + e.getPlayer().getName());
+			return;
+		}
+
+		// Get a uhcplayer if possible
+		UhcPlayer up = m.getUhcPlayer(e.getPlayer());
+				
+		// If the match has not yet started, try to launch the player if necessary
+		if (m.getMatchPhase() == MatchPhase.LAUNCHING) {
+			if (up != null) {
+				// Player is in the match, make sure they are launched
+				m.launch(up);
+			} else {
+				// Player isn't in the match, so make sure they log in at spawn
+				e.getPlayer().teleport(m.getStartingWorld().getSpawnLocation());
+			}
+			return;
+		}
+
 	}
 
 
@@ -49,20 +73,8 @@ public class LoginListener implements Listener {
 		// Get a uhcplayer if possible
 		UhcPlayer up = m.getUhcPlayer(e.getPlayer());
 		
-		// If the match has not yet started, try to launch the player if necessary
-		if (m.getMatchPhase() == MatchPhase.LAUNCHING) {
-			if (up != null) {
-				// Player is in the match, make sure they are launched
-				m.launch(up);
-			} else {
-				// Player isn't in the match, so make sure they log in at spawn
-				e.getPlayer().teleport(m.getStartingWorld().getSpawnLocation());
-			}
-			return;
-		}
-
-		
-		// Match is in progress.
+		// If match isn't in progress, do nothing
+		if (m.getMatchPhase() != MatchPhase.MATCH) return;
 
 		// If player was not launched, don't allow them in.
 		if (up == null || !up.isLaunched()) {

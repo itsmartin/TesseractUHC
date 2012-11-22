@@ -374,6 +374,7 @@ public class UhcMatch {
 	 */
 	public void heal(Player p) {
 		p.setHealth(20);
+		if (!p.isOp()) setSurvivorPlayerListName(p,10);
 	}
 
 	/**
@@ -762,7 +763,7 @@ public class UhcMatch {
 		p.setGameMode(GameMode.ADVENTURE);
 		TeleportUtils.doTeleport(p, up.getStartPoint().getLocation());
 		renew(p);
-				
+		
 		return true;
 	}
 	
@@ -1466,6 +1467,22 @@ public class UhcMatch {
 
 	public Collection<UhcTeam> getTeams() {
 		return uhcTeams.values();
+	}
+
+	public void updatePlayerList(Player p, int recentHealthChange) {
+		// Update the player list for a recent health change
+		setSurvivorPlayerListName(p, (p.getHealth() + recentHealthChange) / 2.0);
+	}
+	
+	
+	private void setSurvivorPlayerListName(Player p, double health) {
+		String name = p.getName();
+		ChatColor color = ChatColor.GREEN;
+		if (name.length() > 10) name = name.substring(0, 10);
+		if (health <= 5) color = ChatColor.YELLOW;
+		if (health <= 2) color = ChatColor.RED; 
+		p.setPlayerListName(color + name + " - " + health);
+		
 	}
 
 }

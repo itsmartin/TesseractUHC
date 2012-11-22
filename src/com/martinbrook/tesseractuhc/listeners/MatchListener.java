@@ -9,6 +9,7 @@ import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
@@ -93,6 +94,9 @@ public class MatchListener implements Listener {
 		UhcPlayer up = m.getUhcPlayer((Player) e.getEntity());
 		if (up == null) return;
 		
+		// Update player list
+		m.updatePlayerList((Player) e.getEntity(), -e.getDamage());
+		
 		m.sendNotification(new DamageNotification(up, e.getDamage(), e.getCause()), e.getEntity().getLocation());
 		
 	}
@@ -109,14 +113,36 @@ public class MatchListener implements Listener {
 			return;
 		}
 		
+		
 		// Only interested in registered players
 		UhcPlayer up = m.getUhcPlayer((Player) e.getEntity());
 		if (up == null) return;
 		
+		// Update player list
+		m.updatePlayerList((Player) e.getEntity(), -e.getDamage());
+
 		m.sendNotification(new DamageNotification(up, e.getDamage(), e.getCause(), e.getDamager()), e.getEntity().getLocation());
 		
 	}
 
+	public void onRegainHealth(EntityRegainHealthEvent e) {
+		// Only interested in players
+		if (e.getEntityType() != EntityType.PLAYER) return;
+		
+		// Only interested if match is in progress.
+		if (m.getMatchPhase() != MatchPhase.MATCH) return;
+
+		// Only interested in registered players
+		UhcPlayer up = m.getUhcPlayer((Player) e.getEntity());
+		if (up == null) return;
+
+		// This is where we would cancel the event for UHC implementation, after checking regainReason
+		
+		// Update player list
+		m.updatePlayerList((Player) e.getEntity(), e.getAmount());
+		
+	}
+	
 	@EventHandler(ignoreCancelled = true)
 	public void onBlockBreak(BlockBreakEvent e) {
 		// Mining fatigue
