@@ -1071,6 +1071,8 @@ public class UhcMatch {
 			}
 		}
 		
+		if (countPlayersInMatch() == 0) endMatch();
+		
 		broadcastMatchStatus();
 	}
 
