@@ -921,9 +921,6 @@ public class TesseractUHC extends JavaPlugin {
 		if (args.length > 1)
 			return ERROR_COLOR + "Usage: /match [seconds]";
 		
-		if (match.countPlayers() < 2 && !DEBUG_BUILD)
-			return ERROR_COLOR + "Not enough players to start";
-		
 		int countLength = 300;
 		
 		if (args.length == 1)
