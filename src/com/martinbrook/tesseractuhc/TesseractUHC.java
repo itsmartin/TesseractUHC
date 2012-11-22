@@ -717,7 +717,7 @@ public class TesseractUHC extends JavaPlugin {
 		response += "miningfatigue: " + getMatchParameter("miningfatigue") + "\n";
 		response += "nopvp: " + getMatchParameter("nopvp") + "\n";
 		response += "ffa: " + getMatchParameter("ffa") + "\n";
-
+		response += "uhc: " + getMatchParameter("uhc") + "\n";
 		
 		return response;
 	}
@@ -743,6 +743,8 @@ public class TesseractUHC extends JavaPlugin {
 			return String.valueOf(match.getNopvp());
 		} else if ("ffa".equalsIgnoreCase(parameter)) {
 			return (match.isFFA() ? "Yes" : "No");
+		} else if ("uhc".equalsIgnoreCase(parameter)) {
+			return (match.isUHC() ? "Yes" : "No");
 		}
 		
 		return null;
@@ -816,6 +818,11 @@ public class TesseractUHC extends JavaPlugin {
 			Boolean v = MatchUtils.stringToBoolean(value);
 			if (v == null) return false;
 			match.setFFA(v);
+			return true;
+		} else if ("uhc".equalsIgnoreCase(parameter)) {
+			Boolean v = MatchUtils.stringToBoolean(value);
+			if (v == null) return false;
+			match.setUHC(v);
 			return true;
 		} else {
 			return false;

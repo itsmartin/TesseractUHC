@@ -1485,4 +1485,14 @@ public class UhcMatch {
 		
 	}
 
+	public boolean isUHC() {
+		return md.getBoolean("uhc");
+	}
+
+	public void setUHC(Boolean d) {
+		md.set("uhc", d);
+		this.saveMatchParameters();
+		adminBroadcast(TesseractUHC.OK_COLOR + "UHC has been " + (d ? "enabled" : "disabled") + "!");
+	}
+
 }
