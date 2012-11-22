@@ -436,8 +436,9 @@ public class UhcMatch {
 		matchPhase = MatchPhase.MATCH;
 		startingWorld.setTime(0);
 		butcherHostile();
-		for (Player p : server.getOnlinePlayers()) {
-			if (p.getGameMode() != GameMode.CREATIVE) {
+		for (UhcPlayer up : this.getUhcPlayers()) {
+			Player p = server.getPlayer(up.getName());
+			if (p != null) {
 				feed(p);
 				clearXP(p);
 				clearPotionEffects(p);
