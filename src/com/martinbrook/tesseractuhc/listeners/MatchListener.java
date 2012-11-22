@@ -10,6 +10,7 @@ import org.bukkit.Material;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityRegainHealthEvent;
+import org.bukkit.event.entity.EntityRegainHealthEvent.RegainReason;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
@@ -125,6 +126,7 @@ public class MatchListener implements Listener {
 		
 	}
 
+	@EventHandler(ignoreCancelled = true)
 	public void onRegainHealth(EntityRegainHealthEvent e) {
 		// Only interested in players
 		if (e.getEntityType() != EntityType.PLAYER) return;
@@ -136,7 +138,12 @@ public class MatchListener implements Listener {
 		UhcPlayer up = m.getUhcPlayer((Player) e.getEntity());
 		if (up == null) return;
 
-		// This is where we would cancel the event for UHC implementation, after checking regainReason
+		// Cancel event if it is a natural regen due to hunger being full, and UHC is enabled
+		if (m.isUHC() && e.getRegainReason() == RegainReason.SATIATED) {
+			e.setCancelled(true);
+			return;
+		}
+			
 		
 		// Update player list
 		m.updatePlayerList((Player) e.getEntity(), e.getAmount());
