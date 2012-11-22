@@ -871,7 +871,7 @@ public class TesseractUHC extends JavaPlugin {
 			if (p.isOp())
 				return ERROR_COLOR + "Player should be deopped before launching";
 			
-			boolean success = match.relaunch(p);
+			boolean success = match.sendToStartPoint(p);
 			if (success)
 				return OK_COLOR + "Relaunched " + p.getDisplayName();
 			else 

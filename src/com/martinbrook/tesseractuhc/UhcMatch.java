@@ -738,10 +738,7 @@ public class UhcMatch {
 		if (p == null) return false;
 		
 		
-		// Teleport the player to the start point
-		p.setGameMode(GameMode.ADVENTURE);
-		TeleportUtils.doTeleport(p, up.getStartPoint().getLocation());
-		renew(p);
+		sendToStartPoint(p);
 		
 		up.setLaunched(true);
 
@@ -756,11 +753,16 @@ public class UhcMatch {
 	 * 
 	 * @param p The player to be relaunched
 	 */
-	public boolean relaunch(Player p) {
+	public boolean sendToStartPoint(Player p) {
 		UhcPlayer up = getUhcPlayer(p);
 		if (up == null) return false;
 		
-		return p.teleport(up.getStartPoint().getLocation());
+		// Teleport the player to the start point
+		p.setGameMode(GameMode.ADVENTURE);
+		TeleportUtils.doTeleport(p, up.getStartPoint().getLocation());
+		renew(p);
+				
+		return true;
 	}
 	
 	/**
