@@ -309,14 +309,14 @@ public class TesseractUHC extends JavaPlugin {
 				return ERROR_COLOR + "Player " + args[1] + " not found!";
 			
 			if (match.isFFA()) {
-				if (!match.addSoloPlayer(p))
+				if (!match.addSoloPlayer(p.getName()))
 					return ERROR_COLOR + "Failed to add player";
 				
 				return OK_COLOR + "Player added";
 			} else {
 				if (args.length < 3)
 					return ERROR_COLOR + "Please specify the team! /players add NAME TEAM";
-				if (!match.addPlayer(p, args[2]))
+				if (!match.addPlayer(p.getName(), args[2]))
 					return ERROR_COLOR + "Failed to add player " + args[1] + " to team " + args[2];
 				
 				return OK_COLOR + "Player added";
@@ -329,7 +329,7 @@ public class TesseractUHC extends JavaPlugin {
 			int added = 0;
 			for (Player p : getServer().getOnlinePlayers()) {
 				if (!p.isOp())
-					if (match.addSoloPlayer(p)) added++;
+					if (match.addSoloPlayer(p.getName())) added++;
 			}
 			if (added > 0)
 				return "" + OK_COLOR + added + " player" + (added == 1? "" : "s") + " added";
@@ -416,7 +416,7 @@ public class TesseractUHC extends JavaPlugin {
 		if (!match.addTeam(identifier, name))
 			return ERROR_COLOR + "Could not add a new team. Use /join to join an existing team.";
 		
-		if (!match.addPlayer(sender, identifier))
+		if (!match.addPlayer(sender.getName(), identifier))
 			return ERROR_COLOR + "An error occurred. The team has been created but you could not be joined to it.";
 		
 		return OK_COLOR + "You have created the team: " + name;
@@ -428,7 +428,7 @@ public class TesseractUHC extends JavaPlugin {
 			return ERROR_COLOR + "The match is already underway. You cannot join.";
 		
 		if (match.isFFA()) {
-			if (match.addSoloPlayer(sender)) {
+			if (match.addSoloPlayer(sender.getName())) {
 				return OK_COLOR + "You have joined the match";
 			} else {
 				return ERROR_COLOR + "Unable to join";
@@ -447,7 +447,7 @@ public class TesseractUHC extends JavaPlugin {
 			return response;
 		}
 		
-		if (match.addPlayer(sender, teamToJoin.getIdentifier()))
+		if (match.addPlayer(sender.getName(), teamToJoin.getIdentifier()))
 			return OK_COLOR + "You are now a member of " + teamToJoin.getName();
 		else
 			return ERROR_COLOR + "Unable to join team. Are you already on a team?";

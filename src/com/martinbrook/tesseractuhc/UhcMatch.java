@@ -711,16 +711,16 @@ public class UhcMatch {
 	/**
 	 * Add the supplied player to the specified team
 	 * 
-	 * @param p The player to add
+	 * @param name The name of the player to add
 	 * @param teamIdentifier The team to add them to
 	 * @return success or failure
 	 */
-	public boolean addPlayer(Player p, String teamIdentifier) {
+	public boolean addPlayer(String name, String teamIdentifier) {
 		// If player is op, fail
-		if (p.isOp()) return false;
+		if (server.getOfflinePlayer(name).isOp()) return false;
 		
 		// If player already exists, fail 
-		if (existsUhcPlayer(p.getName())) return false;
+		if (existsUhcPlayer(name)) return false;
 		
 		// Get the team
 		UhcTeam team = getTeam(teamIdentifier);
@@ -729,7 +729,7 @@ public class UhcMatch {
 		if (team == null) return false;
 		
 		// Create the player
-		UhcPlayer up = createPlayer(p.getName(), team);
+		UhcPlayer up = createPlayer(name, team);
 
 		// If player wasn't created, fail
 		if (up == null) return false;
@@ -741,22 +741,22 @@ public class UhcMatch {
 	/**
 	 * Add the supplied player as a team of one, creating the team and assigning it a start point
 	 * 
-	 * @param p The player to add
+	 * @param name The name of the player to add
 	 * @return success or failure
 	 */
-	public boolean addSoloPlayer (Player p) {
+	public boolean addSoloPlayer (String name) {
 		// If player is op, fail
-		if (p.isOp()) return false;
+		if (server.getOfflinePlayer(name).isOp()) return false;
 		
 		// If player already exists, fail 
-		if (existsUhcPlayer(p.getName())) return false;
+		if (existsUhcPlayer(name)) return false;
 		
 		// Create a team of one for the player
-		String teamName = p.getName(); 
+		String teamName = name; 
 		if (!addTeam(teamName, teamName)) return false;
 		
 		// Add the new player to the team of one, and return the result
-		return addPlayer(p, teamName);
+		return addPlayer(name, teamName);
 		
 	}
 	
