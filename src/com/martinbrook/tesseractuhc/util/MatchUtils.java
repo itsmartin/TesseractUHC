@@ -154,7 +154,7 @@ public class MatchUtils {
 		
 		// Loop through words, adding them to lines as they fit
 		int currentWord = 0;
-		while(currentLine < 4 && currentWord <= words.length) {
+		while(currentLine < 4 && currentWord < words.length) {
 			if (lines[currentLine].length() + words[currentWord].length() <= 14)
 				lines[currentLine] += " " + words[currentWord++];
 			else
