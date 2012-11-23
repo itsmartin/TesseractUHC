@@ -137,5 +137,40 @@ public class MatchUtils {
 		
 	}
 	
+	/**
+	 * Format a string for display on a sign
+	 * 
+	 * @param s The string to be formatted
+	 * @return An array with 4 elements, containing the 4 lines to go on the sign
+	 */
+	public static String[] signWrite(String s) {
+		// Create array to hold the lines, and initialise with empty strings
+		String[] lines = new String[4];
+		int currentLine = 0;
+		for (int i = 0; i < 4; i++) lines[i] = "";
+		
+		// Split the message into strings on whitespace
+		String[] words = s.split("\\s");
+		
+		// Loop through words, adding them to lines as they fit
+		int currentWord = 0;
+		while(currentLine < 4 && currentWord <= words.length) {
+			if (lines[currentLine].length() + words[currentWord].length() <= 14)
+				lines[currentLine] += " " + words[currentWord++];
+			else
+				currentLine++;
+		}
+		
+		// If we have only used one or two lines, move everything down by one.
+		if (currentLine < 2) {
+			lines[2]=lines[1];
+			lines[1]=lines[0];
+			lines[0]="";
+		}
+		
+		return lines;
+		
+	}
+	
 	
 }

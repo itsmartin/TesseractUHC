@@ -9,6 +9,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 import com.martinbrook.tesseractuhc.UhcTeam;
+import com.martinbrook.tesseractuhc.util.MatchUtils;
 
 public abstract class UhcStartPoint {
 	protected Location location;
@@ -105,15 +106,16 @@ public abstract class UhcStartPoint {
 	 * @param text The text to write on the sign
 	 */
 	public void makeSign(String text) {
-		// TODO handle substantially longer text than one short username
 		Block b = getSignBlock();
 		b.setType(Material.SIGN_POST);
 		
 		Sign s = (Sign) b.getState();
-		s.setLine(0, "");
-		s.setLine(1, text);
-		s.setLine(2, "");
-		s.setLine(3, "");
+		String[] t = MatchUtils.signWrite(text);
+		
+		s.setLine(0, t[0]);
+		s.setLine(1, t[1]);
+		s.setLine(2, t[2]);
+		s.setLine(3, t[3]);
 
 		s.update();
 	}
