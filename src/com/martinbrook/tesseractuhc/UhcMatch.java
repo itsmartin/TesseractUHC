@@ -81,6 +81,7 @@ public class UhcMatch {
 	private MatchPhase matchPhase = MatchPhase.PRE_MATCH;
 	private MatchCountdown matchCountdown;
 	private BorderCountdown borderCountdown;
+	private ArrayList<UhcPOI> uhcPOIs = new ArrayList<UhcPOI>();
 
 	
 	public UhcMatch(TesseractUHC plugin, World startingWorld, Configuration defaults) {
@@ -138,6 +139,28 @@ public class UhcMatch {
 			}
 		}
 		
+		// Load POIs
+		uhcPOIs.clear();
+		List<String> poiData = md.getStringList("pois");
+		for (String poiDataEntry : poiData) {
+			String[] data = poiDataEntry.split(",",5);
+			if (data.length == 4) {
+				try {
+					String world = data[0];
+					double x = Double.parseDouble(data[1]);
+					double y = Double.parseDouble(data[2]);
+					double z = Double.parseDouble(data[3]);
+					String name = data[4];
+					addPOI(world, x, y, z, name);
+				} catch (NumberFormatException e) {
+					adminBroadcast("Bad poi definition in match data file: " + poiDataEntry);
+				}
+
+			} else {
+				adminBroadcast("Bad poi definition in match data file: " + poiDataEntry);
+			}
+		}
+		
 		// Load saved bonus chest
 		List<?> data = md.getList("bonuschest");
 		
@@ -152,6 +175,7 @@ public class UhcMatch {
 	}
 	
 	
+
 	/**
 	 * Set up a default matchdata object
 	 */
@@ -181,6 +205,13 @@ public class UhcMatch {
 		
 		md.set("starts",startData);
 		
+		ArrayList<String> poiData = new ArrayList<String>();
+		for (UhcPOI poi : uhcPOIs) {
+			poiData.add(poi.getWorld().getName() + "," + poi.getX() + "," + poi.getY() + "," + poi.getZ() + "," + poi.getName());
+		}
+		
+		md.set("pois",startData);
+		
 		try {
 			md.save(FileUtils.getDataFile(startingWorld.getWorldFolder(), DEFAULT_MATCHDATA_FILE, false));
 		} catch (IOException e) {
@@ -195,6 +226,7 @@ public class UhcMatch {
 	public void resetMatchParameters() {
 		startPoints.clear();
 		availableStartPoints.clear();
+		uhcPOIs.clear();
 		md = new YamlConfiguration();
 		this.setDefaultMatchParameters();
 	}
@@ -1513,6 +1545,14 @@ public class UhcMatch {
 		glisteringMelon.removeIngredient(Material.GOLD_NUGGET);
 		glisteringMelon.addIngredient(Material.GOLD_BLOCK);
 		
+	}
+
+	public void addPOI(Location location, String name) {
+		uhcPOIs.add(new UhcPOI(location, name));
+		this.saveMatchParameters();
+	}
+	private void addPOI(String world, double x, double y, double z, String name) {
+		addPOI(new Location(server.getWorld(world), x, y, z), name);
 	}
 
 }

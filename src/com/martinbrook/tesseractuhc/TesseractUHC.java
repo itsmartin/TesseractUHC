@@ -649,6 +649,14 @@ public class TesseractUHC extends JavaPlugin {
 			
 			return OK_COLOR + "Start point " + startPoint.getNumber() + " added at your current location";
 			
+		} else if (sender instanceof Player && ("poi".equalsIgnoreCase(args[0]))) {
+			if (args.length<2) return ERROR_COLOR + "Please give a description/name";
+			String name = "";
+			for(int i = 1; i < args.length; i++) name += args[i] + " ";
+			name = name.substring(0, name.length()-1);
+			match.addPOI(((Player) sender).getLocation(), name);
+			return OK_COLOR + "POI added at your current location";
+			
 		} else if ("reset".equalsIgnoreCase(args[0])) {
 			match.resetMatchParameters();
 			return OK_COLOR + "Match data reset to default values";
