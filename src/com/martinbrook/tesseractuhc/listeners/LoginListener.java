@@ -42,6 +42,12 @@ public class LoginListener implements Listener {
 			}
 			return;
 		}
+		
+		// If match is over, put player in creative, do nothing else
+		if (m.getMatchPhase() == MatchPhase.POST_MATCH) {
+			e.getPlayer().setGameMode(GameMode.CREATIVE);
+			return;
+		}
 
 	}
 
@@ -55,23 +61,19 @@ public class LoginListener implements Listener {
 	
 	@EventHandler
 	public void onLogin(PlayerLoginEvent e) {
-		// If player not allowed to log in, do nothing
-		if (e.getResult() != PlayerLoginEvent.Result.ALLOWED) return;
-		
-		// If we are in the pre-launch period, do nothing
-		if (m.getMatchPhase() == MatchPhase.PRE_MATCH) return;
-		
-		// If match is over, put player in creative, do nothing else
-		if (m.getMatchPhase() == MatchPhase.POST_MATCH) {
-			e.getPlayer().setGameMode(GameMode.CREATIVE);
-			return;
-		}
-
-		// If player is op, do nothing
-		if (e.getPlayer().isOp()) return;
-		
 		// Get a uhcplayer if possible
 		UhcPlayer up = m.getUhcPlayer(e.getPlayer());
+		
+		// If a registered player would be prevented from logging in due to the server being full or them not being whitelisted,
+		// let them in anyway.
+		if (up != null && (e.getResult() == PlayerLoginEvent.Result.KICK_FULL || e.getResult() == PlayerLoginEvent.Result.KICK_WHITELIST))
+			e.allow();
+		
+		// If player not allowed to login, do no more
+		if (e.getResult() != PlayerLoginEvent.Result.ALLOWED) return;
+			
+		// If player is op, do no more
+		if (e.getPlayer().isOp()) return;
 		
 		// If match isn't in progress, do nothing
 		if (m.getMatchPhase() != MatchPhase.MATCH) return;
