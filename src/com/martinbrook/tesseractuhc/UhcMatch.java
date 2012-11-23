@@ -475,7 +475,7 @@ public class UhcMatch {
 		startingWorld.setTime(0);
 		butcherHostile();
 		for (UhcPlayer up : this.getUhcPlayers()) {
-			Player p = server.getPlayer(up.getName());
+			Player p = server.getPlayerExact(up.getName());
 			if (p != null) {
 				feed(p);
 				clearXP(p);
@@ -773,7 +773,7 @@ public class UhcMatch {
 		if (up.isLaunched()) return false;
 		
 		// Get the player
-		Player p = server.getPlayer(up.getName());
+		Player p = server.getPlayerExact(up.getName());
 		
 		// If player not online, return
 		if (p == null) return false;
@@ -816,7 +816,7 @@ public class UhcMatch {
 	 */
 	public boolean removePlayer(String name) {
 		UhcPlayer up = uhcPlayers.remove(name.toLowerCase());
-		Player p = server.getPlayer(name);
+		Player p = server.getPlayerExact(name);
 		
 		if (up != null) {
 			// Remove them from their team
