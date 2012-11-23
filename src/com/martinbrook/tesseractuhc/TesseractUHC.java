@@ -663,8 +663,23 @@ public class TesseractUHC extends JavaPlugin {
 			return OK_COLOR + "POI added at your current location";
 			
 		} else if ("reset".equalsIgnoreCase(args[0])) {
-			match.resetMatchParameters();
-			return OK_COLOR + "Match data reset to default values";
+			if (args.length < 2 || "params".equalsIgnoreCase(args[1])) {
+				match.resetMatchParameters();
+				return OK_COLOR + "Match data reset to default values";
+			} else if ("teams".equalsIgnoreCase(args[1]) || "players".equalsIgnoreCase(args[1])) {
+				if (!match.clearTeams())
+					return ERROR_COLOR + "Failed to clear teams and players";
+				else
+					return OK_COLOR + "Teams and players have been reset";
+			}
+		} else if ("save".equalsIgnoreCase(args[0])) {
+			if (args.length < 2 || "params".equalsIgnoreCase(args[1])) {
+				match.saveMatchParameters();
+				return OK_COLOR + "If no errors appear above, match parameters have been saved";
+			} else if ("teams".equalsIgnoreCase(args[1]) || "players".equalsIgnoreCase(args[1])) {
+				match.saveTeams();
+				return OK_COLOR + "If no errors appear above, teams and players have been saved";
+			}
 		} else if ("starts".equalsIgnoreCase(args[0])) {
 			HashMap<Integer, UhcStartPoint> startPoints = match.getStartPoints();
 			if (startPoints.size()==0)

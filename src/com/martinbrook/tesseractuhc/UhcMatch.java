@@ -17,6 +17,7 @@ import org.bukkit.Material;
 import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.configuration.Configuration;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.EnderDragon;
 import org.bukkit.entity.Entity;
@@ -65,6 +66,7 @@ public class UhcMatch {
 	
 	private ArrayList<String> launchQueue = new ArrayList<String>();
 	public static String DEFAULT_MATCHDATA_FILE = "uhcmatch.yml";
+	public static String DEFAULT_TEAMDATA_FILE = "uhcteams.yml";
 	public static int GOLD_LAYER = 32;
 	public static int DIAMOND_LAYER = 16;
 	private ArrayList<UhcPlayer> playersInMatch = new ArrayList<UhcPlayer>();
@@ -99,6 +101,7 @@ public class UhcMatch {
 		this.setPVP(false);
 		this.setVanish();
 		this.enableSpawnKeeper();
+		this.loadTeams();
 		
 	}
 	
@@ -234,6 +237,79 @@ public class UhcMatch {
 		this.setDefaultMatchParameters();
 	}
 
+	/**
+	 * Save players and teams to the default location.
+	 */
+	public void saveTeams() {
+		YamlConfiguration teamData = new YamlConfiguration();
+
+		for(Map.Entry<String, UhcTeam> e : this.uhcTeams.entrySet()) {
+			ConfigurationSection teamSection = teamData.createSection(e.getValue().getIdentifier());
+			
+			ArrayList<String> players = new ArrayList<String>();
+			for (UhcPlayer up : e.getValue().getPlayers()) players.add(up.getName());
+			
+			teamSection.set("name", e.getValue().getName());
+			teamSection.set("players", players);
+		}
+		
+		
+		try {
+			teamData.save(FileUtils.getDataFile(startingWorld.getWorldFolder(), DEFAULT_TEAMDATA_FILE, false));
+		} catch (IOException e) {
+			adminBroadcast(TesseractUHC.ALERT_COLOR + "Warning: Could not save team data");
+
+		}
+	}
+	
+	
+	/**
+	 * Load players and teams from the default location.
+	 */
+	public void loadTeams() {
+		if (!clearTeams()) {
+			adminBroadcast(TesseractUHC.ALERT_COLOR + "Warning: Could not remove existing team/player data");
+			return;
+		}
+		
+		
+		YamlConfiguration teamData;
+		try {
+			teamData = YamlConfiguration.loadConfiguration(FileUtils.getDataFile(startingWorld.getWorldFolder(), DEFAULT_TEAMDATA_FILE, true));
+
+		} catch (Exception e) {
+			return;
+		}
+		
+		for(String teamIdentifier : teamData.getKeys(false)) {
+			ConfigurationSection teamSection = teamData.getConfigurationSection(teamIdentifier);
+			String teamName = teamSection.getString("name");
+			if (!addTeam(teamIdentifier, teamName)) {
+				adminBroadcast(TesseractUHC.ALERT_COLOR + "Warning: failed to create team " + teamName);
+			} else {
+				List<String> teamPlayers = teamSection.getStringList("players");
+				if (teamPlayers == null) {
+					adminBroadcast(TesseractUHC.ALERT_COLOR + "Warning: team has no players: " + teamName);
+				} else {
+					for (String playerName : teamPlayers) {
+						if (!addPlayer(playerName, teamIdentifier))
+							adminBroadcast(TesseractUHC.ALERT_COLOR + "Warning: failed to add player: " + playerName);
+					}
+				}
+			}
+		}
+	}
+	
+	public boolean clearTeams() {
+		if (matchPhase != MatchPhase.PRE_MATCH) return false;
+		
+		this.uhcPlayers.clear();
+		this.uhcTeams.clear();
+		this.teamsInMatch.clear();
+		this.playersInMatch.clear();
+		return true;
+	}
+	
 	/**
 	 * Send a message to all ops
 	 * 
