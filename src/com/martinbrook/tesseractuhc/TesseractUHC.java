@@ -24,7 +24,7 @@ import com.martinbrook.tesseractuhc.util.MatchUtils;
 
 public class TesseractUHC extends JavaPlugin {
 	private static TesseractUHC instance = null;
-	public static final ChatColor MAIN_COLOR = ChatColor.GREEN, SIDE_COLOR = ChatColor.GOLD, OK_COLOR = ChatColor.GREEN, ERROR_COLOR = ChatColor.RED,
+	public static final ChatColor MAIN_COLOR = ChatColor.GREEN, SIDE_COLOR = ChatColor.GOLD, OK_COLOR = ChatColor.GREEN, WARN_COLOR = ChatColor.LIGHT_PURPLE, ERROR_COLOR = ChatColor.RED,
 			DECISION_COLOR = ChatColor.GOLD, ALERT_COLOR = ChatColor.GREEN;
 	private static final boolean DEBUG_BUILD = false;
 	
@@ -303,23 +303,28 @@ public class TesseractUHC extends JavaPlugin {
 			if (args.length < 2)
 				return ERROR_COLOR + "Specify player to add!";
 			
-			Player p = getServer().getPlayer(args[1]);
+			String response = "";
 			
-			if (p == null)
-				return ERROR_COLOR + "Player " + args[1] + " not found!";
+			String name = args[1];
+			Player p = getServer().getPlayer(name);
+			
+			if (p != null)
+				name = p.getName();
+			else
+				response += WARN_COLOR + "Warning: adding a player who is not currently online\n";
 			
 			if (match.isFFA()) {
-				if (!match.addSoloPlayer(p.getName()))
+				if (!match.addSoloPlayer(name))
 					return ERROR_COLOR + "Failed to add player";
 				
-				return OK_COLOR + "Player added";
+				return response + OK_COLOR + "Player added";
 			} else {
 				if (args.length < 3)
 					return ERROR_COLOR + "Please specify the team! /players add NAME TEAM";
 				if (!match.addPlayer(p.getName(), args[2]))
 					return ERROR_COLOR + "Failed to add player " + args[1] + " to team " + args[2];
 				
-				return OK_COLOR + "Player added";
+				return response + OK_COLOR + "Player added";
 			}
 				
 		} else if (args[0].equalsIgnoreCase("addall")) {
