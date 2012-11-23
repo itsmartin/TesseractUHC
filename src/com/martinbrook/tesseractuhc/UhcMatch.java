@@ -111,13 +111,11 @@ public class UhcMatch {
 	public void loadMatchParameters() { 
 		try {
 			md = YamlConfiguration.loadConfiguration(FileUtils.getDataFile(startingWorld.getWorldFolder(), DEFAULT_MATCHDATA_FILE, true));
-
+			
 		} catch (Exception e) {
 			md = new YamlConfiguration();
 		}
-		
-		setDefaultMatchParameters();
-		
+				
 		// Load start points
 		startPoints.clear();
 		availableStartPoints.clear();
@@ -150,7 +148,7 @@ public class UhcMatch {
 		List<String> poiData = md.getStringList("pois");
 		for (String poiDataEntry : poiData) {
 			String[] data = poiDataEntry.split(",",5);
-			if (data.length == 4) {
+			if (data.length == 5) {
 				try {
 					String world = data[0];
 					double x = Double.parseDouble(data[1]);
@@ -167,7 +165,9 @@ public class UhcMatch {
 			}
 		}
 		
-		// Load saved bonus chest
+		setDefaultMatchParameters();
+		
+		// Convert saved bonus chest into an ItemStack array
 		List<?> data = md.getList("bonuschest");
 		
 		if (data != null) {
@@ -216,7 +216,7 @@ public class UhcMatch {
 			poiData.add(poi.getWorld().getName() + "," + poi.getX() + "," + poi.getY() + "," + poi.getZ() + "," + poi.getName());
 		}
 		
-		md.set("pois",startData);
+		md.set("pois",poiData);
 		
 		try {
 			md.save(FileUtils.getDataFile(startingWorld.getWorldFolder(), DEFAULT_MATCHDATA_FILE, false));
