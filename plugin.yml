@@ -27,6 +27,9 @@ commands:
  tp0:
   description: Teleports to the overworld spawn point
   usage: /tp0
+ tpp:
+  description: Teleports to a POI
+  usage: /tpp
  setspawn:
   description: Sets the spawn point to your current location
   usage: /setspawn

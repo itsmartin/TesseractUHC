@@ -1716,4 +1716,8 @@ public class UhcMatch {
 		addPOI(new Location(server.getWorld(world), x, y, z), name);
 	}
 
+	public ArrayList<UhcPOI> getPOIs() {
+		return uhcPOIs;
+	}
+
 }

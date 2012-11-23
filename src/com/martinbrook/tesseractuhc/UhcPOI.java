@@ -23,4 +23,7 @@ public class UhcPOI implements PlayerTarget {
 	public double getY() { return location.getY(); }
 	public double getZ() { return location.getZ(); }
 	public World getWorld() { return location.getWorld(); }
+	public String toString() {
+		return location.getWorld().getName() + " " + location.getBlockX() + "," + location.getBlockY() + "," + location.getBlockZ();
+	}
 }

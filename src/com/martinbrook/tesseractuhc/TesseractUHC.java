@@ -107,6 +107,8 @@ public class TesseractUHC extends JavaPlugin {
 			response = cTps(sender, args);
 		} else if (cmd.equals("tpcs")) {
 			response = cTpcs(sender,args);
+		} else if (cmd.equals("tpp")) {
+			response = cTpp(sender,args);
 		} else if (cmd.equals("gm")) {
 			sender.setGameMode((sender.getGameMode() == GameMode.CREATIVE) ? GameMode.SURVIVAL : GameMode.CREATIVE);
 		} else if (cmd.equals("vi") || cmd.equals("pi")) {
@@ -487,6 +489,23 @@ public class TesseractUHC extends JavaPlugin {
 	}
 
 
+	private String cTpp(Player sender, String[] args) {
+		ArrayList<UhcPOI> pois = match.getPOIs();
+		if (args.length != 1)
+			return ERROR_COLOR + "Please give the POI number - see /uhc pois";
+		
+		try {
+			int poiNo = Integer.parseInt(args[0]);
+			TeleportUtils.doTeleport(sender,pois.get(poiNo - 1).getLocation());
+		} catch (NumberFormatException e) {
+			return ERROR_COLOR + "Please give the POI number - see /uhc pois";
+		} catch (IndexOutOfBoundsException e) {
+			return ERROR_COLOR + "That POI does not exist";
+		}
+		
+		return null;
+	}
+
 	/**
 	 * Carry out the /tpcs command
 	 * 
@@ -694,6 +713,13 @@ public class TesseractUHC extends JavaPlugin {
 				if (t != null) response += " (" + t.getName() + ")";
 				
 				response += ": " + sp.getX() + "," + sp.getY() + "," + sp.getZ() + "\n";
+			}
+			return response;
+		} else if ("pois".equalsIgnoreCase(args[0])) {
+			ArrayList<UhcPOI> pois = match.getPOIs();
+			String response = "";
+			for(int i = 0; i < pois.size(); i++) {
+				response += (i + 1) + ": " + pois.get(i).getName() + " (" + pois.get(i).toString() + ")\n"; 
 			}
 			return response;
 		} else if ("params".equalsIgnoreCase(args[0])) {
