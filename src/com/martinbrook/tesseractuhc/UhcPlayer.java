@@ -1,13 +1,17 @@
 package com.martinbrook.tesseractuhc;
 
+import java.util.HashSet;
+
 import org.bukkit.entity.Player;
 
 import com.martinbrook.tesseractuhc.startpoint.UhcStartPoint;
 
-public class UhcPlayer {
+public class UhcPlayer implements PlayerTarget {
 	private String name;
 	private boolean launched = false;
 	private UhcTeam team;
+	private HashSet<PlayerTarget> nearbyTargets = new HashSet<PlayerTarget>();
+	
 
 	private boolean dead = false;
 	
@@ -57,6 +61,16 @@ public class UhcPlayer {
 		return team;
 	}
 
-	
+	public boolean isNearTo(PlayerTarget target) {
+		return nearbyTargets.contains(target);
+	}
+
+	public void setNearTo(PlayerTarget target, boolean b) {
+		if (b)
+			nearbyTargets.add(target);
+		else
+			nearbyTargets.remove(target);
+		
+	}
 
 }

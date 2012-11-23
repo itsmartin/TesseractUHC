@@ -3,7 +3,7 @@ package com.martinbrook.tesseractuhc;
 import org.bukkit.Location;
 import org.bukkit.World;
 
-public class UhcPOI {
+public class UhcPOI implements PlayerTarget {
 
 	private Location location;
 	private String name;

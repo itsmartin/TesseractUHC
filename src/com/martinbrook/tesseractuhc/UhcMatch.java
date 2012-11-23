@@ -36,6 +36,7 @@ import org.bukkit.potion.PotionEffect;
 import com.martinbrook.tesseractuhc.countdown.BorderCountdown;
 import com.martinbrook.tesseractuhc.countdown.MatchCountdown;
 import com.martinbrook.tesseractuhc.countdown.PVPCountdown;
+import com.martinbrook.tesseractuhc.notification.ProximityNotification;
 import com.martinbrook.tesseractuhc.notification.UhcNotification;
 import com.martinbrook.tesseractuhc.startpoint.LargeGlassStartPoint;
 import com.martinbrook.tesseractuhc.startpoint.SmallGlassStartPoint;
@@ -82,6 +83,8 @@ public class UhcMatch {
 	private MatchCountdown matchCountdown;
 	private BorderCountdown borderCountdown;
 	private ArrayList<UhcPOI> uhcPOIs = new ArrayList<UhcPOI>();
+	private int proximityCheckerTask;
+	private static int PROXIMITY_THRESHOLD = 100;
 
 	
 	public UhcMatch(TesseractUHC plugin, World startingWorld, Configuration defaults) {
@@ -491,6 +494,7 @@ public class UhcMatch {
 		} else {
 			setPVP(true);
 		}
+		enableProximityChecker();
 	}
 	
 	/**
@@ -505,6 +509,7 @@ public class UhcMatch {
 		// Put all players into creative
 		for (Player p : server.getOnlinePlayers()) p.setGameMode(GameMode.CREATIVE);
 		setVanish();
+		disableProximityChecker();
 
 	}
 	
@@ -907,7 +912,7 @@ public class UhcMatch {
 	
 	
 
-	public void enableSpawnKeeper() {
+	private void enableSpawnKeeper() {
 		spawnKeeperTask = server.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
 			public void run() {
 				runSpawnKeeper();
@@ -915,15 +920,90 @@ public class UhcMatch {
 		}, 20L, 20L);
 	}
 
-	public void disableSpawnKeeper() {
+	private void disableSpawnKeeper() {
 		server.getScheduler().cancelTask(spawnKeeperTask);
 	}
 	
-	public void runSpawnKeeper() {
+	private void runSpawnKeeper() {
 		for (Player p : server.getOnlinePlayers()) {
 			if (!p.isOp() && p.getLocation().getY() < 128) {
 				TeleportUtils.doTeleport(p, startingWorld.getSpawnLocation());
 			}
+		}
+	}
+	
+	private void enableProximityChecker() {
+		proximityCheckerTask = server.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
+			public void run() {
+				runProximityChecker();
+			}
+		}, 600L, 600L);
+	}
+
+	private void disableProximityChecker() {
+		server.getScheduler().cancelTask(proximityCheckerTask);
+	}
+	
+	private void runProximityChecker() {
+		// Cycle through all UhcPlayers
+		for (int i = 0; i < playersInMatch.size(); i++) {
+			UhcPlayer up = playersInMatch.get(i);
+
+			// Check proximity to other players (only if not on same team).
+			int j = i + 1;
+			while (j < playersInMatch.size()) {
+				// Check proximity of player up to player j
+				UhcPlayer up2 = playersInMatch.get(j);
+				if (up.getTeam() != up2.getTeam()) {
+					if (checkProximity(up, up2)) {
+						sendAdminNotification(new ProximityNotification(up, up2), server.getPlayerExact(up.getName()).getLocation());
+					}
+				}
+				j++;
+			}
+
+			// Check proximity to all POIs. 
+			for (UhcPOI poi : uhcPOIs) {
+				if (checkProximity(up, poi)) {
+					sendAdminNotification(new ProximityNotification(up, poi), server.getPlayerExact(up.getName()).getLocation());
+				}
+			}
+			
+		}
+	}
+	
+	private boolean checkProximity(UhcPlayer player, UhcPlayer enemy) {
+		Player p1 = server.getPlayerExact(player.getName());
+		Player p2 = server.getPlayerExact(enemy.getName());
+		if (p1 == null || p2 == null) return false;
+		
+		if (player.isNearTo(enemy)) {
+			if (p1.getLocation().distanceSquared(p2.getLocation()) >= (PROXIMITY_THRESHOLD ^ 2))
+				player.setNearTo(enemy, false);
+			return false;
+		} else {
+			if (p1.getLocation().distanceSquared(p2.getLocation()) < (PROXIMITY_THRESHOLD ^ 2)) {
+				player.setNearTo(enemy, true);
+				return true;
+			}
+			return false;
+		}
+	}
+	
+	private boolean checkProximity(UhcPlayer player, UhcPOI poi) {
+		Player p1 = server.getPlayerExact(player.getName());
+		if (p1 == null) return false;
+		
+		if (player.isNearTo(poi)) {
+			if (p1.getLocation().distanceSquared(poi.getLocation()) >= (PROXIMITY_THRESHOLD ^ 2))
+				player.setNearTo(poi, false);
+			return false;
+		} else {
+			if (p1.getLocation().distanceSquared(poi.getLocation()) < (PROXIMITY_THRESHOLD ^ 2)) {
+				player.setNearTo(poi, true);
+				return true;
+			}
+			return false;
 		}
 	}
 	
@@ -1476,6 +1556,11 @@ public class UhcMatch {
 	public void sendNotification(UhcNotification n, Location l) {
 		setLastNotifierLocation(l);
 		this.broadcast(n.formatForPlayers());
+	}
+	
+	public void sendAdminNotification(UhcNotification n, Location l) {
+		setLastNotifierLocation(l);
+		this.adminBroadcast(n.formatForStreamers());
 	}
 
 	public boolean startMatchCountdown(int countLength) {
