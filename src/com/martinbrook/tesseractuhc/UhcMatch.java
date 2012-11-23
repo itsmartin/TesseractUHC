@@ -29,6 +29,8 @@ import org.bukkit.entity.Slime;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.ShapedRecipe;
+import org.bukkit.inventory.ShapelessRecipe;
 import org.bukkit.potion.PotionEffect;
 
 import com.martinbrook.tesseractuhc.countdown.BorderCountdown;
@@ -837,6 +839,7 @@ public class UhcMatch {
 	public void launchAll() {
 		if (matchPhase == MatchPhase.PRE_MATCH) matchPhase = MatchPhase.LAUNCHING;
 		disableSpawnKeeper();
+		if (isUHC()) setupModifiedRecipes();
 		setVanish(); // Update vanish status
 
 		// Add all players to the launch queue
@@ -1493,6 +1496,23 @@ public class UhcMatch {
 		md.set("uhc", d);
 		this.saveMatchParameters();
 		adminBroadcast(TesseractUHC.OK_COLOR + "UHC has been " + (d ? "enabled" : "disabled") + "!");
+	}
+
+	/**
+	 * Modify the relevant recipes for UHC
+	 */
+	public void setupModifiedRecipes() {
+		// Modified golden apple recipe
+		ShapedRecipe goldenApple =  (ShapedRecipe) server.getRecipesFor(new ItemStack(Material.GOLDEN_APPLE, 1, (short) 0)).get(0);
+		goldenApple.shape(new String[]{"GGG", "GAG", "GGG"});
+		goldenApple.setIngredient('G', Material.GOLD_INGOT);
+		goldenApple.setIngredient('A', Material.APPLE);
+		
+		// Modified glistering melon recipe
+		ShapelessRecipe glisteringMelon = (ShapelessRecipe) server.getRecipesFor(new ItemStack(Material.SPECKLED_MELON)).get(0);
+		glisteringMelon.removeIngredient(Material.GOLD_NUGGET);
+		glisteringMelon.addIngredient(Material.GOLD_BLOCK);
+		
 	}
 
 }

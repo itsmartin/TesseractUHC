@@ -9,6 +9,7 @@ import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.bukkit.event.entity.EntityRegainHealthEvent.RegainReason;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -153,6 +154,15 @@ public class MatchListener implements Listener {
 		m.updatePlayerList((Player) e.getEntity(), e.getAmount());
 		
 	}
+	
+	@EventHandler(ignoreCancelled = true)
+	public void onEntityDeath(EntityDeathEvent e) {
+		// Modified drops for ghasts in UHC
+		if (m.isUHC() && e.getEntityType()==EntityType.GHAST)
+			for(ItemStack i : e.getDrops())
+				if (i.getType()==Material.GHAST_TEAR) i.setType(Material.GOLD_INGOT);
+	}
+	
 	
 	@EventHandler(ignoreCancelled = true)
 	public void onBlockBreak(BlockBreakEvent e) {
