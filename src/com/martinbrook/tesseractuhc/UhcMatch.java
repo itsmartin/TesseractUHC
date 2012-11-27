@@ -568,6 +568,7 @@ public class UhcMatch {
 		setPermaday(false);
 		startMatchTimer();
 		setVanish();
+		broadcast("GO!");
 		
 		// Set up pvp countdown
 		if (getNopvp() > 0) {

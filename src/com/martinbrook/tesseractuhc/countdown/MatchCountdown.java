@@ -13,7 +13,6 @@ public class MatchCountdown extends UhcCountdown {
 	@Override
 	protected void complete() {
 		match.startMatch();
-		match.broadcast("GO!");
 	}
 
 	@Override
