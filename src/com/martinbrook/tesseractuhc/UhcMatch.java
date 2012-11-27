@@ -1020,7 +1020,7 @@ public class UhcMatch {
 			public void run() {
 				runProximityChecker();
 			}
-		}, 600L, 600L);
+		}, 200L, 600L);
 	}
 
 	private void disableProximityChecker() {
