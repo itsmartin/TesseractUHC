@@ -1,6 +1,7 @@
 package com.martinbrook.tesseractuhc.listeners;
 
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -96,6 +97,9 @@ public class MatchListener implements Listener {
 		
 		// If damage caused by another entity, ignore it here (it will be handled by onEntityDamageByEntity)
 		if (e.getCause() == DamageCause.ENTITY_ATTACK || e.getCause() == DamageCause.ENTITY_EXPLOSION) return;
+		
+		// If damage ticks not exceeded, the damage won't happen, so return
+		if(((LivingEntity)e.getEntity()).getNoDamageTicks() > ((LivingEntity)e.getEntity()).getMaximumNoDamageTicks()/2.0F)	return;
 		
 		// Only interested in registered players
 		UhcPlayer up = m.getUhcPlayer((Player) e.getEntity());
