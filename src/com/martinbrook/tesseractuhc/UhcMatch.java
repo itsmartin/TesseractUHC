@@ -1674,10 +1674,12 @@ public class UhcMatch {
 	private void setSurvivorPlayerListName(Player p, double health) {
 		String name = p.getName();
 		ChatColor color = ChatColor.GREEN;
-		if (name.length() > 10) name = name.substring(0, 10);
+		if (name.length() > 8) name = name.substring(0, 8);
 		if (health <= 5) color = ChatColor.YELLOW;
 		if (health <= 2) color = ChatColor.RED; 
-		p.setPlayerListName(color + name + " - " + health);
+		boolean isOdd = (health - Math.floor(health) == 0.5);
+		String outputName = (color + name + " - " + (int) health + (isOdd ? ".5" : ""));
+		p.setPlayerListName(outputName);
 		
 	}
 
