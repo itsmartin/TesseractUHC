@@ -15,10 +15,7 @@ public class MatchUtils {
 
 	private MatchUtils() { }
 	
-	public static String formatDuration(Calendar t1, Calendar t2, boolean precise) {
-		// Get duration in seconds
-		int d = (int) (t2.getTimeInMillis() - t1.getTimeInMillis()) / 1000;
-		
+	public static String formatDuration(int d, boolean precise) {
 		if (precise) {
 			int seconds = d % 60;
 			d = d / 60;
@@ -33,6 +30,11 @@ public class MatchUtils {
 			
 		}
 		
+	}
+	
+	public static String formatDuration(Calendar t1, Calendar t2, boolean precise) {
+		// Convert to duration in seconds
+		return formatDuration((int) (t2.getTimeInMillis() - t1.getTimeInMillis()) / 1000, precise);
 	}
 
 	/**
