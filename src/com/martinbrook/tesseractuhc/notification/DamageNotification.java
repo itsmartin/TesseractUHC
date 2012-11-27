@@ -79,7 +79,8 @@ public class DamageNotification extends UhcNotification {
 		else if (cause == DamageCause.CONTACT) type = "cactus";
 		else if (cause == DamageCause.DROWNING) type = "drowning";
 		else if (cause == DamageCause.FALL) type = "fall";
-		else if (cause == DamageCause.FIRE || cause == DamageCause.FIRE_TICK) type = "burning";
+		else if (cause == DamageCause.FIRE) return null;
+		else if (cause == DamageCause.FIRE_TICK) type = "burning";
 		else if (cause == DamageCause.LAVA) type = "lava";
 		else if (cause == DamageCause.LIGHTNING) type = "lightning";
 		else if (cause == DamageCause.MAGIC) type = "magic";
