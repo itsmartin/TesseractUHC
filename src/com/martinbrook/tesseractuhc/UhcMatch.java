@@ -6,6 +6,7 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -31,6 +32,7 @@ import org.bukkit.entity.Slime;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.ShapelessRecipe;
 import org.bukkit.potion.PotionEffect;
@@ -1718,17 +1720,32 @@ public class UhcMatch {
 	 * Modify the relevant recipes for UHC
 	 */
 	public void setupModifiedRecipes() {
-		// Modified golden apple recipe
-		ShapedRecipe goldenApple =  (ShapedRecipe) server.getRecipesFor(new ItemStack(Material.GOLDEN_APPLE, 1, (short) 0)).get(0);
-		goldenApple.shape(new String[]{"GGG", "GAG", "GGG"});
-		goldenApple.setIngredient('G', Material.GOLD_INGOT);
-		goldenApple.setIngredient('A', Material.APPLE);
+		ItemStack goldenApple = new ItemStack(Material.GOLDEN_APPLE, 1, (short) 0);
+		ItemStack glisteringMelon = new ItemStack(Material.SPECKLED_MELON);
+
+		Iterator<Recipe> recipes = Bukkit.recipeIterator();
+		while(recipes.hasNext()) {
+			Recipe recipe = recipes.next();
+			// Find recipe for golden apple
+			if(recipe.getResult().equals(goldenApple) || recipe.getResult().equals(glisteringMelon))
+				recipes.remove();
+			
+		}
+
+		ShapedRecipe goldenAppleRecipe = new ShapedRecipe(goldenApple);
 		
-		// Modified glistering melon recipe
-		ShapelessRecipe glisteringMelon = (ShapelessRecipe) server.getRecipesFor(new ItemStack(Material.SPECKLED_MELON)).get(0);
-		glisteringMelon.removeIngredient(Material.GOLD_NUGGET);
-		glisteringMelon.addIngredient(Material.GOLD_BLOCK);
+		goldenAppleRecipe.shape(new String[]{"GGG", "GAG", "GGG"});
+		goldenAppleRecipe.setIngredient('G', Material.GOLD_INGOT);
+		goldenAppleRecipe.setIngredient('A', Material.APPLE);
 		
+		server.addRecipe(goldenAppleRecipe);
+		
+		ShapelessRecipe glisteringMelonRecipe = new ShapelessRecipe(glisteringMelon);
+		
+		glisteringMelonRecipe.addIngredient(Material.MELON);
+		glisteringMelonRecipe.addIngredient(Material.GOLD_BLOCK);
+				
+		server.addRecipe(glisteringMelonRecipe);
 	}
 
 	public void addPOI(Location location, String name) {
