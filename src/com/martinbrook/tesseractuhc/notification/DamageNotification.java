@@ -4,7 +4,11 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.AnimalTamer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Ghast;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
+import org.bukkit.entity.Skeleton;
 import org.bukkit.entity.Wolf;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
@@ -50,9 +54,29 @@ public class DamageNotification extends UhcNotification {
 			if (damager instanceof Player) {
 				// PVP damage 
 				if (cause == DamageCause.ENTITY_ATTACK)
-					return damaged.getName() + " was hurt by " + ((Player) damager).getDisplayName() + " (" + (damageAmount / 2.0) + " hearts)!";
-				if (cause == DamageCause.PROJECTILE)
-					return damaged.getName() + " was shot at by " + ((Player) damager).getDisplayName() + " (" + (damageAmount / 2.0) + " hearts)!";
+					return ChatColor.RED + damaged.getName() + " was hurt by " + ((Player) damager).getDisplayName() + " (" + formattedDamage + ")";
+				else
+					return null;
+			} else if (damager instanceof Projectile) {
+				LivingEntity source = ((Projectile) damager).getShooter();
+				if (source == null) {
+					if (damager.getType() == EntityType.ARROW)
+						return ChatColor.RED + damaged.getName() + " was shot ";
+					else if (damager.getType() == EntityType.SPLASH_POTION)
+						return ChatColor.RED + damaged.getName() + " was damaged by a splash potion (" + formattedDamage + ")";
+					else return null;
+				} else {
+					if (source instanceof Player) {
+						if (damager.getType() == EntityType.ARROW)
+							return ChatColor.RED + damaged.getName() + " was shot at by " + ((Player) source).getDisplayName() + " (" + formattedDamage + ")";
+						else if (damager.getType() == EntityType.SPLASH_POTION)
+							return ChatColor.RED + damaged.getName() + " was splashed by " + ((Player) source).getDisplayName() + " (" + formattedDamage + ")";
+					} else if (source instanceof Skeleton){
+						return ChatColor.RED + damaged.getName() + " took " + formattedDamage + " of damage from a skeleton";
+					} else if (source instanceof Ghast) {
+						return ChatColor.RED + damaged.getName() + " took " + formattedDamage + " of damage from a ghast fireball";
+					}
+				}
 			} else {
 				// Mob damage
 				String type = "an unknown entity";
@@ -83,7 +107,7 @@ public class DamageNotification extends UhcNotification {
 			}
 		}
 		// Environmental damage
-		String type = "unknown";
+		String type;
 		
 		if (cause == DamageCause.BLOCK_EXPLOSION) type = "TNT";
 		else if (cause == DamageCause.CONTACT) type = "cactus";
@@ -93,12 +117,12 @@ public class DamageNotification extends UhcNotification {
 		else if (cause == DamageCause.FIRE_TICK) type = "burning";
 		else if (cause == DamageCause.LAVA) type = "lava";
 		else if (cause == DamageCause.LIGHTNING) type = "lightning";
-		else if (cause == DamageCause.MAGIC) type = "magic";
 		else if (cause == DamageCause.POISON) type = "poison";
 		else if (cause == DamageCause.STARVATION) type = "starvation";
 		else if (cause == DamageCause.SUFFOCATION) type = "suffocation";
 		else if (cause == DamageCause.VOID) type = "void";
 		else if (cause == DamageCause.WITHER) type = "wither";
+		else return null;
 		
 		return ChatColor.RED + damaged.getName() + " took " + formattedDamage + " of " + type + " damage!";
 	}
