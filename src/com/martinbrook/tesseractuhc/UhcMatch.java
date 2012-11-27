@@ -592,6 +592,7 @@ public class UhcMatch {
 		for (Player p : server.getOnlinePlayers()) p.setGameMode(GameMode.CREATIVE);
 		setVanish();
 		disableProximityChecker();
+		server.getScheduler().cancelTasks(plugin);
 
 	}
 	
