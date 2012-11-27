@@ -9,6 +9,7 @@ import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.bukkit.event.entity.EntityRegainHealthEvent.RegainReason;
@@ -93,6 +94,9 @@ public class MatchListener implements Listener {
 			return;
 		}
 		
+		// If damage caused by another entity, ignore it here (it will be handled by onEntityDamageByEntity)
+		if (e.getCause() == DamageCause.ENTITY_ATTACK || e.getCause() == DamageCause.ENTITY_EXPLOSION) return;
+		
 		// Only interested in registered players
 		UhcPlayer up = m.getUhcPlayer((Player) e.getEntity());
 		if (up == null) return;
@@ -109,13 +113,6 @@ public class MatchListener implements Listener {
 	public void onEntityDamageByEntity(EntityDamageByEntityEvent e) {
 		// Only interested in players taking damage
 		if (e.getEntityType() != EntityType.PLAYER) return;
-		
-		// Only interested if match is in progress. Cancel damage if not.
-		if (m.getMatchPhase() != MatchPhase.MATCH) {
-			e.setCancelled(true);
-			return;
-		}
-		
 		
 		// Only interested in registered players
 		UhcPlayer up = m.getUhcPlayer((Player) e.getEntity());
@@ -166,6 +163,12 @@ public class MatchListener implements Listener {
 	
 	@EventHandler(ignoreCancelled = true)
 	public void onBlockBreak(BlockBreakEvent e) {
+		// If match hasn't started, and not op, cancel the event.
+		if ((m.getMatchPhase() == MatchPhase.PRE_MATCH || m.getMatchPhase() == MatchPhase.LAUNCHING) && !e.getPlayer().isOp()) {
+			e.setCancelled(true);
+			return;
+		}
+		
 		// Mining fatigue
 		if (e.getBlock().getType() == Material.STONE) {
 			m.doMiningFatigue(e.getPlayer(), e.getBlock().getLocation().getBlockY());
