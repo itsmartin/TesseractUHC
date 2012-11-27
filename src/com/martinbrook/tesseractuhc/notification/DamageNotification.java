@@ -68,6 +68,7 @@ public class DamageNotification extends UhcNotification {
 					if (owner != null) type = owner.getName() + "'s wolf";
 					else type = "a wolf";
 				}
+				else if (damager.getType() == EntityType.PRIMED_TNT) return null;
 				
 				return damaged.getName() + " took " + (damageAmount/2.0) + " hearts of damage from " + type;
 			}
