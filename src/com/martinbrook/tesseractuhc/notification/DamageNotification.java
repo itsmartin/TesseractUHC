@@ -1,5 +1,6 @@
 package com.martinbrook.tesseractuhc.notification;
 
+import org.bukkit.ChatColor;
 import org.bukkit.entity.AnimalTamer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -37,6 +38,14 @@ public class DamageNotification extends UhcNotification {
 
 	@Override
 	public String formatForPlayers() {
+		String formattedDamage;
+		formattedDamage = String.format("%d", damageAmount / 2);
+		if (damageAmount / 2.0 != Math.floor(damageAmount / 2.0))
+			formattedDamage += ".5";
+		
+		formattedDamage += " heart";
+		if (damageAmount != 2) formattedDamage += "s";
+		
 		if (damager != null) {
 			if (damager instanceof Player) {
 				// PVP damage 
@@ -70,7 +79,7 @@ public class DamageNotification extends UhcNotification {
 				}
 				else if (damager.getType() == EntityType.PRIMED_TNT) return null;
 				
-				return damaged.getName() + " took " + (damageAmount/2.0) + " hearts of damage from " + type;
+				return ChatColor.RED + damaged.getName() + " took " + formattedDamage + " of damage from " + type;
 			}
 		}
 		// Environmental damage
@@ -91,7 +100,7 @@ public class DamageNotification extends UhcNotification {
 		else if (cause == DamageCause.VOID) type = "void";
 		else if (cause == DamageCause.WITHER) type = "wither";
 		
-		return damaged.getName() + " took " + (damageAmount/2.0) + " hearts of " + type + " damage!";
+		return ChatColor.RED + damaged.getName() + " took " + formattedDamage + " of " + type + " damage!";
 	}
 
 }
