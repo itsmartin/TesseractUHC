@@ -1016,7 +1016,7 @@ public class TesseractUHC extends JavaPlugin {
 			s = s.substring(0, s.length() - 1);
 		}
 
-		match.sendNotification(new PlayerMessageNotification(sender, s), sender.getLocation());
+		match.sendAdminNotification(new PlayerMessageNotification(sender, s), sender.getLocation());
 
 		return sender.isOp() ? null : OK_COLOR + "Administrators have been notified.";
 	}

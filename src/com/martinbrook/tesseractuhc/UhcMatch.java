@@ -1634,12 +1634,14 @@ public class UhcMatch {
 
 	public void sendNotification(UhcNotification n, Location l) {
 		setLastNotifierLocation(l);
-		this.broadcast(n.formatForPlayers());
+		String message = n.formatForPlayers();
+		if (message != null) this.broadcast(message);
 	}
 	
 	public void sendAdminNotification(UhcNotification n, Location l) {
 		setLastNotifierLocation(l);
-		this.adminBroadcast(n.formatForStreamers());
+		String message = n.formatForStreamers();
+		if (message != null) this.adminBroadcast(message);
 	}
 
 	public boolean startMatchCountdown(int countLength) {
