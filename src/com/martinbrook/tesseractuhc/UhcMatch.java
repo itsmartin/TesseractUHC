@@ -1649,7 +1649,10 @@ public class UhcMatch {
 	}
 	
 	public void cancelCountdown() {
-		if (this.matchCountdown != null) matchCountdown.cancel();
+		if (this.matchCountdown != null) {
+			matchCountdown.cancel();
+			matchCountdown = null;
+		}
 		
 	}
 
