@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -87,6 +88,8 @@ public class UhcMatch {
 	private ArrayList<UhcPOI> uhcPOIs = new ArrayList<UhcPOI>();
 	private int proximityCheckerTask;
 	private static int PROXIMITY_THRESHOLD_SQUARED = 10000;
+	private HashSet<String> interactingAdmins = new HashSet<String>();
+	
 
 	
 	public UhcMatch(TesseractUHC plugin, World startingWorld, Configuration defaults) {
@@ -1723,6 +1726,17 @@ public class UhcMatch {
 
 	public ArrayList<UhcPOI> getPOIs() {
 		return uhcPOIs;
+	}
+
+	public boolean isInteractingAdmin(Player p) {
+		return interactingAdmins.contains(p.getName().toLowerCase());
+	}
+
+	public void setInteractingAdmin(Player p, boolean interacting) {
+		if (interacting)
+			interactingAdmins.add(p.getName().toLowerCase());
+		else
+			interactingAdmins.remove(p.getName().toLowerCase());
 	}
 
 }

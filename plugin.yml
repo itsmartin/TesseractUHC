@@ -134,3 +134,6 @@ commands:
  teams:
   description: Commands for interacting with teams
   usage: /teams add | /teams rm | /teams
+ interact:
+  description: Enables/disables the ability for you to interact with the world
+  usage: /interact

@@ -119,6 +119,8 @@ public class TesseractUHC extends JavaPlugin {
 			response = cNotify(sender, args);
 		} else if (cmd.equals("uhc")) {
 			response = cUhc(sender, args);
+		} else if (cmd.equals("interact")) {
+			response = cInteract(sender);
 		} else {
 			success = false;
 		}
@@ -128,6 +130,13 @@ public class TesseractUHC extends JavaPlugin {
 	
 		return success;
 		
+	}
+
+	private String cInteract(Player sender) {
+		boolean interacting = !match.isInteractingAdmin(sender);
+		match.setInteractingAdmin(sender, interacting);
+		
+		return OK_COLOR + "Interaction has been " + (interacting ? "enabled" : "disabled") + ".";
 	}
 
 	/**
