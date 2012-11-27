@@ -43,12 +43,12 @@ public abstract class UhcCountdown {
 		if (remainingSeconds >= 60) {
 			if (remainingSeconds % 60 == 0) {
 				int minutes = remainingSeconds / 60;
-				broadcast(ChatColor.RED + this.getDescription() + " in " + minutes + " minute" + (minutes == 1? "":"s"));
+				broadcast(ChatColor.LIGHT_PURPLE + this.getDescription() + " in " + minutes + " minute" + (minutes == 1? "":"s"));
 			}
 		} else if (remainingSeconds % 15 == 0) {
-			broadcast(ChatColor.RED + this.getDescription()  + " in " + remainingSeconds + " seconds");
+			broadcast(ChatColor.LIGHT_PURPLE + this.getDescription()  + " in " + remainingSeconds + " seconds");
 		} else if (remainingSeconds <= 5) { 
-			broadcast(ChatColor.RED + "" + remainingSeconds + "...");
+			broadcast(ChatColor.LIGHT_PURPLE + "" + remainingSeconds + "...");
 		}
 		
 		remainingSeconds--;
