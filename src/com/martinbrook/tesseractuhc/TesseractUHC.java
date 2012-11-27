@@ -900,7 +900,7 @@ public class TesseractUHC extends JavaPlugin {
 	 * @return response
 	 */
 	private String cMatchinfo() {
-		return match.matchStatusAnnouncement();
+		return match.matchTimeAnnouncement(true) + "\n" + match.matchStatusAnnouncement(); 
 	}
 
 	/**

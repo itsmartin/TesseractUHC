@@ -625,7 +625,7 @@ public class UhcMatch {
 	 * @param precise Whether to give a precise time (00:00:00) instead of (xx minutes)
 	 */
 	public void announceMatchTime(boolean precise) {
-		broadcast(TesseractUHC.MAIN_COLOR + "Match time: " + TesseractUHC.SIDE_COLOR + MatchUtils.formatDuration(matchStartTime, Calendar.getInstance(), precise));
+		broadcast(matchTimeAnnouncement(precise));
 	}
 	
 
@@ -1293,6 +1293,16 @@ public class UhcMatch {
 		
 	}
 
+	/**
+	 * Get the text of a match time announcement
+	 * 
+	 * @param precise Whether to give a precise time (00:00:00) instead of (xx minutes)
+	 * @return Current match time as a nicely-formatted string
+	 */
+	public String matchTimeAnnouncement(boolean precise) {
+		return TesseractUHC.MAIN_COLOR + "Match time: " + TesseractUHC.SIDE_COLOR + MatchUtils.formatDuration(matchStartTime, Calendar.getInstance(), precise);
+
+	}
 	/**
 	 * Get the text of a match status announcement
 	 * 
