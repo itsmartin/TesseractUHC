@@ -86,7 +86,7 @@ public class UhcMatch {
 	private BorderCountdown borderCountdown;
 	private ArrayList<UhcPOI> uhcPOIs = new ArrayList<UhcPOI>();
 	private int proximityCheckerTask;
-	private static int PROXIMITY_THRESHOLD = 100;
+	private static int PROXIMITY_THRESHOLD_SQUARED = 10000;
 
 	
 	public UhcMatch(TesseractUHC plugin, World startingWorld, Configuration defaults) {
@@ -1054,11 +1054,11 @@ public class UhcMatch {
 		if (p1 == null || p2 == null) return false;
 		
 		if (player.isNearTo(enemy)) {
-			if (p1.getLocation().distanceSquared(p2.getLocation()) >= (PROXIMITY_THRESHOLD ^ 2))
+			if (p1.getLocation().distanceSquared(p2.getLocation()) >= (PROXIMITY_THRESHOLD_SQUARED))
 				player.setNearTo(enemy, false);
 			return false;
 		} else {
-			if (p1.getLocation().distanceSquared(p2.getLocation()) < (PROXIMITY_THRESHOLD ^ 2)) {
+			if (p1.getLocation().distanceSquared(p2.getLocation()) < (PROXIMITY_THRESHOLD_SQUARED)) {
 				player.setNearTo(enemy, true);
 				return true;
 			}
@@ -1071,11 +1071,11 @@ public class UhcMatch {
 		if (p1 == null) return false;
 		
 		if (player.isNearTo(poi)) {
-			if (p1.getLocation().distanceSquared(poi.getLocation()) >= (PROXIMITY_THRESHOLD ^ 2))
+			if (p1.getLocation().distanceSquared(poi.getLocation()) >= (PROXIMITY_THRESHOLD_SQUARED))
 				player.setNearTo(poi, false);
 			return false;
 		} else {
-			if (p1.getLocation().distanceSquared(poi.getLocation()) < (PROXIMITY_THRESHOLD ^ 2)) {
+			if (p1.getLocation().distanceSquared(poi.getLocation()) < (PROXIMITY_THRESHOLD_SQUARED)) {
 				player.setNearTo(poi, true);
 				return true;
 			}
