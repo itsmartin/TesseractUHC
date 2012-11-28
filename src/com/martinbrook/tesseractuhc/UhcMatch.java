@@ -629,7 +629,7 @@ public class UhcMatch {
 	 */
 	private void doMatchProgressAnnouncement() {
 		long matchTime = MatchUtils.getDuration(matchStartTime, Calendar.getInstance()) / 60;
-		if (matchTime % 30 == 0) {
+		if (matchTime % 30 == 0 && matchTime > 0) {
 			broadcast(matchTimeAnnouncement(false));
 		}
 	}
