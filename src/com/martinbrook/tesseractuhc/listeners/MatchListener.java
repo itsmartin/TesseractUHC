@@ -105,6 +105,9 @@ public class MatchListener implements Listener {
 		UhcPlayer up = m.getUhcPlayer((Player) e.getEntity());
 		if (up == null) return;
 		
+		// Only interested in living players
+		if (up.isDead()) return;
+		
 		// Update player list
 		m.updatePlayerList((Player) e.getEntity(), -e.getDamage());
 		
@@ -122,6 +125,9 @@ public class MatchListener implements Listener {
 		UhcPlayer up = m.getUhcPlayer((Player) e.getEntity());
 		if (up == null) return;
 		
+		// Only interested in living players
+		if (up.isDead()) return;
+				
 		// Update player list
 		m.updatePlayerList((Player) e.getEntity(), -e.getDamage());
 
