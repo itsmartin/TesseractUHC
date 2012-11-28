@@ -63,9 +63,9 @@ commands:
  renewall:
   description: Renews all players
   usage: /renewall
- match:
+ ready:
   description: Starts the match countdown
-  usage: /match seconds
+  usage: /ready seconds
  cdwb:
   description: Starts a world border countdown
   usage: /cdwb newradius seconds

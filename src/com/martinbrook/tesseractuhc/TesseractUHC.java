@@ -200,8 +200,8 @@ public class TesseractUHC extends JavaPlugin {
 			response = cRenew(args);
 		} else if (cmd.equals("renewall")) {
 			response = cRenewall();
-		} else if (cmd.equals("match")) {
-			response = cMatch(args);
+		} else if (cmd.equals("ready")) {
+			response = cReady(args);
 		} else if (cmd.equals("cdwb")) {
 			response = cCdwb(args);
 		} else if (cmd.equals("cdc")) {
@@ -1002,15 +1002,15 @@ public class TesseractUHC extends JavaPlugin {
 	}
 
 	/**
-	 * Carry out the /match command
+	 * Carry out the /ready command
 	 * 
 	 * @param sender the sender of the command
 	 * @param args arguments
 	 * @return response
 	 */
-	private String cMatch(String[] args) {
+	private String cReady(String[] args) {
 		if (args.length > 1)
-			return ERROR_COLOR + "Usage: /match [seconds]";
+			return ERROR_COLOR + "Usage: /ready [seconds]";
 		
 		int countLength = 300;
 		
