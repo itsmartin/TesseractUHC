@@ -978,6 +978,7 @@ public class UhcMatch {
 		disableSpawnKeeper();
 		if (isUHC()) setupModifiedRecipes();
 		setVanish(); // Update vanish status
+		butcherHostile();
 
 		// Add all players to the launch queue
 		for(UhcPlayer up : getUhcPlayers())
