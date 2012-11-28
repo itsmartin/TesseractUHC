@@ -108,9 +108,6 @@ public class MatchListener implements Listener {
 		// Only interested in living players
 		if (up.isDead()) return;
 		
-		// Update player list
-		m.updatePlayerList((Player) e.getEntity(), -e.getDamage());
-		
 		m.sendNotification(new DamageNotification(up, e.getCause()), e.getEntity().getLocation());
 		
 	}
@@ -127,9 +124,6 @@ public class MatchListener implements Listener {
 		
 		// Only interested in living players
 		if (up.isDead()) return;
-				
-		// Update player list
-		m.updatePlayerList((Player) e.getEntity(), -e.getDamage());
 
 		m.sendNotification(new DamageNotification(up, e.getCause(), e.getDamager()), e.getEntity().getLocation());
 		
@@ -156,9 +150,7 @@ public class MatchListener implements Listener {
 		// Announce health change (UHC only)
 		if (m.isUHC())
 			m.sendNotification(new HealingNotification(up, e.getAmount(), e.getRegainReason()), e.getEntity().getLocation());
-		
-		// Update player list
-		m.updatePlayerList((Player) e.getEntity(), e.getAmount());
+
 		
 	}
 	

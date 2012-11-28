@@ -106,10 +106,12 @@ public class UhcMatch {
 		this.setPVP(false);
 		this.setVanish();
 		this.enableSpawnKeeper();
+		this.enablePlayerListUpdater();
 		this.loadTeams();
 		
 	}
 	
+
 	/**
 	 * Load match data from the default file. If it does not exist, load defaults.
 	 */
@@ -492,7 +494,6 @@ public class UhcMatch {
 	 */
 	public void heal(Player p) {
 		p.setHealth(20);
-		if (!p.isOp()) setSurvivorPlayerListName(p,10);
 	}
 
 	/**
@@ -993,6 +994,29 @@ public class UhcMatch {
 		this.launchQueue.add(up.getName().toLowerCase());
 	}
 	
+	private void enablePlayerListUpdater() {
+		server.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
+			public void run() {
+				runPlayerListUpdater();
+			}
+		}, 60L, 60L);
+	}
+
+
+	private void runPlayerListUpdater() {
+		// Update the player list for all players
+		for(Player p : server.getOnlinePlayers()) {
+			UhcPlayer up = getUhcPlayer(p);
+			if (up != null && !p.isOp()) {
+				if (!up.isDead())
+					setSurvivorPlayerListName(p);
+				else
+					setDeceasedPlayerListName(p);
+			} else {
+				setNonPlayerPlayerListName(p);
+			}
+		}
+	}
 	
 
 	private void enableSpawnKeeper() {
@@ -1690,14 +1714,10 @@ public class UhcMatch {
 		return uhcTeams.values();
 	}
 
-	public void updatePlayerList(Player p, int recentHealthChange) {
-		// Update the player list for a recent health change
-		setSurvivorPlayerListName(p, (p.getHealth() + recentHealthChange) / 2.0);
-	}
 	
-	
-	private void setSurvivorPlayerListName(Player p, double health) {
+	private void setSurvivorPlayerListName(Player p) {
 		String name = p.getName();
+		double health = p.getHealth() / 2.0;
 		ChatColor color = ChatColor.GREEN;
 		if (name.length() > 8) name = name.substring(0, 8);
 		if (health <= 5) color = ChatColor.YELLOW;
@@ -1705,7 +1725,19 @@ public class UhcMatch {
 		boolean isOdd = (health - Math.floor(health) == 0.5);
 		String outputName = (color + name + " - " + (int) health + (isOdd ? ".5" : ""));
 		p.setPlayerListName(outputName);
+	}
+	
+	private void setDeceasedPlayerListName(Player p) {
+		String name = p.getName();
+		if (name.length() > 10) name = name.substring(0, 10);
+		p.setPlayerListName(ChatColor.RED + name + " - D");
 		
+	}
+
+	private void setNonPlayerPlayerListName(Player p) {
+		String name = p.getName();
+		if (name.length() > 14) name = name.substring(0, 14);
+		p.setPlayerListName(ChatColor.DARK_GRAY + name);
 	}
 
 	public boolean isUHC() {

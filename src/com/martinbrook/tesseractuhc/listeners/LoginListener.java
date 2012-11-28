@@ -1,6 +1,5 @@
 package com.martinbrook.tesseractuhc.listeners;
 
-import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -24,7 +23,6 @@ public class LoginListener implements Listener {
 		// If player is op, set them to creative, make their name shaded, and exit
 		if (e.getPlayer().isOp()) {
 			e.getPlayer().setGameMode(GameMode.CREATIVE);
-			e.getPlayer().setPlayerListName(ChatColor.DARK_GRAY + e.getPlayer().getName());
 			return;
 		}
 
