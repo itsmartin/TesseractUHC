@@ -753,6 +753,10 @@ public class UhcMatch {
 		return getUhcPlayer(playerToGet.getName());
 	}
 	
+	public UhcPlayer getUhcPlayer(int index) {
+		return playersInMatch.get(index);
+	}
+	
 	/**
 	 * Add the team as detailed, and assign them a start point
 	 * 
@@ -1884,7 +1888,6 @@ public class UhcMatch {
 	public boolean isAdmin(Player p) {
 		return p.isOp(); // Temporary solution only
 	}
-	
 	
 	
 

@@ -30,6 +30,9 @@ commands:
  tpp:
   description: Teleports to a POI
   usage: /tpp
+ tpnext:
+  description: Cycles through players
+  usage: /tpnext
  setspawn:
   description: Sets the spawn point to your current location
   usage: /setspawn

@@ -111,6 +111,8 @@ public class TesseractUHC extends JavaPlugin {
 			response = cTpcs(sender,args);
 		} else if (cmd.equals("tpp")) {
 			response = cTpp(sender,args);
+		} else if (cmd.equals("tpnext")) {
+			response = cTpnext(sender);
 		} else if (cmd.equals("gm")) {
 			sender.setGameMode((sender.getGameMode() == GameMode.CREATIVE) ? GameMode.SURVIVAL : GameMode.CREATIVE);
 		} else if (cmd.equals("vi") || cmd.equals("pi")) {
@@ -132,6 +134,28 @@ public class TesseractUHC extends JavaPlugin {
 	
 		return success;
 		
+	}
+
+	private String cTpnext(Player sender) {
+		UhcSpectator us = match.getSpectator(sender);
+		if (us == null) us = match.addSpectator(sender);
+		
+		Player to;
+		int cycleSize = match.countPlayersInMatch();
+		int attempts = 0;
+		
+		do {
+			UhcPlayer up = match.getUhcPlayer(us.nextCyclePoint(cycleSize));
+			to = getServer().getPlayerExact(up.getName());
+			attempts++;
+		} while ((to == null || !to.isOnline()) && attempts < cycleSize);
+		
+		if (to == null || !to.isOnline())
+			return ERROR_COLOR + "No player found";
+		
+		TeleportUtils.doTeleport(sender,to,OK_COLOR + "Teleported to " + to.getName(), true);
+			
+		return null;
 	}
 
 	private String cInteract(Player sender) {
