@@ -934,7 +934,7 @@ public class UhcMatch {
 	 * @return Whether the removal succeeded
 	 */
 	public boolean removeTeam(String identifier) {
-		UhcTeam team = uhcTeams.remove(identifier.toLowerCase());
+		UhcTeam team = getTeam(identifier);
 		
 		// If team not found, fail
 		if (team == null) return false;
@@ -942,6 +942,7 @@ public class UhcMatch {
 		// If team not empty, fail
 		if (team.playerCount()>0) return false;
 		
+		uhcTeams.remove(identifier.toLowerCase());
 		teamsInMatch.remove(team);
 		
 		// Free up the start point
