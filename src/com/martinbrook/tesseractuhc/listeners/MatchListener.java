@@ -8,6 +8,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
+import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
@@ -187,8 +189,30 @@ public class MatchListener implements Listener {
 		}
 	}
 	
-	
 
-	
+	@EventHandler(ignoreCancelled = true)
+	public void onCreatureSpawn(CreatureSpawnEvent e) {
+		// If match is in progress or ended, do nothing
+		if (m.getMatchPhase() == MatchPhase.MATCH || m.getMatchPhase() == MatchPhase.POST_MATCH) return;
+		
+		// Only deal with natural or spawner spawns
+		if (e.getSpawnReason() != SpawnReason.NATURAL && e.getSpawnReason() != SpawnReason.SPAWNER) return;
+		
+		// Only worry about hostiles
+		if (!(e.getEntityType() == EntityType.CREEPER
+				|| e.getEntityType() == EntityType.SPIDER
+				|| e.getEntityType() == EntityType.SKELETON
+				|| e.getEntityType() == EntityType.CAVE_SPIDER
+				|| e.getEntityType() == EntityType.ENDERMAN
+				|| e.getEntityType() == EntityType.SILVERFISH
+				|| e.getEntityType() == EntityType.SLIME
+				|| e.getEntityType() == EntityType.WITCH
+				|| e.getEntityType() == EntityType.ZOMBIE
+				|| e.getEntityType() == EntityType.GHAST
+				|| e.getEntityType() == EntityType.PIG_ZOMBIE)) return;
+		
+		// Cancel spawn
+		e.setCancelled(true);
+	}
 	
 }
