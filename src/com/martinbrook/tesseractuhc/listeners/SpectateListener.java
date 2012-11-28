@@ -39,12 +39,12 @@ public class SpectateListener implements Listener {
 	
 	@EventHandler(ignoreCancelled = true)
 	public void onPlayerPickupItem(PlayerPickupItemEvent e) {
-		if (e.getPlayer().isOp() && m.getMatchPhase() == MatchPhase.MATCH && !m.isInteractingAdmin(e.getPlayer())) e.setCancelled(true);
+		if (m.isNoninteractingSpectator(e.getPlayer()) && m.getMatchPhase() == MatchPhase.MATCH) e.setCancelled(true);
 	}
 
 	@EventHandler(ignoreCancelled = true)
 	public void onPlayerDropItem(PlayerDropItemEvent e) {
-		if (e.getPlayer().isOp() && m.getMatchPhase() == MatchPhase.MATCH && !m.isInteractingAdmin(e.getPlayer())) e.setCancelled(true);
+		if (m.isNoninteractingSpectator(e.getPlayer()) && m.getMatchPhase() == MatchPhase.MATCH) e.setCancelled(true);
 	}
 
 	@EventHandler(ignoreCancelled = true)
@@ -60,7 +60,7 @@ public class SpectateListener implements Listener {
 	 */
 	@EventHandler(ignoreCancelled = true)
 	public void onPlayerInteract(PlayerInteractEvent e) {
-		if (e.getPlayer().isOp() && m.getMatchPhase() == MatchPhase.MATCH && !m.isInteractingAdmin(e.getPlayer())) {
+		if (m.isNoninteractingSpectator(e.getPlayer()) && m.getMatchPhase() == MatchPhase.MATCH) {
 
 			// Handle right-clicks on inventory blocks
 			if (e.getAction() == Action.RIGHT_CLICK_BLOCK && e.getClickedBlock().getState() instanceof InventoryHolder) {

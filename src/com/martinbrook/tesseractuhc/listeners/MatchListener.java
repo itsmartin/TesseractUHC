@@ -119,7 +119,7 @@ public class MatchListener implements Listener {
 		// Cancel any damage caused by spectators
 		if (e.getDamager() instanceof Player) {
 			Player p = (Player) e.getDamager();
-			if (p.isOp() && !m.isInteractingAdmin(p)) {
+			if (m.isNoninteractingSpectator(p)) {
 				e.setCancelled(true);
 				return;
 			}

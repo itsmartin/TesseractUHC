@@ -135,8 +135,11 @@ public class TesseractUHC extends JavaPlugin {
 	}
 
 	private String cInteract(Player sender) {
-		boolean interacting = !match.isInteractingAdmin(sender);
-		match.setInteractingAdmin(sender, interacting);
+		UhcSpectator us = match.getSpectator(sender);
+		if (us == null) us = match.addSpectator(sender);
+
+		boolean interacting = !us.isInteracting();
+		us.setInteracting(interacting);
 		
 		return OK_COLOR + "Interaction has been " + (interacting ? "enabled" : "disabled") + ".";
 	}

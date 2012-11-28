@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -90,8 +89,7 @@ public class UhcMatch {
 	private ArrayList<UhcPOI> uhcPOIs = new ArrayList<UhcPOI>();
 	private int proximityCheckerTask;
 	private static int PROXIMITY_THRESHOLD_SQUARED = 10000;
-	private HashSet<String> interactingAdmins = new HashSet<String>();
-	
+	private HashMap<String, UhcSpectator> uhcSpectators = new HashMap<String, UhcSpectator>();
 
 	
 	public UhcMatch(TesseractUHC plugin, World startingWorld, Configuration defaults) {
@@ -1808,15 +1806,38 @@ public class UhcMatch {
 		return uhcPOIs;
 	}
 
-	public boolean isInteractingAdmin(Player p) {
-		return interactingAdmins.contains(p.getName().toLowerCase());
+	public boolean isSpectator(Player p) { 
+		return uhcSpectators.containsKey(p.getName().toLowerCase()) || p.isOp();
 	}
+	
+	public boolean isInteractingSpectator(Player p) {
+		UhcSpectator us = this.getSpectator(p);
+		if (us == null) return false;
+		return us.isInteracting();
+	}
+	
+	public boolean isNoninteractingSpectator(Player p) {
+		return isSpectator(p) && !isInteractingSpectator(p);
+	}
+	
+	public UhcSpectator addSpectator(Player p) {
+		UhcSpectator spec = new UhcSpectator(p.getName());
+		uhcSpectators.put(p.getName().toLowerCase(), spec);
+		return spec;
+	}
+	
+	public boolean removeSpectator(Player p) {
+		if (uhcSpectators.containsKey(p.getName().toLowerCase())) {
+			uhcSpectators.remove(p.getName().toLowerCase());
+			return true;
+		} else {
+			return false;
+		}
 
-	public void setInteractingAdmin(Player p, boolean interacting) {
-		if (interacting)
-			interactingAdmins.add(p.getName().toLowerCase());
-		else
-			interactingAdmins.remove(p.getName().toLowerCase());
 	}
+	
+	public UhcSpectator getSpectator(Player p) { return uhcSpectators.get(p.getName().toLowerCase()); }
+	
+	
 
 }
