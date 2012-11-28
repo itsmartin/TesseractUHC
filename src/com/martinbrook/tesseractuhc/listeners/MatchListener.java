@@ -176,7 +176,7 @@ public class MatchListener implements Listener {
 	@EventHandler(ignoreCancelled = true)
 	public void onBlockBreak(BlockBreakEvent e) {
 		// If match hasn't started, and not op, cancel the event.
-		if ((m.getMatchPhase() == MatchPhase.PRE_MATCH || m.getMatchPhase() == MatchPhase.LAUNCHING) && !e.getPlayer().isOp()) {
+		if ((m.getMatchPhase() == MatchPhase.PRE_MATCH || m.getMatchPhase() == MatchPhase.LAUNCHING) && !m.isAdmin(e.getPlayer())) {
 			e.setCancelled(true);
 			return;
 		}

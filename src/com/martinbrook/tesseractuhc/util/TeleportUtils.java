@@ -22,11 +22,11 @@ public class TeleportUtils {
 	 * @param p2 player to be teleported to
 	 * @param message the message to be displayed
 	 */
-	public static void doTeleport(Player p1, Player p2, String message) {
+	public static void doTeleport(Player p1, Player p2, String message, boolean fancy) {
 		//saveTpLocation(p1);
 	
-		// if the first player is opped, do fancy teleport.
-		if (!p1.isOp())
+		// if the first player is a spectator, do fancy teleport.
+		if (!fancy)
 			p1.teleport(p2);
 		else
 			doFancyTeleport(p1, p2);
@@ -47,8 +47,8 @@ public class TeleportUtils {
 	 * @param p1 player to be teleported
 	 * @param p2 player to be teleported to
 	 */
-	public static void doTeleport(Player p1, Player p2) {
-		doTeleport(p1, p2, "You have been teleported!");
+	public static void doTeleport(Player p1, Player p2, boolean fancy) {
+		doTeleport(p1, p2, "You have been teleported!", fancy);
 	}
 
 	/**

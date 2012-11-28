@@ -811,6 +811,14 @@ public class UhcMatch {
 		// If team doesn't exist, fail
 		if (team == null) return false;
 		
+		// If player is a spectator or an admin, make them not one
+		Player p = server.getPlayerExact(name);
+		if (p != null) {
+			removeSpectator(p);
+		} else {
+			removeSpectator(name);
+		}
+		
 		// Create the player
 		UhcPlayer up = createPlayer(name, team);
 
@@ -833,6 +841,14 @@ public class UhcMatch {
 		
 		// If player already exists, fail 
 		if (existsUhcPlayer(name)) return false;
+		
+		// If player is a spectator or an admin, make them not one
+		Player p = server.getPlayerExact(name);
+		if (p != null) {
+			removeSpectator(p);
+		} else {
+			removeSpectator(name);
+		}
 		
 		// Create a team of one for the player
 		String teamName = name; 
@@ -1007,7 +1023,7 @@ public class UhcMatch {
 		// Update the player list for all players
 		for(Player p : server.getOnlinePlayers()) {
 			UhcPlayer up = getUhcPlayer(p);
-			if (up != null && !p.isOp()) {
+			if (up != null && !isSpectator(p)) {
 				if (!up.isDead())
 					setSurvivorPlayerListName(p);
 				else
@@ -1033,7 +1049,7 @@ public class UhcMatch {
 	
 	private void runSpawnKeeper() {
 		for (Player p : server.getOnlinePlayers()) {
-			if (!p.isOp() && p.getLocation().getY() < 128) {
+			if (!isAdmin(p) && p.getLocation().getY() < 128) {
 				TeleportUtils.doTeleport(p, startingWorld.getSpawnLocation());
 			}
 			p.setHealth(20);
@@ -1477,8 +1493,8 @@ public class UhcMatch {
 	public void setVanish(Player viewer, Player viewed) {
 		if (viewer == viewed) return;
 		
-		// An op should be invisible to a non-op if the match is launching and not ended
-		if (!viewer.isOp() && viewed.isOp() && (matchPhase == MatchPhase.LAUNCHING || matchPhase == MatchPhase.MATCH)) {
+		// A spec should be invisible to a non-spec if the match is launching and not ended
+		if (!isSpectator(viewer) && isSpectator(viewed) && (matchPhase == MatchPhase.LAUNCHING || matchPhase == MatchPhase.MATCH)) {
 			viewer.hidePlayer(viewed);
 		} else {
 			viewer.showPlayer(viewed);
@@ -1823,20 +1839,38 @@ public class UhcMatch {
 	public UhcSpectator addSpectator(Player p) {
 		UhcSpectator spec = new UhcSpectator(p.getName());
 		uhcSpectators.put(p.getName().toLowerCase(), spec);
+		p.setGameMode(GameMode.CREATIVE);
+		setVanish(p);
 		return spec;
 	}
 	
 	public boolean removeSpectator(Player p) {
 		if (uhcSpectators.containsKey(p.getName().toLowerCase())) {
 			uhcSpectators.remove(p.getName().toLowerCase());
+			setVanish(p);
+			p.setGameMode(GameMode.SURVIVAL);
 			return true;
 		} else {
 			return false;
 		}
-
+	}
+	
+	private boolean removeSpectator(String name) {
+		if (uhcSpectators.containsKey(name.toLowerCase())) {
+			uhcSpectators.remove(name.toLowerCase());
+			return true;
+		} else {
+			return false;
+		}
 	}
 	
 	public UhcSpectator getSpectator(Player p) { return uhcSpectators.get(p.getName().toLowerCase()); }
+
+
+	public boolean isAdmin(Player p) {
+		return p.isOp(); // Temporary solution only
+	}
+	
 	
 	
 

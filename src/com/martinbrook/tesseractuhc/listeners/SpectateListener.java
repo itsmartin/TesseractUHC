@@ -27,7 +27,7 @@ public class SpectateListener implements Listener {
 	@EventHandler
 	public void onInteractEntityEvent(PlayerInteractEntityEvent e) {
 		Player p = e.getPlayer();
-		if (!p.isOp()) return;
+		if (!m.isSpectator(p)) return;
 
 		Entity clicked = e.getRightClicked();
 
@@ -51,7 +51,7 @@ public class SpectateListener implements Listener {
 	public void onEntityTarget(EntityTargetEvent e) {
 		Entity target = e.getTarget();
 		if (target != null && target.getType() == EntityType.PLAYER) {
-			if (((Player) target).isOp() && m.getMatchPhase() == MatchPhase.MATCH) e.setCancelled(true);
+			if (m.isSpectator((Player) target) && m.getMatchPhase() == MatchPhase.MATCH) e.setCancelled(true);
 		}
 	}
 	/**

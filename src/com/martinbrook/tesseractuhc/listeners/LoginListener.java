@@ -20,9 +20,9 @@ public class LoginListener implements Listener {
 	public void onJoin(PlayerJoinEvent e) {
 		m.setVanish(e.getPlayer());
 
-		// If player is op, set them to creative, make their name shaded, and exit
+		// If player is op, set them as a spectator
 		if (e.getPlayer().isOp()) {
-			e.getPlayer().setGameMode(GameMode.CREATIVE);
+			m.addSpectator(e.getPlayer());
 			return;
 		}
 

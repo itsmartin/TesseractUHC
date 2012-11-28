@@ -339,7 +339,7 @@ public class TesseractUHC extends JavaPlugin {
 			
 			int added = 0;
 			for (Player p : getServer().getOnlinePlayers()) {
-				if (!p.isOp())
+				if (!match.isSpectator(p))
 					if (match.addSoloPlayer(p.getName())) added++;
 			}
 			if (added > 0)
@@ -1022,7 +1022,7 @@ public class TesseractUHC extends JavaPlugin {
 
 		match.sendAdminNotification(new PlayerMessageNotification(sender, s), sender.getLocation());
 
-		return sender.isOp() ? null : OK_COLOR + "Administrators have been notified.";
+		return match.isAdmin(sender) ? null : OK_COLOR + "Administrators have been notified.";
 	}
 	
 	/**
@@ -1113,7 +1113,7 @@ public class TesseractUHC extends JavaPlugin {
 			Player to = getServer().getPlayer(args[0]);
 			if (to == null || !to.isOnline())
 				return ERROR_COLOR + "Player " + args[0] + " not found";
-			TeleportUtils.doTeleport(sender,to,OK_COLOR + "Teleported to " + to.getName());
+			TeleportUtils.doTeleport(sender,to,OK_COLOR + "Teleported to " + to.getName(), true);
 			
 			return null;
 		}
@@ -1125,7 +1125,7 @@ public class TesseractUHC extends JavaPlugin {
 			Player to = getServer().getPlayer(args[1]);
 			if (to == null || !to.isOnline())
 				return ERROR_COLOR + "Player " + args[1] + " not found";
-			TeleportUtils.doTeleport(from,to);
+			TeleportUtils.doTeleport(from,to, false);
 			
 			return OK_COLOR + "Teleported " + from.getName() + " to " + to.getName();
 		}
@@ -1186,7 +1186,7 @@ public class TesseractUHC extends JavaPlugin {
 			Player to = getServer().getPlayer(args[1]);
 			if (to == null || !to.isOnline())
 				return ERROR_COLOR + "Player " + args[1] + " not found";
-			TeleportUtils.doTeleport(from,to);
+			TeleportUtils.doTeleport(from, to, false);
 			
 			return OK_COLOR + "Teleported " + from.getName() + " to " + to.getName();
 		}

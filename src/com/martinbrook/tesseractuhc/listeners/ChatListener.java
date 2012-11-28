@@ -14,11 +14,11 @@ public class ChatListener implements Listener {
 
 	@EventHandler
 	public void onPlayerChatEvent(AsyncPlayerChatEvent e) {
-		if (m.isChatMuted() && !e.getPlayer().isOp())
+		if (m.isChatMuted() && !m.isAdmin(e.getPlayer()))
 			e.setCancelled(true);
 		
-		// ops get gold text automatically
-		if (e.getPlayer().isOp()) {
+		// admins get gold text automatically
+		if (m.isAdmin(e.getPlayer())) {
 			e.setMessage(ChatColor.GOLD + e.getMessage());
 		}
 		
@@ -26,7 +26,7 @@ public class ChatListener implements Listener {
 	
 	@EventHandler
 	public void onPlayerComandPreprocessEvent(PlayerCommandPreprocessEvent e) {
-		if (m.isChatMuted() && !e.getPlayer().isOp() && e.getMessage().toLowerCase().startsWith("/me"))
+		if (m.isChatMuted() && !m.isAdmin(e.getPlayer()) && e.getMessage().toLowerCase().startsWith("/me"))
 			e.setCancelled(true);
 	}
 
