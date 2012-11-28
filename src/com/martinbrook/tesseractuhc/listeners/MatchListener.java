@@ -115,6 +115,16 @@ public class MatchListener implements Listener {
 	
 	@EventHandler(ignoreCancelled = true)
 	public void onEntityDamageByEntity(EntityDamageByEntityEvent e) {
+		
+		// Cancel any damage caused by spectators
+		if (e.getDamager() instanceof Player) {
+			Player p = (Player) e.getDamager();
+			if (p.isOp() && !m.isInteractingAdmin(p)) {
+				e.setCancelled(true);
+				return;
+			}
+		}
+		
 		// Only interested in players taking damage
 		if (e.getEntityType() != EntityType.PLAYER) return;
 		
