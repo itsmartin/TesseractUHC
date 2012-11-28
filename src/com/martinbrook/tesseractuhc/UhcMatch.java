@@ -1025,7 +1025,7 @@ public class UhcMatch {
 			public void run() {
 				runSpawnKeeper();
 			}
-		}, 20L, 20L);
+		}, 40L, 40L);
 	}
 
 	private void disableSpawnKeeper() {
@@ -1037,6 +1037,10 @@ public class UhcMatch {
 			if (!p.isOp() && p.getLocation().getY() < 128) {
 				TeleportUtils.doTeleport(p, startingWorld.getSpawnLocation());
 			}
+			p.setHealth(20);
+			p.setFoodLevel(20);
+			p.setExhaustion(0.0F);
+			p.setSaturation(5.0F);
 		}
 	}
 	
