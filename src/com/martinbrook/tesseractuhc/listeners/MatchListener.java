@@ -108,7 +108,7 @@ public class MatchListener implements Listener {
 		// Update player list
 		m.updatePlayerList((Player) e.getEntity(), -e.getDamage());
 		
-		m.sendNotification(new DamageNotification(up, e.getDamage(), e.getCause()), e.getEntity().getLocation());
+		m.sendNotification(new DamageNotification(up, e.getCause()), e.getEntity().getLocation());
 		
 	}
 	
@@ -125,7 +125,7 @@ public class MatchListener implements Listener {
 		// Update player list
 		m.updatePlayerList((Player) e.getEntity(), -e.getDamage());
 
-		m.sendNotification(new DamageNotification(up, e.getDamage(), e.getCause(), e.getDamager()), e.getEntity().getLocation());
+		m.sendNotification(new DamageNotification(up, e.getCause(), e.getDamager()), e.getEntity().getLocation());
 		
 	}
 

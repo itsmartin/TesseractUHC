@@ -16,25 +16,22 @@ import com.martinbrook.tesseractuhc.UhcPlayer;
 
 public class DamageNotification extends UhcNotification {
 	private UhcPlayer damaged;
-	private int damageAmount;
 	private DamageCause cause;
 	private Entity damager;
 
 
 
-	public DamageNotification(UhcPlayer damaged, int damageAmount, DamageCause cause, Entity damager) {
+	public DamageNotification(UhcPlayer damaged, DamageCause cause, Entity damager) {
 		super();
 		this.damaged = damaged;
-		this.damageAmount = damageAmount;
 		this.cause = cause;
 		this.damager = damager;
 	}
 
 
-	public DamageNotification(UhcPlayer damaged, int damageAmount, DamageCause cause) {
+	public DamageNotification(UhcPlayer damaged, DamageCause cause) {
 		super();
 		this.damaged = damaged;
-		this.damageAmount = damageAmount;
 		this.cause = cause;
 		this.damager = null;
 	}
@@ -42,19 +39,11 @@ public class DamageNotification extends UhcNotification {
 
 	@Override
 	public String formatForPlayers() {
-		String formattedDamage;
-		formattedDamage = String.format("%d", damageAmount / 2);
-		if (damageAmount / 2.0 != Math.floor(damageAmount / 2.0))
-			formattedDamage += ".5";
-		
-		formattedDamage += " heart";
-		if (damageAmount != 2) formattedDamage += "s";
-		
 		if (damager != null) {
 			if (damager instanceof Player) {
 				// PVP damage 
 				if (cause == DamageCause.ENTITY_ATTACK)
-					return ChatColor.RED + damaged.getName() + " was hurt by " + ((Player) damager).getDisplayName() + " (" + formattedDamage + ")";
+					return ChatColor.RED + damaged.getName() + " was hurt by " + ((Player) damager).getDisplayName();
 				else
 					return null;
 			} else if (damager instanceof Projectile) {
@@ -63,18 +52,18 @@ public class DamageNotification extends UhcNotification {
 					if (damager.getType() == EntityType.ARROW)
 						return ChatColor.RED + damaged.getName() + " was shot ";
 					else if (damager.getType() == EntityType.SPLASH_POTION)
-						return ChatColor.RED + damaged.getName() + " was damaged by a splash potion (" + formattedDamage + ")";
+						return ChatColor.RED + damaged.getName() + " was damaged by a splash potion";
 					else return null;
 				} else {
 					if (source instanceof Player) {
 						if (damager.getType() == EntityType.ARROW)
-							return ChatColor.RED + damaged.getName() + " was shot at by " + ((Player) source).getDisplayName() + " (" + formattedDamage + ")";
+							return ChatColor.RED + damaged.getName() + " was shot at by " + ((Player) source).getDisplayName();
 						else if (damager.getType() == EntityType.SPLASH_POTION)
-							return ChatColor.RED + damaged.getName() + " was splashed by " + ((Player) source).getDisplayName() + " (" + formattedDamage + ")";
+							return ChatColor.RED + damaged.getName() + " was splashed by " + ((Player) source).getDisplayName();
 					} else if (source instanceof Skeleton){
-						return ChatColor.RED + damaged.getName() + " took " + formattedDamage + " of damage from a skeleton";
+						return ChatColor.RED + damaged.getName() + " took damage from a skeleton";
 					} else if (source instanceof Ghast) {
-						return ChatColor.RED + damaged.getName() + " took " + formattedDamage + " of damage from a ghast fireball";
+						return ChatColor.RED + damaged.getName() + " took damage from a ghast fireball";
 					}
 				}
 			} else {
@@ -103,7 +92,7 @@ public class DamageNotification extends UhcNotification {
 				}
 				else if (damager.getType() == EntityType.PRIMED_TNT) return null;
 				
-				return ChatColor.RED + damaged.getName() + " took " + formattedDamage + " of damage from " + type;
+				return ChatColor.RED + damaged.getName() + " took damage from " + type;
 			}
 		}
 		// Environmental damage
@@ -124,7 +113,7 @@ public class DamageNotification extends UhcNotification {
 		else if (cause == DamageCause.WITHER) type = "wither";
 		else return null;
 		
-		return ChatColor.RED + damaged.getName() + " took " + formattedDamage + " of " + type + " damage!";
+		return ChatColor.RED + damaged.getName() + " took some " + type + " damage!";
 	}
 
 }
