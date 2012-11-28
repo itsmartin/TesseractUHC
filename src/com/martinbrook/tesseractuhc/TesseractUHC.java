@@ -226,7 +226,7 @@ public class TesseractUHC extends JavaPlugin {
 			response = cPlayers(args);
 		} else if (cmd.equals("teams")) {
 			response = cTeams(args);
-		} else if (cmd.equals("matchinfo") || cmd.equals("mi")) {
+		} else if (cmd.equals("matchinfo") || cmd.equals("mi") || cmd.equals("match")) {
 			response = cMatchinfo();
 		} else {
 			success = false;
