@@ -218,16 +218,15 @@ public class TesseractUHC extends JavaPlugin {
 			return ERROR_COLOR + "This is not a team match. Use /players to list players";
 		
 		if (args.length < 1) {
-			String response = "";
 			Collection<UhcTeam> allTeams = match.getTeams();
-			response += allTeams.size() + " teams (" + match.countTeamsInMatch() + " still alive):\n";
+			String response = ChatColor.GOLD + "" + allTeams.size() + " teams (" + match.countTeamsInMatch() + " still alive):\n";
 			
 			for (UhcTeam team : allTeams) {
-				response += (team.aliveCount()==0 ? ERROR_COLOR + "[D] " : OK_COLOR);
+				response += ChatColor.BOLD + "" + (team.aliveCount()==0 ? ChatColor.RED + "[D] " : ChatColor.GREEN);
+				response += team.getName() + "\n" + ChatColor.RESET;
 				
-				response += team.getName();
-				response += " (start point " + (team.getStartPoint().getNumber()) + ")";
-				response += "\n";
+				response += ChatColor.GRAY + "Start point: " + (team.getStartPoint().getNumber()) + ")";
+				response += " | Team ID: " + team.getIdentifier() + "\n";
 			}
 			return response;
 		}
@@ -279,7 +278,7 @@ public class TesseractUHC extends JavaPlugin {
 				response += allPlayers.size() + " players (" + match.countPlayersInMatch() + " still alive):\n";
 				
 				for (UhcPlayer up : allPlayers) {
-					response += (up.isDead() ? ERROR_COLOR + "[D] " : OK_COLOR);
+					response += (up.isDead() ? ChatColor.RED + "[D] " : ChatColor.GREEN);
 					
 					response += up.getName();
 					response += " (start point " + (up.getStartPoint().getNumber()) + ")";
@@ -289,17 +288,17 @@ public class TesseractUHC extends JavaPlugin {
 	
 			} else {
 				Collection<UhcTeam> allTeams = match.getTeams();
-				response += allTeams.size() + " teams (" + match.countTeamsInMatch() + " still alive):\n";
+				response = ChatColor.GOLD + "" + allTeams.size() + " teams (" + match.countTeamsInMatch() + " still alive):\n";
 				
 				for (UhcTeam team : allTeams) {
-					response += (team.aliveCount()==0 ? ERROR_COLOR + "[D] " : OK_COLOR);
+					response += ChatColor.BOLD + "" + (team.aliveCount()==0 ? ChatColor.RED + "[D] " : ChatColor.GREEN);
+					response += team.getName() + "\n" + ChatColor.RESET;
 					
-					response += team.getName();
-					response += " (start point " + (team.getStartPoint().getNumber()) + ")";
-					response += "\n";
+					response += ChatColor.GRAY + "Start point: " + (team.getStartPoint().getNumber()) + ")";
+					response += " | Team ID: " + team.getIdentifier() + "\n";
 					for (UhcPlayer up : team.getPlayers()) {
-						response += "  ";
-						response += (up.isDead() ? ERROR_COLOR + "[D] " : OK_COLOR);
+						response += "  - ";
+						response += (up.isDead() ? ChatColor.RED + "[D] " : ChatColor.GREEN);
 						
 						response += up.getName();
 						response += (!up.isLaunched() ? " (unlaunched)" : "");
