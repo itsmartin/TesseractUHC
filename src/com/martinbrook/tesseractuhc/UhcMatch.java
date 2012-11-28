@@ -1913,8 +1913,15 @@ public class UhcMatch {
 						ChatColor.ITALIC + team.getName() + ChatColor.GRAY +
 						" [" + team.getIdentifier() + "]\n";
 				for (UhcPlayer up : team.getPlayers()) {
+					String health;
+					
+					Player p = server.getPlayerExact(up.getName());
+					if (p != null)
+						health = ChatColor.GOLD + "(" + Double.toString(p.getHealth() / 2.0) + ")";
+					else
+						health = ChatColor.GRAY + "[offline]";
 					response += (up.isDead() ? ChatColor.RED + "  D " : ChatColor.GREEN + "  * ")
-							+ up.getName() + "\n";
+							+ up.getName() + " " + health + "\n";
 				}
 			}
 		}
