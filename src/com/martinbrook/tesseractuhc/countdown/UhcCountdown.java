@@ -17,7 +17,11 @@ public abstract class UhcCountdown {
 		this.remainingSeconds = countdownLength;
 		this.plugin = plugin;
 		this.match = match;
-		this.tick();
+		this.task = plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
+			public void run() {
+				tick();
+			}
+		});
 	}
 	
 	protected abstract void nearing();
