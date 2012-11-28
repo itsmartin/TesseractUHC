@@ -21,11 +21,12 @@ public class LoginListener implements Listener {
 		m.setVanish(e.getPlayer());
 
 		// If player is op, set them as a spectator
-		if (e.getPlayer().isOp()) {
+		if (e.getPlayer().isOp() || m.isAdmin(e.getPlayer())) {
 			m.addSpectator(e.getPlayer());
 			return;
 		}
-
+		
+		
 		// Get a uhcplayer if possible
 		UhcPlayer up = m.getUhcPlayer(e.getPlayer());
 				
