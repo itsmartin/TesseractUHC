@@ -302,7 +302,6 @@ public class TesseractUHC extends JavaPlugin {
 						response += (up.isDead() ? ERROR_COLOR + "[D] " : OK_COLOR);
 						
 						response += up.getName();
-						response += " (start point " + (up.getStartPoint().getNumber()) + ")";
 						response += (!up.isLaunched() ? " (unlaunched)" : "");
 						response += "\n";
 					}
