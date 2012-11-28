@@ -58,6 +58,8 @@ public class TesseractUHC extends JavaPlugin {
 	
 	public void onDisable(){
 		match.saveMatchParameters();
+		this.match = null;
+		getServer().getScheduler().cancelTasks(this);
 	}
 	
 	@Override
