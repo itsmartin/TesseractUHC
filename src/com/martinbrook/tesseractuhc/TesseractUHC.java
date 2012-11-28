@@ -591,8 +591,13 @@ public class TesseractUHC extends JavaPlugin {
 	 * @return response
 	 */
 	private String cCdc() {
-		match.cancelCountdown();
-		return OK_COLOR + "Countdown cancelled!";
+		if (match.cancelMatchCountdown())
+			return OK_COLOR + "Match countdown cancelled!";
+		
+		if (match.cancelBorderCountdown())
+			return OK_COLOR + "Border countdown cancelled!";
+
+		return ERROR_COLOR + "No countdown is in progress";
 		
 	}
 	

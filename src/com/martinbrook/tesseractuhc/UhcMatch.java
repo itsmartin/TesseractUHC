@@ -1699,12 +1699,20 @@ public class UhcMatch {
 		
 	}
 	
-	public void cancelCountdown() {
-		if (this.matchCountdown != null) {
-			matchCountdown.cancel();
-			matchCountdown = null;
-		}
-		
+	public boolean cancelMatchCountdown() {
+		if (this.matchCountdown == null) return false;
+
+		matchCountdown.cancel();
+		matchCountdown = null;
+		return true;
+	}
+	
+	public boolean cancelBorderCountdown() {
+		if (this.borderCountdown == null) return false;
+
+		borderCountdown.cancel();
+		borderCountdown = null;
+		return true;
 	}
 
 	public boolean startBorderCountdown(int countLength, int newRadius) {
