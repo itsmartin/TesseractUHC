@@ -1888,6 +1888,40 @@ public class UhcMatch {
 	public boolean isAdmin(Player p) {
 		return p.isOp(); // Temporary solution only
 	}
+
+
+	public String getPlayerStatusReport() {
+		String response = "";
+		if (this.isFFA()) {
+			Collection<UhcPlayer> allPlayers = getUhcPlayers();
+			response += allPlayers.size() + " players (" + countPlayersInMatch() + " still alive):\n";
+			
+			for (UhcPlayer up : allPlayers) {
+				response += (up.isDead() ? ChatColor.RED + "[D] " : ChatColor.GREEN);
+				
+				response += up.getName();
+				response += " (start point " + (up.getStartPoint().getNumber()) + ")";
+				response += "\n";
+			}
+
+		} else {
+			Collection<UhcTeam> allTeams = getTeams();
+			response = ChatColor.GOLD + "" + allTeams.size() + " teams (" + countTeamsInMatch() + " still alive):\n";
+			
+			for (UhcTeam team : allTeams) {
+				response += (team.aliveCount()==0 ? ChatColor.RED + "[D] " : ChatColor.GREEN) + "" +
+						ChatColor.ITALIC + team.getName() + ChatColor.GRAY +
+						" [" + team.getIdentifier() + "]\n";
+				for (UhcPlayer up : team.getPlayers()) {
+					response += (up.isDead() ? ChatColor.RED + "  D " : ChatColor.GREEN + "  * ")
+							+ up.getName() + "\n";
+				}
+			}
+		}
+		
+		
+		return response;
+	}
 	
 	
 

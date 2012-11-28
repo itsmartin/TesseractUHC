@@ -227,7 +227,7 @@ public class TesseractUHC extends JavaPlugin {
 		} else if (cmd.equals("teams")) {
 			response = cTeams(args);
 		} else if (cmd.equals("matchinfo") || cmd.equals("mi") || cmd.equals("match")) {
-			response = cMatchinfo();
+			response = pMatchinfo();
 		} else {
 			success = false;
 		}
@@ -296,38 +296,8 @@ public class TesseractUHC extends JavaPlugin {
 
 		if (args.length < 1) {
 
-			String response = "";
+			return match.getPlayerStatusReport();
 			
-			if (match.isFFA()) {
-				Collection<UhcPlayer> allPlayers = match.getUhcPlayers();
-				response += allPlayers.size() + " players (" + match.countPlayersInMatch() + " still alive):\n";
-				
-				for (UhcPlayer up : allPlayers) {
-					response += (up.isDead() ? ChatColor.RED + "[D] " : ChatColor.GREEN);
-					
-					response += up.getName();
-					response += " (start point " + (up.getStartPoint().getNumber()) + ")";
-					response += (!up.isLaunched() ? " (unlaunched)" : "");
-					response += "\n";
-				}
-	
-			} else {
-				Collection<UhcTeam> allTeams = match.getTeams();
-				response = ChatColor.GOLD + "" + allTeams.size() + " teams (" + match.countTeamsInMatch() + " still alive):\n";
-				
-				for (UhcTeam team : allTeams) {
-					response += (team.aliveCount()==0 ? ChatColor.RED + "[D] " : ChatColor.GREEN) + "" +
-							ChatColor.ITALIC + team.getName() + ChatColor.GRAY +
-							" [" + team.getIdentifier() + "]\n";
-					for (UhcPlayer up : team.getPlayers()) {
-						response += (up.isDead() ? ChatColor.RED + "  D " : ChatColor.GREEN + "  * ")
-								+ up.getName() + (!up.isLaunched() ? " (unlaunched)" : "") + "\n";
-					}
-				}
-			}
-			
-			
-			return response;
 		}
 		if (args[0].equalsIgnoreCase("add")) {
 			if (args.length < 2)
@@ -405,6 +375,8 @@ public class TesseractUHC extends JavaPlugin {
 			response = pTeam(sender, args);
 		} else if (cmd.equals("leave")) {
 			response = pLeave(sender, args);
+		} else if (cmd.equals("matchinfo") || cmd.equals("mi") || cmd.equals("match")) {
+			response = pMatchinfo();
 		} else {
 			success = false;
 		}
@@ -923,12 +895,12 @@ public class TesseractUHC extends JavaPlugin {
 	}
 
 	/**
-	 * Carry out the /matchinfo or /mi command
+	 * Carry out the /matchinfo, /mi or /match command
 	 * 
 	 * @return response
 	 */
-	private String cMatchinfo() {
-		return match.matchTimeAnnouncement(true) + "\n" + match.matchStatusAnnouncement(); 
+	private String pMatchinfo() {
+		return match.matchTimeAnnouncement(true) + "\n" + match.getPlayerStatusReport(); 
 	}
 
 	/**
