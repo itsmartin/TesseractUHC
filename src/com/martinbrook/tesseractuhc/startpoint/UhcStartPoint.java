@@ -3,6 +3,7 @@ package com.martinbrook.tesseractuhc.startpoint;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
 import org.bukkit.block.Chest;
 import org.bukkit.block.Sign;
 import org.bukkit.inventory.Inventory;
@@ -109,7 +110,10 @@ public abstract class UhcStartPoint {
 		Block b = getSignBlock();
 		b.setType(Material.SIGN_POST);
 		
-		Sign s = (Sign) b.getState();
+		BlockState bs = b.getState();
+		if (!(bs instanceof Sign)) return;
+		
+		Sign s = (Sign) bs;
 		String[] t = MatchUtils.signWrite(text);
 		
 		s.setLine(0, t[0]);
