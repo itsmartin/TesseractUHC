@@ -222,11 +222,9 @@ public class TesseractUHC extends JavaPlugin {
 			String response = ChatColor.GOLD + "" + allTeams.size() + " teams (" + match.countTeamsInMatch() + " still alive):\n";
 			
 			for (UhcTeam team : allTeams) {
-				response += ChatColor.BOLD + "" + (team.aliveCount()==0 ? ChatColor.RED + "[D] " : ChatColor.GREEN);
-				response += team.getName() + "\n" + ChatColor.RESET;
-				
-				response += ChatColor.GRAY + "Start point: " + (team.getStartPoint().getNumber()) + ")";
-				response += " | Team ID: " + team.getIdentifier() + "\n";
+				response += (team.aliveCount()==0 ? ChatColor.RED + "[D] " : ChatColor.GREEN) + "" +
+						ChatColor.ITALIC + team.getName() + ChatColor.GRAY +
+						" [" + team.getIdentifier() + "]\n";
 			}
 			return response;
 		}
@@ -291,18 +289,12 @@ public class TesseractUHC extends JavaPlugin {
 				response = ChatColor.GOLD + "" + allTeams.size() + " teams (" + match.countTeamsInMatch() + " still alive):\n";
 				
 				for (UhcTeam team : allTeams) {
-					response += ChatColor.BOLD + "" + (team.aliveCount()==0 ? ChatColor.RED + "[D] " : ChatColor.GREEN);
-					response += team.getName() + "\n" + ChatColor.RESET;
-					
-					response += ChatColor.GRAY + "Start point: " + (team.getStartPoint().getNumber()) + ")";
-					response += " | Team ID: " + team.getIdentifier() + "\n";
+					response += (team.aliveCount()==0 ? ChatColor.RED + "[D] " : ChatColor.GREEN) + "" +
+							ChatColor.ITALIC + team.getName() + ChatColor.GRAY +
+							" [" + team.getIdentifier() + "]\n";
 					for (UhcPlayer up : team.getPlayers()) {
-						response += "  - ";
-						response += (up.isDead() ? ChatColor.RED + "[D] " : ChatColor.GREEN);
-						
-						response += up.getName();
-						response += (!up.isLaunched() ? " (unlaunched)" : "");
-						response += "\n";
+						response += (up.isDead() ? ChatColor.RED + "  D " : ChatColor.GREEN + "  * ")
+								+ up.getName() + (!up.isLaunched() ? " (unlaunched)" : "") + "\n";
 					}
 				}
 			}
@@ -419,7 +411,7 @@ public class TesseractUHC extends JavaPlugin {
 		if (args.length < 1)
 			return ERROR_COLOR + "Syntax: /team identifier [full name]";
 		
-		String identifier = args[0];
+		String identifier = args[0].toLowerCase();
 		String name = "";
 		
 		if (args.length < 2)
@@ -435,9 +427,9 @@ public class TesseractUHC extends JavaPlugin {
 		if (!match.addPlayer(sender.getName(), identifier))
 			return ERROR_COLOR + "An error occurred. The team has been created but you could not be joined to it.";
 		
-		match.broadcast(ChatColor.GOLD + "Team " + ChatColor.BOLD + ChatColor.AQUA + name + ChatColor.RESET 
-				+ ChatColor.GOLD + "was created by " + sender.getDisplayName() + ".\n"
-				+ "To join, type " + ChatColor.BOLD + ChatColor.AQUA + "/join " + identifier);
+		match.broadcast(ChatColor.GOLD + "Team " + ChatColor.AQUA + ChatColor.ITALIC + name + ChatColor.RESET 
+				+ ChatColor.GOLD + " was created by " + sender.getDisplayName() + ".\n"
+				+ "To join, type " + ChatColor.AQUA + ChatColor.ITALIC + "/join " + identifier);
 		
 		return OK_COLOR + "You have created the team: " + name;
 		
