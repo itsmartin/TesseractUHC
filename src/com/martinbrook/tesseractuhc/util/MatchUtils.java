@@ -15,17 +15,17 @@ public class MatchUtils {
 
 	private MatchUtils() { }
 	
-	public static String formatDuration(int d, boolean precise) {
+	public static String formatDuration(long d, boolean precise) {
 		if (precise) {
-			int seconds = d % 60;
+			long seconds = d % 60;
 			d = d / 60;
-			int minutes = d % 60;
-			int hours = d / 60;
+			long minutes = d % 60;
+			long hours = d / 60;
 			
 			// The string
 			return String.format("%02d:%02d:%02d", hours, minutes, seconds);
 		} else {
-			int minutes = d / 60;
+			long minutes = d / 60;
 			return minutes + " minute" + (minutes != 1 ? "s" : "");
 			
 		}
@@ -34,7 +34,11 @@ public class MatchUtils {
 	
 	public static String formatDuration(Calendar t1, Calendar t2, boolean precise) {
 		// Convert to duration in seconds
-		return formatDuration((int) (t2.getTimeInMillis() - t1.getTimeInMillis()) / 1000, precise);
+		return formatDuration(getDuration(t1, t2), precise);
+	}
+	
+	public static long getDuration(Calendar t1, Calendar t2) {
+		return (t2.getTimeInMillis() - t1.getTimeInMillis()) / 1000;
 	}
 
 	/**

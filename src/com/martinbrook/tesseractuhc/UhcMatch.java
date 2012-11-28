@@ -586,7 +586,7 @@ public class UhcMatch {
 	 * Announce the total match duration
 	 */
 	public void endMatch() {
-		announceMatchTime(true);
+		broadcast(matchTimeAnnouncement(true));
 		stopMatchTimer();
 		matchPhase = MatchPhase.POST_MATCH;
 		// Put all players into creative
@@ -610,9 +610,9 @@ public class UhcMatch {
 		matchStartTime = Calendar.getInstance();
 		matchTimer = server.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
 			public void run() {
-				announceMatchTime(false);
+				doMatchProgressAnnouncement();
 			}
-		}, 36000L, 36000L);
+		}, 1200L, 1200L);
 	}
 	
 	/**
@@ -625,14 +625,15 @@ public class UhcMatch {
 	}
 	
 	/**
-	 * Announce the current match time in chat
-	 * 
-	 * @param precise Whether to give a precise time (00:00:00) instead of (xx minutes)
+	 * Display the current match time if it is a multiple of 30.
 	 */
-	public void announceMatchTime(boolean precise) {
-		broadcast(matchTimeAnnouncement(precise));
+	private void doMatchProgressAnnouncement() {
+		long matchTime = MatchUtils.getDuration(matchStartTime, Calendar.getInstance()) / 60;
+		if (matchTime % 30 == 0) {
+			broadcast(matchTimeAnnouncement(false));
+		}
 	}
-	
+
 
 	/**
 	 * Plays a chat script
