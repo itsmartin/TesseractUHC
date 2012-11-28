@@ -979,6 +979,7 @@ public class UhcMatch {
 		if (isUHC()) setupModifiedRecipes();
 		setVanish(); // Update vanish status
 		butcherHostile();
+		sortPlayersInMatch();
 
 		// Add all players to the launch queue
 		for(UhcPlayer up : getUhcPlayers())
@@ -988,7 +989,19 @@ public class UhcMatch {
 		launchNext();
 	}
 	
-	
+
+	private void sortPlayersInMatch() {
+		// Refill the playersInMatch arraylist, sorting players into order.
+		playersInMatch.clear();
+		for (UhcTeam team : teamsInMatch)
+			for (UhcPlayer up : team.getPlayers())
+				playersInMatch.add(up);
+		
+		
+		
+	}
+
+
 	private void launchNext() {
 		if (this.launchQueue.size()==0) {
 			adminBroadcast(TesseractUHC.OK_COLOR + "Launching complete");
