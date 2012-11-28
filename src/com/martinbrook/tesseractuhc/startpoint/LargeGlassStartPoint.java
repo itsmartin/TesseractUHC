@@ -70,7 +70,16 @@ public class LargeGlassStartPoint extends UhcStartPoint {
 		b.getRelative(-2,-1,2).setType(Material.GLOWSTONE);
 		b.getRelative(2,-1,-2).setType(Material.GLOWSTONE);
 		b.getRelative(2,-1,2).setType(Material.GLOWSTONE);
-				
+		
+		// Fill with air
+		for(int x = -1; x <= 1; x++) {
+			for(int z = -1; z <= 1; z++) {
+				for (int y = 0; y <= 2; y++) {
+					b.getRelative(x,y,z).setType(Material.AIR);
+				}
+			}
+		}
+		
 		this.placeChest();
 		this.makeSign();
 	}
