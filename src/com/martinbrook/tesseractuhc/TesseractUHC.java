@@ -435,6 +435,10 @@ public class TesseractUHC extends JavaPlugin {
 		if (!match.addPlayer(sender.getName(), identifier))
 			return ERROR_COLOR + "An error occurred. The team has been created but you could not be joined to it.";
 		
+		match.broadcast(ChatColor.GOLD + "Team " + ChatColor.BOLD + ChatColor.AQUA + name + ChatColor.RESET 
+				+ ChatColor.GOLD + "was created by " + sender.getDisplayName() + ".\n"
+				+ "To join, type " + ChatColor.BOLD + ChatColor.AQUA + "/join " + identifier);
+		
 		return OK_COLOR + "You have created the team: " + name;
 		
 	}
