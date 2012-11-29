@@ -1,87 +1,23 @@
 package com.martinbrook.tesseractuhc.util;
 
-import org.bukkit.Chunk;
-import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Player;
-
-import com.martinbrook.tesseractuhc.TesseractUHC;
 
 public class TeleportUtils {
 
 	private TeleportUtils() { }
 
 	/**
-	 * Teleport one player to another. If player is opped, fancy
-	 * teleport will be done. Adds a custom message to be displayed.
-	 * 
-	 * @param p1 player to be teleported
-	 * @param p2 player to be teleported to
-	 * @param message the message to be displayed
-	 */
-	public static void doTeleport(Player p1, Player p2, String message, boolean fancy) {
-		//saveTpLocation(p1);
-	
-		// if the first player is a spectator, do fancy teleport.
-		if (!fancy)
-			p1.teleport(p2);
-		else
-			doFancyTeleport(p1, p2);
-	
-		// If player is in creative, set them to be in flight
-		if (p1.getGameMode() == GameMode.CREATIVE)
-			p1.setFlying(true);
-	
-		// Send the teleport message, if provided
-		if (message != null && !message.isEmpty())
-			p1.sendMessage(TesseractUHC.OK_COLOR + message);
-	}
-
-	/**
-	 * Teleport one player to another. If player is opped, fancy
-	 * teleport will be done.
-	 * 
-	 * @param p1 player to be teleported
-	 * @param p2 player to be teleported to
-	 */
-	public static void doTeleport(Player p1, Player p2, boolean fancy) {
-		doTeleport(p1, p2, "You have been teleported!", fancy);
-	}
-
-	/**
-	 * Teleport a player to a specific location
-	 * 
-	 * @param p1 player to be teleported
-	 * @param l location to be teleported to
-	 */
-	public static void doTeleport(Player p1, Location l) {
-		//saveTpLocation(p1);
-		// Check if the location is loaded
-		World w = l.getWorld();
-		Chunk chunk = w.getChunkAt(l);
-		if (!w.isChunkLoaded(chunk))
-			w.loadChunk(chunk);
-		p1.teleport(l);
-		if (p1.getGameMode() == GameMode.CREATIVE)
-			p1.setFlying(true);
-		p1.sendMessage(TesseractUHC.OK_COLOR + "You have been teleported!");
-	}
-
-	/**
-	 * Teleports a player NEAR to another player
+	 * Finds a teleport location for a spectator NEAR to another location
 	 * 
 	 * If possible, they will be placed 5 blocks away, facing towards the
 	 * destination player.
 	 * 
-	 * @param streamer the Player who will be fancy-teleported
-	 * @param p the Player they are to be teleported to
+	 * @param l the location they are to be teleported near to
 	 */
-	private static void doFancyTeleport(Player streamer, Player p) {
-		Location l = p.getLocation();
-	
+	public static Location getSpectatorTeleportLocation(Location l) {
 		Location lp = new Location(l.getWorld(), l.getX(), l.getY(), l.getZ());
 		Location lxp = new Location(l.getWorld(), l.getX(), l.getY(), l.getZ());
 		Location lxn = new Location(l.getWorld(), l.getX(), l.getY(), l.getZ());
@@ -141,7 +77,7 @@ public class TeleportUtils {
 			tpl = lzn;
 			tpl.setYaw(0);
 		}
-		streamer.teleport(tpl);
+		return tpl;
 	}
 
 	/**

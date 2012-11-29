@@ -34,8 +34,6 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.ShapelessRecipe;
-import org.bukkit.potion.PotionEffect;
-
 import com.martinbrook.tesseractuhc.countdown.BorderCountdown;
 import com.martinbrook.tesseractuhc.countdown.MatchCountdown;
 import com.martinbrook.tesseractuhc.countdown.PVPCountdown;
@@ -45,7 +43,6 @@ import com.martinbrook.tesseractuhc.startpoint.LargeGlassStartPoint;
 import com.martinbrook.tesseractuhc.startpoint.SmallGlassStartPoint;
 import com.martinbrook.tesseractuhc.startpoint.UhcStartPoint;
 import com.martinbrook.tesseractuhc.util.FileUtils;
-import com.martinbrook.tesseractuhc.util.TeleportUtils;
 import com.martinbrook.tesseractuhc.util.MatchUtils;
 
 public class UhcMatch {
@@ -470,79 +467,7 @@ public class UhcMatch {
 				entity.remove();
 		}
 	}
-	
-	/**
-	 * Heal, feed, clear XP, inventory and potion effects of the given player
-	 * 
-	 * @param p The player to be renewed
-	 */
-	public void renew(Player p) {
-		heal(p);
-		feed(p);
-		clearXP(p);
-		clearPotionEffects(p);
-		clearInventory(p);
-	}
 
-
-	/**
-	 * Heal the given player
-	 * 
-	 * @param p The player to be healed
-	 */
-	public void heal(Player p) {
-		p.setHealth(20);
-	}
-
-	/**
-	 * Feed the given player
-	 * 
-	 * @param p The player to be fed
-	 */
-	public void feed(Player p) {
-		p.setFoodLevel(20);
-		p.setExhaustion(0.0F);
-		p.setSaturation(5.0F);
-	}
-
-	/**
-	 * Reset XP of the given player
-	 * 
-	 * @param p The player
-	 */
-	public void clearXP(Player p) {
-		p.setTotalExperience(0);
-		p.setExp(0);
-		p.setLevel(0);
-	}
-
-	/**
-	 * Clear potion effects of the given player
-	 * 
-	 * @param p The player
-	 */
-	public void clearPotionEffects(Player p) {
-		for (PotionEffect pe : p.getActivePotionEffects()) {
-			p.removePotionEffect(pe.getType());
-		}
-	}
-
-	/**
-	 * Clear inventory and ender chest of the given player
-	 * 
-	 * @param player
-	 */
-	public void clearInventory(Player player) {
-		PlayerInventory i = player.getInventory();
-		i.clear();
-		i.setHelmet(null);
-		i.setChestplate(null);
-		i.setLeggings(null);
-		i.setBoots(null);
-		
-		player.getEnderChest().clear();
-		
-	}
 	
 	/**
 	 * Start the match
@@ -554,16 +479,7 @@ public class UhcMatch {
 		matchPhase = MatchPhase.MATCH;
 		startingWorld.setTime(0);
 		butcherHostile();
-		for (UhcPlayer up : this.getUhcPlayers()) {
-			Player p = server.getPlayerExact(up.getName());
-			if (p != null) {
-				feed(p);
-				clearXP(p);
-				clearPotionEffects(p);
-				heal(p);
-				p.setGameMode(GameMode.SURVIVAL);
-			}
-		}
+		for (UhcPlayer up : this.getUhcPlayers()) up.start();
 		setPermaday(false);
 		startMatchTimer();
 		setVanish();
@@ -900,13 +816,8 @@ public class UhcMatch {
 	public boolean sendToStartPoint(Player p) {
 		UhcPlayer up = getUhcPlayer(p);
 		if (up == null) return false;
+		return (up.sendToStartPoint());
 		
-		// Teleport the player to the start point
-		p.setGameMode(GameMode.ADVENTURE);
-		TeleportUtils.doTeleport(p, up.getStartPoint().getLocation());
-		renew(p);
-		
-		return true;
 	}
 	
 	/**
@@ -919,7 +830,6 @@ public class UhcMatch {
 	 */
 	public boolean removePlayer(String name) {
 		UhcPlayer up = uhcPlayers.remove(name.toLowerCase());
-		Player p = server.getPlayerExact(name);
 		
 		if (up != null) {
 			// Remove them from their team
@@ -937,12 +847,9 @@ public class UhcMatch {
 				broadcast(ChatColor.GOLD + up.getName() + " has left the match");
 				broadcastMatchStatus();
 			}
-		}
-		
-		// Teleport the player if possible
-		if (p != null) TeleportUtils.doTeleport(p,startingWorld.getSpawnLocation());
-		
-		return true;
+			up.teleport(startingWorld.getSpawnLocation());
+			return true;
+		} else return false;
 	}
 	
 	/**
@@ -1068,7 +975,7 @@ public class UhcMatch {
 	private void runSpawnKeeper() {
 		for (Player p : server.getOnlinePlayers()) {
 			if (!isAdmin(p) && p.getLocation().getY() < 128) {
-				TeleportUtils.doTeleport(p, startingWorld.getSpawnLocation());
+				p.teleport(startingWorld.getSpawnLocation());
 			}
 			p.setHealth(20);
 			p.setFoodLevel(20);
@@ -1855,7 +1762,7 @@ public class UhcMatch {
 	}
 	
 	public UhcSpectator addSpectator(Player p) {
-		UhcSpectator spec = new UhcSpectator(p.getName());
+		UhcSpectator spec = new UhcSpectator(p.getName(), this);
 		uhcSpectators.put(p.getName().toLowerCase(), spec);
 		p.setGameMode(GameMode.CREATIVE);
 		setVanish(p);

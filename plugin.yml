@@ -33,6 +33,9 @@ commands:
  tpnext:
   description: Cycles through players
   usage: /tpnext
+ tpback:
+  description: Returns you to the position you were before your last teleport
+  usage: /tpback
  setspawn:
   description: Sets the spawn point to your current location
   usage: /setspawn
