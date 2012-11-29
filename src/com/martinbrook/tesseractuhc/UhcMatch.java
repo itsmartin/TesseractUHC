@@ -1166,30 +1166,6 @@ public class UhcMatch {
 
 
 	/**
-	 * Apply the mining fatigue game mechanic
-	 * 
-	 * Players who mine stone below a certain depth increase their hunger
-	 * 
-	 * @param player The player to act upon
-	 * @param blockY The Y coordinate of the mined block
-	 */
-	public void doMiningFatigue(Player player, int blockY) {
-		Double exhaustion = 0.0;
-		
-		if (blockY < DIAMOND_LAYER) {
-			exhaustion = this.getMiningFatigueDiamond(); 
-		} else if (blockY < GOLD_LAYER) {
-			exhaustion = this.getMiningFatigueGold();
-		}
-		
-		if (exhaustion > 0)
-			player.setExhaustion((float) (player.getExhaustion() + exhaustion));
-
-				
-	}
-
-
-	/**
 	 * @return The number of players still in the match
 	 */
 	public int countParticipantsInMatch() {

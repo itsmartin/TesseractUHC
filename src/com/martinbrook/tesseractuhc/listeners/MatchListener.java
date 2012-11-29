@@ -25,6 +25,7 @@ import org.bukkit.ChatColor;
 import com.martinbrook.tesseractuhc.MatchPhase;
 import com.martinbrook.tesseractuhc.UhcMatch;
 import com.martinbrook.tesseractuhc.UhcParticipant;
+import com.martinbrook.tesseractuhc.UhcPlayer;
 import com.martinbrook.tesseractuhc.notification.DamageNotification;
 import com.martinbrook.tesseractuhc.notification.HealingNotification;
 
@@ -177,15 +178,16 @@ public class MatchListener implements Listener {
 	
 	@EventHandler(ignoreCancelled = true)
 	public void onBlockBreak(BlockBreakEvent e) {
+		UhcPlayer pl = m.getPlayer(e.getPlayer());
 		// If match hasn't started, and not op, cancel the event.
-		if ((m.getMatchPhase() == MatchPhase.PRE_MATCH || m.getMatchPhase() == MatchPhase.LAUNCHING) && !m.getPlayer(e.getPlayer()).isAdmin()) {
+		if ((m.getMatchPhase() == MatchPhase.PRE_MATCH || m.getMatchPhase() == MatchPhase.LAUNCHING) && !pl.isAdmin()) {
 			e.setCancelled(true);
 			return;
 		}
 		
 		// Mining fatigue
-		if (e.getBlock().getType() == Material.STONE) {
-			m.doMiningFatigue(e.getPlayer(), e.getBlock().getLocation().getBlockY());
+		if (e.getBlock().getType() == Material.STONE && pl.isActiveParticipant()) {
+			pl.getParticipant().doMiningFatigue(e.getBlock().getLocation().getBlockY());
 		}
 	}
 	
