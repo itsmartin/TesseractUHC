@@ -694,7 +694,7 @@ public class UhcMatch {
 		// Fail if player exists
 		if (existsUhcPlayer(name)) return null;
 		
-		UhcPlayer up = new UhcPlayer(name, team);
+		UhcPlayer up = new UhcPlayer(name, team, this);
 		team.addPlayer(up);
 		uhcPlayers.put(name.toLowerCase(), up);
 		return up;
@@ -1929,6 +1929,9 @@ public class UhcMatch {
 		
 		return response;
 	}
+
+
+	public Server getServer() { return server; }
 	
 	
 

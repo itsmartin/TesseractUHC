@@ -11,19 +11,16 @@ public class UhcPlayer implements PlayerTarget {
 	private boolean launched = false;
 	private UhcTeam team;
 	private HashSet<PlayerTarget> nearbyTargets = new HashSet<PlayerTarget>();
-	
+	private UhcMatch m;
 
 	private boolean dead = false;
 	
-	public UhcPlayer(String name, UhcTeam team) {
+	public UhcPlayer(String name, UhcTeam team, UhcMatch m) {
 		this.name = name;
 		this.team = team;
+		this.m = m;
 	}
-	
-	public UhcPlayer(Player p, UhcTeam team) {
-		this(p.getName(), team);
-	}
-	
+		
 	public String getName() {
 		return name;
 	}
@@ -72,5 +69,7 @@ public class UhcPlayer implements PlayerTarget {
 			nearbyTargets.remove(target);
 		
 	}
+		
+	public Player getPlayer() { return m.getServer().getPlayerExact(name); }
 
 }
