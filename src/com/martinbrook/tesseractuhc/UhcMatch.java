@@ -622,6 +622,7 @@ public class UhcMatch {
 		if (pl.isParticipant()) return null;
 		
 		UhcParticipant up = new UhcParticipant(pl, team);
+		pl.setParticipant(up);
 		team.addMember(up);
 		uhcParticipants.put(pl.getName().toLowerCase(), up);
 		return up;
