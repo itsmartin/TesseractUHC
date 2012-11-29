@@ -134,6 +134,9 @@ commands:
  match:
   description: Display status of the current match
   usage: /match
+ params:
+  description: Display match parameters
+  usage: /params
  players:
   description: Commands for interacting with players
   usage: /players add | /players rm | /players

@@ -258,6 +258,8 @@ public class TesseractUHC extends JavaPlugin {
 			response = pLeave(sender, args);
 		} else if (cmd.equals("matchinfo") || cmd.equals("mi") || cmd.equals("match")) {
 			response = pMatchinfo();
+		} else if (cmd.equals("params")) {
+			response = cParams();
 		} else {
 			success = false;
 		}
@@ -872,14 +874,25 @@ public class TesseractUHC extends JavaPlugin {
 	
 	private String cUhcParams() {
 		String response = ChatColor.GOLD + "Match details:\n";
+		response += ChatColor.RESET + "[uhc]           " + formatMatchParameter("uhc") + "\n";
+		response += ChatColor.RESET + "[ffa]           " + formatMatchParameter("ffa") + "\n";
+		response += ChatColor.RESET + "[nopvp]         " + formatMatchParameter("nopvp") + "\n";
+		response += ChatColor.RESET + "[killerbonus]   " + formatMatchParameter("killerbonus") + "\n";
+		response += ChatColor.RESET + "[miningfatigue] " + formatMatchParameter("miningfatigue") + "\n";
+		response += ChatColor.RESET + "[deathban]      " + formatMatchParameter("deathban") + "\n";
+		response += ChatColor.RESET + "[autospectate]  " + formatMatchParameter("autospectate") + "\n";
+		response += ChatColor.RESET + "[nolatecomers]  " + formatMatchParameter("nolatecomers") + "\n";
+		
+		return response;
+	}
+	
+	private String cParams() {
+		String response = ChatColor.GOLD + "Match details:\n";
 		response += "   " + formatMatchParameter("uhc") + "\n";
 		response += "   " + formatMatchParameter("ffa") + "\n";
 		response += "   " + formatMatchParameter("nopvp") + "\n";
 		response += "   " + formatMatchParameter("killerbonus") + "\n";
 		response += "   " + formatMatchParameter("miningfatigue") + "\n";
-		response += "   " + formatMatchParameter("deathban") + "\n";
-		response += "   " + formatMatchParameter("autospectate") + "\n";
-		response += "   " + formatMatchParameter("nolatecomers") + "\n";
 		
 		return response;
 	}

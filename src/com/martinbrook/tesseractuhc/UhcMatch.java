@@ -802,6 +802,8 @@ public class UhcMatch {
 		sendToStartPoint(p);
 		
 		up.setLaunched(true);
+		up.sendMessage(ChatColor.AQUA + "To find out the parameters for this game, type " + ChatColor.GOLD + "/params" + "\n"
+				+ ChatColor.AQUA + "To view the match status at any time, type " + ChatColor.GOLD + "/match");
 
 		return true;
 
