@@ -922,17 +922,20 @@ public class TesseractUHC extends JavaPlugin {
 			else
 				response += "Disabled" + desc;
 			
-			response += "Hunger penalty per block mined at those depths (stone blocks only)";
+			response += "Hunger penalty per block mined at those depths (stone\n      blocks only)";
 					
 		} else if ("nopvp".equalsIgnoreCase(parameter)) {
 			response = param + "No-PvP period: " + value;
 			int n = match.getNopvp();
 			int mins = n / 60;
 			int secs = n % 60;
-			response += (mins > 0 ? mins + " minutes" : "")
-					+ (secs > 0 ? secs + " seconds" : "")
-					+ desc
-					+  "Period at the start of the match during which PvP is disabled";
+			if (n > 0)
+				response += (mins > 0 ? mins + " minutes" : "")
+						+ (secs > 0 ? secs + " seconds" : "")
+						+ desc +  "Period at the start of the match during which PvP is\n      disabled";
+			else 
+				response += "None" + desc + "PvP will be enabled from the start";
+			
 			
 		} else if ("ffa".equalsIgnoreCase(parameter)) {
 			response = param + "Teams: " + value;
@@ -944,7 +947,7 @@ public class TesseractUHC extends JavaPlugin {
 		} else if ("uhc".equalsIgnoreCase(parameter)) {
 			response = param + "UHC: " + value;
 			if (match.isUHC())
-				response += "Enabled" + desc + "No health regeneration, and modified recipes for golden apple and glistering melon";
+				response += "Enabled" + desc + "No health regeneration, and modified recipes for golden\n      apple and glistering melon";
 			else
 				response += "Disabled" + desc + "Health regeneration and crafting recipes are unchanged";
 		} else if ("autospectate".equalsIgnoreCase(parameter)) {
