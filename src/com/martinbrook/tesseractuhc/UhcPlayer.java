@@ -33,7 +33,6 @@ public class UhcPlayer {
 	public Player getPlayer() { return player.getPlayer(); }
 	
 	public void setParticipant(UhcParticipant participant) { this.participant = participant; }
-	public void setSpectator(UhcSpectator spectator) { this.spectator = spectator; }
 	
 	
 	public boolean isParticipant() {
