@@ -2,9 +2,13 @@ package com.martinbrook.tesseractuhc;
 
 import java.util.HashSet;
 
+import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
+
 import com.martinbrook.tesseractuhc.startpoint.UhcStartPoint;
 
 public class UhcParticipant implements PlayerTarget {
@@ -15,6 +19,7 @@ public class UhcParticipant implements PlayerTarget {
 
 	private boolean dead = false;
 	private boolean miningFatigueAlerted = false;
+	private int miningFatigueGrace = 20;
 	
 	public UhcParticipant(UhcPlayer pl, UhcTeam team) {
 		this.player = pl;
@@ -103,11 +108,18 @@ public class UhcParticipant implements PlayerTarget {
 		
 		if (exhaustion > 0) {
 			if (!miningFatigueAlerted) {
-				sendMessage(TesseractUHC.ALERT_COLOR + "Warning: mining at this depth will make you very hungry!");
+				sendMessage(ChatColor.GOLD + "Warning: mining at this depth will soon make you very hungry!");
 				miningFatigueAlerted=true;
+			}
+			if (miningFatigueGrace > 0) {
+				if (--miningFatigueGrace == 0)
+					sendMessage(ChatColor.GOLD + "Warning: mining any more at this depth will make you very hungry!");
 			} else {
 				player.getPlayer().setExhaustion((float) (player.getPlayer().getExhaustion() + exhaustion));
+				player.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING, 1200, 0));
+
 			}
+				
 		}
 				
 	}
