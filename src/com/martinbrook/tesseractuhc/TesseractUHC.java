@@ -727,9 +727,6 @@ public class TesseractUHC extends JavaPlugin {
 			return cUhcParams();
 		} else if ("set".equalsIgnoreCase(args[0])) {
 			return cUhcSet(args);
-		} else if ("get".equalsIgnoreCase(args[0])) {
-			return cUhcGet(args);
-
 		} 
 		
 		return ERROR_COLOR + "Command not understood";
@@ -754,19 +751,6 @@ public class TesseractUHC extends JavaPlugin {
 		return OK_COLOR + "Bonus chest saved from your ender chest";
 	}
 
-	/**
-	 * @param args
-	 * @return
-	 */
-	private String cUhcGet(String[] args) {
-		if (args.length < 2)
-			return ERROR_COLOR + "Invalid command";
-		String parameter = args[1].toLowerCase();
-		String value = this.getMatchParameter(parameter);
-		if (value == null)
-			return ERROR_COLOR + "No such match parameter as " + parameter;
-		return OK_COLOR + parameter + " = " + value;
-	}
 
 	/**
 	 * @param args
