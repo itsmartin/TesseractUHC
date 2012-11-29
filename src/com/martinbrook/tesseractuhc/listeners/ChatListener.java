@@ -7,6 +7,7 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 
 import com.martinbrook.tesseractuhc.UhcMatch;
+import com.martinbrook.tesseractuhc.UhcPlayer;
 
 public class ChatListener implements Listener {
 	private UhcMatch m;
@@ -14,12 +15,15 @@ public class ChatListener implements Listener {
 
 	@EventHandler
 	public void onPlayerChatEvent(AsyncPlayerChatEvent e) {
-		if (m.isChatMuted() && !m.getPlayer(e.getPlayer()).isAdmin())
+		UhcPlayer pl = m.getPlayer(e.getPlayer());
+		if (m.isChatMuted() && !pl.isAdmin())
 			e.setCancelled(true);
 		
-		// admins get gold text automatically
-		if (m.getPlayer(e.getPlayer()).isAdmin()) {
-			e.setMessage(ChatColor.GOLD + e.getMessage());
+		// Admins get gold names, spectators get gray
+		if (pl.isAdmin()) {
+			e.setFormat("<" + ChatColor.GOLD + "$s" + ChatColor.RESET + "> %s");
+		} else if (pl.isSpectator()) {
+			e.setFormat("<" + ChatColor.GRAY + "$s" + ChatColor.RESET + "> %s");
 		}
 		
 	}
