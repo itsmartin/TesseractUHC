@@ -79,7 +79,7 @@ public class TesseractUHC extends JavaPlugin {
 						|| runCommandAsPlayer(pl, cmd, args);
 
 			} else {
-				runCommandAsPlayer(pl, cmd, args);
+				success = runCommandAsPlayer(pl, cmd, args);
 			}
 		} else if (commandSender instanceof ConsoleCommandSender) {
 			success = runCommandAsConsole(commandSender, cmd, args);
