@@ -35,7 +35,7 @@ public class LoginListener implements Listener {
 		if (m.getMatchPhase() == MatchPhase.LAUNCHING) {
 			// If player is in the match, make sure they are launched. If not, put them at spawn.
 			if (pl.isParticipant()) m.launch(pl.getParticipant());
-			else e.getPlayer().teleport(m.getStartingWorld().getSpawnLocation()); // TODO improve
+			else pl.teleport(m.getStartingWorld().getSpawnLocation(), null);
 			return;
 		}
 		

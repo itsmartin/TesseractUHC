@@ -2,10 +2,8 @@ package com.martinbrook.tesseractuhc;
 
 import java.util.HashSet;
 
-import org.bukkit.Chunk;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
-import org.bukkit.World;
 import org.bukkit.entity.Player;
 import com.martinbrook.tesseractuhc.startpoint.UhcStartPoint;
 
@@ -69,24 +67,7 @@ public class UhcParticipant implements PlayerTarget {
 	public boolean teleport(Player p) { return this.teleport(p, "You have been teleported!"); }
 	public boolean teleport(Location l) { return this.teleport(l, "You have been teleported!"); }
 	public boolean teleport(Player p, String message) { return this.teleport(p.getLocation(), message); }
-	public boolean teleport(Location l, String message) {
-		Player p = player.getPlayer();
-		if (p == null) return false;
-		
-		// Ensure the chunk is loaded before teleporting
-		World w = l.getWorld();
-		Chunk chunk = w.getChunkAt(l);
-		if (!w.isChunkLoaded(chunk))
-			w.loadChunk(chunk);
-		
-		if (p.teleport(l)) {
-			if (message != null && !message.isEmpty())
-				p.sendMessage(TesseractUHC.OK_COLOR + message);
-			return true;
-		} else {
-			return false;
-		}
-	}
+	public boolean teleport(Location l, String message) { return player.teleport(l, message); }
 	
 	public UhcPlayer getPlayer() { return player; }
 

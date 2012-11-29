@@ -1,9 +1,7 @@
 package com.martinbrook.tesseractuhc;
 
-import org.bukkit.Chunk;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
-import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 
@@ -36,30 +34,29 @@ public class UhcSpectator {
 		return cyclePoint;
 	}
 	
+	public boolean teleport(Double x, Double y, Double z) {
+		Location l = player.getLocation();
+		if (l != null) {
+			return teleport(new Location(l.getWorld(),x,y,z));
+		} else {
+			return false;
+		}
+		
+		
+	}
+
 	public boolean teleport(Player p) { return this.teleport(p, "You have been teleported!"); }
 	public boolean teleport(Location l) { return this.teleport(l, "You have been teleported!"); }
 	public boolean teleport(Player p, String message) {	return this.teleport(TeleportUtils.getSpectatorTeleportLocation(p.getLocation()), message); }
 	public boolean teleport(Location l, String message) {
-		Player p = player.getPlayer();
-		if (p == null) return false;
 		
-		Location oldLocation = p.getLocation();
-		
-		// Ensure the chunk is loaded before teleporting
-		World w = l.getWorld();
-		Chunk chunk = w.getChunkAt(l);
-		if (!w.isChunkLoaded(chunk))
-			w.loadChunk(chunk);
-				
-		if (p.teleport(l)) {
-			if (message != null && !message.isEmpty())
-				p.sendMessage(TesseractUHC.OK_COLOR + message);
+		Location oldLocation = player.getLocation();
+		if (player.teleport(l, message)) {
 			tpBackLocation = oldLocation;
-			p.setFlying(true);
 			return true;
-		} else {
-			return false;
 		}
+		return false;
+
 	}
 	
 	public boolean tpBack() {
@@ -71,11 +68,6 @@ public class UhcSpectator {
 		player.setGameMode((player.getGameMode() == GameMode.CREATIVE) ? GameMode.SURVIVAL : GameMode.CREATIVE);
 	}
 
-	public void teleport(Double x, Double y, Double z) {
-		// TODO Auto-generated method stub
-		
-	}
-	
 	/**
 	 * Show a spectator the contents of a player's inventory.
 	 * 

@@ -312,6 +312,18 @@ public class UhcMatch {
 	}
 	
 	/**
+	 * Send a message to all spectators
+	 * 
+	 * @param string The message to be sent
+	 */
+	public void spectatorBroadcast(String string) {
+		for(UhcPlayer up : getOnlinePlayers()) {
+			if (up.isSpectator())
+				up.sendMessage(string);
+		}
+	}
+	
+	/**
 	 * Send a message to all ops
 	 * 
 	 * @param string The message to be sent
@@ -1539,7 +1551,7 @@ public class UhcMatch {
 	public void sendSpectatorNotification(UhcNotification n, Location l) {
 		setLastNotifierLocation(l);
 		String message = n.formatForStreamers();
-		if (message != null) this.adminBroadcast(message); 	// TODO Make this go to all streamers, not just admins
+		if (message != null) this.spectatorBroadcast(message);
 
 	}
 

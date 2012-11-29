@@ -1,8 +1,10 @@
 package com.martinbrook.tesseractuhc;
 
+import org.bukkit.Chunk;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.potion.PotionEffect;
@@ -217,6 +219,27 @@ public class UhcPlayer {
 		Player p = player.getPlayer();
 		if (p != null) return p.getLocation();
 		else return null;
+	}
+	
+	public boolean teleport(Location l, String message) {
+		Player p = getPlayer();
+		if (p == null) return false;
+		
+		// Ensure the chunk is loaded before teleporting
+		World w = l.getWorld();
+		Chunk chunk = w.getChunkAt(l);
+		if (!w.isChunkLoaded(chunk))
+			w.loadChunk(chunk);
+		
+		if (p.teleport(l)) {
+			if (isSpectator())
+				p.setFlying(true);
+			if (message != null && !message.isEmpty())
+				p.sendMessage(TesseractUHC.OK_COLOR + message);
+			return true;
+		} else {
+			return false;
+		}
 	}
 	
 }
