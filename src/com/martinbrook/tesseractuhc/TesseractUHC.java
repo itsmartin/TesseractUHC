@@ -878,6 +878,8 @@ public class TesseractUHC extends JavaPlugin {
 		response += "   " + formatMatchParameter("killerbonus") + "\n";
 		response += "   " + formatMatchParameter("miningfatigue") + "\n";
 		response += "   " + formatMatchParameter("deathban") + "\n";
+		response += "   " + formatMatchParameter("autospectate") + "\n";
+		response += "   " + formatMatchParameter("nolatecomers") + "\n";
 		
 		return response;
 	}
@@ -945,6 +947,18 @@ public class TesseractUHC extends JavaPlugin {
 				response += "Enabled" + desc + "No health regeneration, and modified recipes for golden apple and glistering melon";
 			else
 				response += "Disabled" + desc + "Health regeneration and crafting recipes are unchanged";
+		} else if ("autospectate".equalsIgnoreCase(parameter)) {
+			response = param + "AutoSpectate: " + value;
+			if (match.isUHC())
+				response += "Enabled" + desc + "Dead players will become invisible spectators";
+			else
+				response += "Disabled" + desc + "Dead players will not be able to spectate";
+		} else if ("nolatecomers".equalsIgnoreCase(parameter)) {
+			response = param + "NoLatecomers: " + value;
+			if (match.isUHC())
+				response += "Enabled" + desc + "Late arriving players will not be able to connect";
+			else
+				response += "Disabled" + desc + "Late arriving players will be able to join";
 		}
 		
 		
@@ -1023,6 +1037,16 @@ public class TesseractUHC extends JavaPlugin {
 			Boolean v = MatchUtils.stringToBoolean(value);
 			if (v == null) return false;
 			match.setUHC(v);
+			return true;
+		} else if ("autospectate".equalsIgnoreCase(parameter)) {
+			Boolean v = MatchUtils.stringToBoolean(value);
+			if (v == null) return false;
+			match.setAutoSpectate(v);
+			return true;
+		} else if ("nolatecomers".equalsIgnoreCase(parameter)) {
+			Boolean v = MatchUtils.stringToBoolean(value);
+			if (v == null) return false;
+			match.setNoLatecomers(v);
 			return true;
 		} else {
 			return false;

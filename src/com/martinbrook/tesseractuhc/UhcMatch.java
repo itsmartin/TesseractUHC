@@ -1709,14 +1709,25 @@ public class UhcMatch {
 		return ups;
 	}
 
-
+	public void setAutoSpectate(Boolean d) {
+		md.set("autospectate", d);
+		this.saveMatchParameters();
+		adminBroadcast(TesseractUHC.OK_COLOR + "AutoSpectate has been " + (d ? "enabled" : "disabled") + "!");
+	}
+	
 	public boolean isAutoSpectate() {
-		return true;
+		return md.getBoolean("autospectate");
 	}
 
 
+	public void setNoLatecomers(Boolean d) {
+		md.set("nolatecomers", d);
+		this.saveMatchParameters();
+		adminBroadcast(TesseractUHC.OK_COLOR + "NoLatecomers has been " + (d ? "enabled" : "disabled") + "!");
+	}
+	
 	public boolean isNoLatecomers() {
-		return false;
+		return md.getBoolean("nolatecomers");
 	}
 
 }
