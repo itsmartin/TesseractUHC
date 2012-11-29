@@ -861,7 +861,7 @@ public class TesseractUHC extends JavaPlugin {
 	 * @return
 	 */
 	private String cUhcStartpoint(UhcPlayer sender, String[] args) {
-		Location l = ((Player) sender).getLocation();
+		Location l = sender.getLocation();
 		double x = l.getBlockX() + 0.5;
 		double y = l.getBlockY();
 		double z = l.getBlockZ() + 0.5;
