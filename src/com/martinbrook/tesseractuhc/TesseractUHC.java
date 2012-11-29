@@ -5,10 +5,10 @@ import java.util.Collection;
 import java.util.HashMap;
 import org.bukkit.ChatColor;
 
-import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -66,116 +66,26 @@ public class TesseractUHC extends JavaPlugin {
 		boolean success = false;
 		String cmd = command.getName().toLowerCase();
 		
-		if (commandSender.isOp()) {
-		
-			if (commandSender instanceof Player)
-				success = runCommandAsOp((Player) commandSender, cmd, args);
-	
-			if (!success)
-				success = runCommandAsConsole(commandSender, cmd, args);
-		} else {
-			if (commandSender instanceof Player)
-				success = runCommandAsPlayer((Player) commandSender, cmd, args);
-		}
-		return true;
-	}
+		if (commandSender instanceof Player) {
+			UhcPlayer pl = match.getPlayer((Player) commandSender);
+			if (pl.isAdmin()) {
+				success = runCommandAsAdmin(pl, cmd, args)
+						|| runCommandAsConsole(commandSender, cmd, args)
+						|| runCommandAsSpectator(pl.getSpectator(), cmd, args)
+						|| runCommandAsPlayer(pl, cmd, args);
 
-	/**
-	 * Execute a command sent by an opped player on the server
-	 * 
-	 * @param sender The Player who sent the command
-	 * @param cmd The command
-	 * @param args Command arguments
-	 * @return Whether the command succeeded
-	 */
-	private boolean runCommandAsOp(Player sender, String cmd, String[] args) {
-		boolean success = true;
-		String response = null; // Stores any response to be given to the sender
-	
-		if(cmd.equals("tp")) {
-			response = cTp(sender,args);
-		} else if (cmd.equals("tpd")) {
-			response = cTpd(sender);
-		} else if (cmd.equals("tpl")) {
-			response = cTpl(sender);
-		} else if (cmd.equals("tpn")) {
-			response = cTpn(sender);
-		} else if(cmd.equals("tpall")) {
-			response = cTpall(sender);
-		} else if(cmd.equals("tp0")) {
-			response = cTp0(sender);
-		} else if(cmd.equals("tps")) {
-			response = cTps(sender, args);
-		} else if (cmd.equals("tpcs")) {
-			response = cTpcs(sender,args);
-		} else if (cmd.equals("tpp")) {
-			response = cTpp(sender,args);
-		} else if (cmd.equals("tpnext")) {
-			response = cTpnext(sender);
-		} else if (cmd.equals("tpback")) {
-			response = cTpback(sender);
-		} else if (cmd.equals("gm")) {
-			sender.setGameMode((sender.getGameMode() == GameMode.CREATIVE) ? GameMode.SURVIVAL : GameMode.CREATIVE);
-		} else if (cmd.equals("vi") || cmd.equals("pi")) {
-			response = cVi(sender, args);
-		} else if (cmd.equals("setspawn")) {
-			response = cSetspawn(sender);
-		} else if (cmd.equals("notify") || cmd.equals("n")) {
-			response = cNotify(sender, args);
-		} else if (cmd.equals("uhc")) {
-			response = cUhc(sender, args);
-		} else if (cmd.equals("interact")) {
-			response = cInteract(sender);
-		} else {
-			success = false;
+			} else if (pl.isSpectator()) {
+				success = runCommandAsSpectator(pl.getSpectator(), cmd, args)
+						|| runCommandAsPlayer(pl, cmd, args);
+
+			} else {
+				runCommandAsPlayer(pl, cmd, args);
+			}
+		} else if (commandSender instanceof ConsoleCommandSender) {
+			success = runCommandAsConsole(commandSender, cmd, args);
 		}
 		
-		if (response != null)
-			sender.sendMessage(response);
-	
 		return success;
-		
-	}
-
-	private String cTpnext(Player sender) {
-		UhcSpectator us = match.getSpectator(sender);
-		if (us == null) us = match.addSpectator(sender);
-		
-		Player to;
-		int cycleSize = match.countParticipantsInMatch();
-		int attempts = 0;
-		
-		do {
-			UhcParticipant up = match.getUhcParticipant(us.nextCyclePoint(cycleSize));
-			to = getServer().getPlayerExact(up.getName());
-			attempts++;
-		} while ((to == null || !to.isOnline()) && attempts < cycleSize);
-		
-		if (to == null || !to.isOnline())
-			return ERROR_COLOR + "No player found";
-		
-		us.teleport(to, OK_COLOR + "Teleported to " + to.getName());
-			
-		return null;
-	}
-
-	private String cTpback(Player sender) {
-		UhcSpectator us = match.getSpectator(sender);
-		if (us == null) us = match.addSpectator(sender);
-		
-		us.tpBack();
-			
-		return null;
-	}
-	
-	private String cInteract(Player sender) {
-		UhcSpectator us = match.getSpectator(sender);
-		if (us == null) us = match.addSpectator(sender);
-
-		boolean interacting = !us.isInteracting();
-		us.setInteracting(interacting);
-		
-		return OK_COLOR + "Interaction has been " + (interacting ? "enabled" : "disabled") + ".";
 	}
 
 	/**
@@ -223,7 +133,7 @@ public class TesseractUHC extends JavaPlugin {
 		} else if (cmd.equals("permaday")) {
 			response = cPermaday(args);
 		} else if (cmd.equals("uhc")) {
-			response = cUhc(sender, args);
+			response = cUhc(args);
 		} else if (cmd.equals("launch")) {
 			response = cLaunch();
 		} else if (cmd.equals("relaunch")) {
@@ -246,6 +156,155 @@ public class TesseractUHC extends JavaPlugin {
 			sender.sendMessage(response);
 		
 		return success;
+	}
+
+	/**
+	 * Execute a command sent by an opped player on the server
+	 * 
+	 * @param sender The Player who sent the command
+	 * @param cmd The command
+	 * @param args Command arguments
+	 * @return Whether the command succeeded
+	 */
+	private boolean runCommandAsAdmin(UhcPlayer sender, String cmd, String[] args) {
+		boolean success = true;
+		String response = null; // Stores any response to be given to the sender
+	
+
+		if (cmd.equals("setspawn")) {
+			response = cSetspawn(sender);
+		} else if (cmd.equals("uhc")) {
+			response = cUhc(sender, args);
+		} else if (cmd.equals("interact")) {
+			response = cInteract(sender);
+		} else {
+			success = false;
+		}
+		
+		if (response != null)
+			sender.sendMessage(response);
+	
+		return success;
+		
+	}
+
+	/**
+	 * Run a command sent by a spectator
+	 * 
+	 * @param sender the Player who sent the command
+	 * @param cmd The command
+	 * @param args Command arguments
+	 * @return Whether the command succeeded
+	 */
+	private boolean runCommandAsSpectator(UhcSpectator sender, String cmd, String[] args) {
+		boolean success = true;
+		String response = null; // Stores any response to be given to the sender
+	
+		if(cmd.equals("tp")) {
+			response = cTp(sender,args);
+		} else if (cmd.equals("tpd")) {
+			response = cTpd(sender);
+		} else if (cmd.equals("tpl")) {
+			response = cTpl(sender);
+		} else if (cmd.equals("tpn")) {
+			response = cTpn(sender);
+		} else if(cmd.equals("tp0")) {
+			response = cTp0(sender);
+		} else if(cmd.equals("tps")) {
+			response = cTps(sender, args);
+		} else if (cmd.equals("tpcs")) {
+			response = cTpcs(sender,args);
+		} else if (cmd.equals("tpp")) {
+			response = cTpp(sender,args);
+		} else if (cmd.equals("tpnext")) {
+			response = cTpnext(sender);
+		} else if (cmd.equals("tpback")) {
+			response = cTpback(sender);
+		} else if (cmd.equals("gm")) {
+			response = cGm(sender);
+		} else if (cmd.equals("vi") || cmd.equals("pi")) {
+			response = cVi(sender, args);
+		} else {
+			success = false;
+		}
+	
+		if (response != null)
+			sender.sendMessage(response);
+		
+		return success;
+	}
+	
+	/**
+	 * Run a command sent by a player
+	 * 
+	 * @param sender the Player who sent the command
+	 * @param cmd The command
+	 * @param args Command arguments
+	 * @return Whether the command succeeded
+	 */
+	private boolean runCommandAsPlayer(UhcPlayer sender, String cmd, String[] args) {
+		boolean success = true;
+		String response = null; // Stores any response to be given to the sender
+	
+		if (cmd.equals("kill")) {
+			response = ERROR_COLOR + "The kill command is disabled.";
+		} else if (cmd.equals("notify") || cmd.equals("n")) {
+			response = cNotify(sender, args);
+		} else if (cmd.equals("join")) {
+			response = pJoin(sender, args);
+		} else if (cmd.equals("team")) {
+			response = pTeam(sender, args);
+		} else if (cmd.equals("leave")) {
+			response = pLeave(sender, args);
+		} else if (cmd.equals("matchinfo") || cmd.equals("mi") || cmd.equals("match")) {
+			response = pMatchinfo();
+		} else {
+			success = false;
+		}
+	
+		if (response != null)
+			sender.sendMessage(response);
+		
+		return success;
+	}
+
+	private String cGm(UhcSpectator sender) {
+		sender.toggleGameMode();
+		return null;
+	}
+
+	private String cTpnext(UhcSpectator sender) {
+		Player to;
+		int cycleSize = match.countParticipantsInMatch();
+		int attempts = 0;
+		
+		do {
+			UhcParticipant up = match.getUhcParticipant(sender.nextCyclePoint(cycleSize));
+			to = getServer().getPlayerExact(up.getName());
+			attempts++;
+		} while ((to == null || !to.isOnline()) && attempts < cycleSize);
+		
+		if (to == null || !to.isOnline())
+			return ERROR_COLOR + "No player found";
+		
+		sender.teleport(to, OK_COLOR + "Teleported to " + to.getName());
+			
+		return null;
+	}
+
+	private String cTpback(UhcSpectator sender) {
+		sender.tpBack();
+		return null;
+	}
+	
+	private String cInteract(UhcPlayer sender) {
+		UhcSpectator us = sender.getSpectator();
+		if (us == null) return ERROR_COLOR + "You are not allowed to use that command";
+
+		boolean interacting = !us.isInteracting();
+		us.setInteracting(interacting);
+		
+		return OK_COLOR + "Interaction has been " + (interacting ? "enabled" : "disabled") + ".";
 	}
 
 	private String cTeams(String[] args) {
@@ -315,23 +374,22 @@ public class TesseractUHC extends JavaPlugin {
 			
 			String response = "";
 			
-			String name = args[1];
-			Player p = getServer().getPlayer(name);
+			UhcPlayer pl = match.getPlayer(args[1]);
 			
-			if (p != null)
-				name = p.getName();
-			else
+			if (!pl.isOnline())
 				response += WARN_COLOR + "Warning: adding a player who is not currently online\n";
+
+			
 			
 			if (match.isFFA()) {
-				if (!match.addSoloParticipant(name))
+				if (!match.addSoloParticipant(pl))
 					return ERROR_COLOR + "Failed to add player";
 				
 				return response + OK_COLOR + "Player added";
 			} else {
 				if (args.length < 3)
 					return ERROR_COLOR + "Please specify the team! /players add NAME TEAM";
-				if (!match.addParticipant(p.getName(), args[2]))
+				if (!match.addParticipant(pl, args[2]))
 					return ERROR_COLOR + "Failed to add player " + args[1] + " to team " + args[2];
 				
 				return response + OK_COLOR + "Player added";
@@ -342,9 +400,9 @@ public class TesseractUHC extends JavaPlugin {
 				return ERROR_COLOR + "Cannot auto-add players in a team match";
 			
 			int added = 0;
-			for (Player p : getServer().getOnlinePlayers()) {
-				if (!match.isSpectator(p))
-					if (match.addSoloParticipant(p.getName())) added++;
+			for (UhcPlayer pl : match.getOnlinePlayers()) {
+				if (!pl.isSpectator())
+					if (match.addSoloParticipant(pl)) added++;
 			}
 			if (added > 0)
 				return "" + OK_COLOR + added + " player" + (added == 1? "" : "s") + " added";
@@ -363,49 +421,15 @@ public class TesseractUHC extends JavaPlugin {
 		return null;
 	}
 
-	/**
-	 * Run a command sent by a player
-	 * 
-	 * @param sender the Player who sent the command
-	 * @param cmd The command
-	 * @param args Command arguments
-	 * @return Whether the command succeeded
-	 */
-	private boolean runCommandAsPlayer(Player sender, String cmd, String[] args) {
-		boolean success = true;
-		String response = null; // Stores any response to be given to the sender
-	
-		if (cmd.equals("kill")) {
-			response = ERROR_COLOR + "The kill command is disabled.";
-		} else if (cmd.equals("notify") || cmd.equals("n")) {
-			response = cNotify(sender, args);
-		} else if (cmd.equals("join")) {
-			response = pJoin(sender, args);
-		} else if (cmd.equals("team")) {
-			response = pTeam(sender, args);
-		} else if (cmd.equals("leave")) {
-			response = pLeave(sender, args);
-		} else if (cmd.equals("matchinfo") || cmd.equals("mi") || cmd.equals("match")) {
-			response = pMatchinfo();
-		} else {
-			success = false;
-		}
-	
-		if (response != null)
-			sender.sendMessage(response);
-		
-		return success;
-	}
-
-	private String pLeave(Player sender, String[] args) {
+	private String pLeave(UhcPlayer sender, String[] args) {
 		if (!match.removeParticipant(sender.getName()))
 			return ERROR_COLOR + "Leave failed";
 		else
 			return OK_COLOR + "You have left the match";
 	}
 
-	private String pTeam(Player sender, String[] args) {
-		if (match.getUhcParticipant(sender) != null)
+	private String pTeam(UhcPlayer sender, String[] args) {
+		if (sender.isParticipant())
 			return ERROR_COLOR + "You have already joined this match. Please /leave before creating a new team.";
 		
 		if (match.getMatchPhase() != MatchPhase.PRE_MATCH)
@@ -433,7 +457,7 @@ public class TesseractUHC extends JavaPlugin {
 		if (!match.addTeam(identifier, name))
 			return ERROR_COLOR + "Could not add a new team. Use /join to join an existing team.";
 		
-		if (!match.addParticipant(sender.getName(), identifier))
+		if (!match.addParticipant(sender, identifier))
 			return ERROR_COLOR + "An error occurred. The team has been created but you could not be joined to it.";
 		
 		match.broadcast(ChatColor.GOLD + "Team " + ChatColor.AQUA + ChatColor.ITALIC + name + ChatColor.RESET 
@@ -444,12 +468,12 @@ public class TesseractUHC extends JavaPlugin {
 		
 	}
 
-	private String pJoin(Player sender, String[] args) {
+	private String pJoin(UhcPlayer sender, String[] args) {
 		if (match.getMatchPhase() != MatchPhase.PRE_MATCH)
 			return ERROR_COLOR + "The match is already underway. You cannot join.";
 		
 		if (match.isFFA()) {
-			if (match.addSoloParticipant(sender.getName())) {
+			if (match.addSoloParticipant(sender)) {
 				return OK_COLOR + "You have joined the match";
 			} else {
 				return ERROR_COLOR + "Unable to join";
@@ -468,7 +492,7 @@ public class TesseractUHC extends JavaPlugin {
 			return response;
 		}
 		
-		if (match.addParticipant(sender.getName(), teamToJoin.getIdentifier()))
+		if (match.addParticipant(sender, teamToJoin.getIdentifier()))
 			return OK_COLOR + "You are now a member of " + teamToJoin.getName();
 		else
 			return ERROR_COLOR + "Unable to join team. Are you already on a team?";
@@ -486,7 +510,7 @@ public class TesseractUHC extends JavaPlugin {
 	 * @param args arguments
 	 * @return response
 	 */
-	private String cVi(Player sender, String[] args) {
+	private String cVi(UhcSpectator sender, String[] args) {
 		if (args.length < 1)
 			return ERROR_COLOR + "Please give the name of a player";
 		
@@ -495,7 +519,7 @@ public class TesseractUHC extends JavaPlugin {
 		if (p == null)
 			return ERROR_COLOR + "Player " + args[0] + " not found.";
 
-		if (!match.showInventory(sender, p))
+		if (!sender.showInventory(p))
 			return ERROR_COLOR + "Unable to view inventory";
 		
 		return null;
@@ -503,18 +527,14 @@ public class TesseractUHC extends JavaPlugin {
 	}
 
 
-	private String cTpp(Player sender, String[] args) {
-		UhcSpectator us = match.getSpectator(sender);
-		if (us == null) us = match.addSpectator(sender);
-
-		
+	private String cTpp(UhcSpectator sender, String[] args) {
 		ArrayList<UhcPOI> pois = match.getPOIs();
 		if (args.length != 1)
 			return ERROR_COLOR + "Please give the POI number - see /uhc pois";
 		
 		try {
 			int poiNo = Integer.parseInt(args[0]);
-			us.teleport(pois.get(poiNo - 1).getLocation());
+			sender.teleport(pois.get(poiNo - 1).getLocation());
 		} catch (NumberFormatException e) {
 			return ERROR_COLOR + "Please give the POI number - see /uhc pois";
 		} catch (IndexOutOfBoundsException e) {
@@ -531,10 +551,7 @@ public class TesseractUHC extends JavaPlugin {
 	 * @param args arguments
 	 * @return response
 	 */
-	private String cTpcs(Player sender, String[] args) {
-		UhcSpectator us = match.getSpectator(sender);
-		if (us == null) us = match.addSpectator(sender);
-
+	private String cTpcs(UhcSpectator sender, String[] args) {
 		ArrayList<Location> starts = match.getCalculatedStarts();
 		if (starts == null)
 			return ERROR_COLOR + "Start points have not been calculated";
@@ -545,7 +562,7 @@ public class TesseractUHC extends JavaPlugin {
 		
 		try {
 			int startNumber = Integer.parseInt(args[0]);
-			us.teleport(starts.get(startNumber - 1));
+			sender.teleport(starts.get(startNumber - 1));
 		} catch (NumberFormatException e) {
 			return ERROR_COLOR + "Please give the start number";
 		} catch (IndexOutOfBoundsException e) {
@@ -585,7 +602,7 @@ public class TesseractUHC extends JavaPlugin {
 	 * @param args arguments
 	 * @return response
 	 */
-	private String cSetspawn(Player sender) {
+	private String cSetspawn(UhcPlayer sender) {
 		Location newSpawn = sender.getLocation();
 		newSpawn.getWorld().setSpawnLocation(newSpawn.getBlockX(), newSpawn.getBlockY(), newSpawn.getBlockZ());
 		return OK_COLOR + "This world's spawn point has been set to " + newSpawn.getBlockX() + "," + newSpawn.getBlockY() + "," + newSpawn.getBlockZ();
@@ -675,15 +692,14 @@ public class TesseractUHC extends JavaPlugin {
 
 	}
 
-	
 	/**
-	 * Carry out the /uhc command
+	 * Carry out the /uhc command (PLAYER)
 	 * 
 	 * @param sender the sender of the command
 	 * @param args arguments
 	 * @return response
 	 */
-	private String cUhc(CommandSender sender, String[] args) {
+	private String cUhc(UhcPlayer sender, String[] args) {
 		if (args.length<1) {
 			return ERROR_COLOR + "Please specify an action.";
 		}
@@ -785,6 +801,96 @@ public class TesseractUHC extends JavaPlugin {
 			((Player) sender).getEnderChest().setContents(match.getBonusChest());
 			return OK_COLOR + "Bonus chest loaded into your ender chest";
 		} 
+		
+		return ERROR_COLOR + "Command not understood";
+	}
+	
+	
+	/**
+	 * Carry out the /uhc command (CONSOLE)
+	 * 
+	 * @param sender the sender of the command
+	 * @param args arguments
+	 * @return response
+	 */
+	private String cUhc(String[] args) {
+		if (args.length<1) {
+			return ERROR_COLOR + "Please specify an action.";
+		}
+		
+		
+		if ("reset".equalsIgnoreCase(args[0])) {
+			if (args.length < 2 || "params".equalsIgnoreCase(args[1])) {
+				match.resetMatchParameters();
+				return OK_COLOR + "Match data reset to default values";
+			} else if ("teams".equalsIgnoreCase(args[1]) || "players".equalsIgnoreCase(args[1])) {
+				if (!match.clearTeams())
+					return ERROR_COLOR + "Failed to clear teams and players";
+				else
+					return OK_COLOR + "Teams and players have been reset";
+			}
+		} else if ("save".equalsIgnoreCase(args[0])) {
+			if (args.length < 2 || "params".equalsIgnoreCase(args[1])) {
+				match.saveMatchParameters();
+				return OK_COLOR + "If no errors appear above, match parameters have been saved";
+			} else if ("teams".equalsIgnoreCase(args[1]) || "players".equalsIgnoreCase(args[1])) {
+				match.saveTeams();
+				return OK_COLOR + "If no errors appear above, teams and players have been saved";
+			}
+		} else if ("starts".equalsIgnoreCase(args[0])) {
+			HashMap<Integer, UhcStartPoint> startPoints = match.getStartPoints();
+			if (startPoints.size()==0)
+				return ERROR_COLOR + "There are no starts";
+
+			String response = "";
+			for (UhcStartPoint sp : startPoints.values()) {
+				UhcTeam t = sp.getTeam();
+				
+				response += (sp.getNumber());
+				
+				if (t != null) response += " (" + t.getName() + ")";
+				
+				response += ": " + sp.getX() + "," + sp.getY() + "," + sp.getZ() + "\n";
+			}
+			return response;
+		} else if ("pois".equalsIgnoreCase(args[0])) {
+			ArrayList<UhcPOI> pois = match.getPOIs();
+			String response = "";
+			for(int i = 0; i < pois.size(); i++) {
+				response += (i + 1) + ": " + pois.get(i).getName() + " (" + pois.get(i).toString() + ")\n"; 
+			}
+			return response;
+		} else if ("params".equalsIgnoreCase(args[0])) {
+			return this.listMatchParameters();
+		} else if ("set".equalsIgnoreCase(args[0])) {
+			if (args.length < 3)
+				return ERROR_COLOR + "Invalid command";
+
+			String parameter = args[1].toLowerCase();
+
+			String value = "";
+			for (int i = 2; i < args.length; i++) {
+				value += args[i] + " ";
+			}
+			value = value.substring(0, value.length()-1);
+			if (this.setMatchParameter(parameter, value)) {
+				value = this.getMatchParameter(parameter);
+				if (value == null)
+					return ERROR_COLOR + "Error getting value of " + parameter;
+				return OK_COLOR + parameter + " = " + value;
+
+			} else
+				return ERROR_COLOR + "Unable to set value of " + parameter;
+
+		} else if ("get".equalsIgnoreCase(args[0])) {
+			if (args.length < 2)
+				return ERROR_COLOR + "Invalid command";
+			String parameter = args[1].toLowerCase();
+			String value = this.getMatchParameter(parameter);
+			if (value == null)
+				return ERROR_COLOR + "No such match parameter as " + parameter;
+			return OK_COLOR + parameter + " = " + value;
+		}
 		
 		return ERROR_COLOR + "Command not understood";
 	}
@@ -1022,7 +1128,7 @@ public class TesseractUHC extends JavaPlugin {
 	 * @param args arguments
 	 * @return response
 	 */
-	private String cNotify(Player sender, String[] args) {
+	private String cNotify(UhcPlayer sender, String[] args) {
 		String s = "";
 		if (args.length == 0)
 			s = "no text";
@@ -1033,9 +1139,9 @@ public class TesseractUHC extends JavaPlugin {
 			s = s.substring(0, s.length() - 1);
 		}
 
-		match.sendAdminNotification(new PlayerMessageNotification(sender, s), sender.getLocation());
+		match.sendSpectatorNotification(new PlayerMessageNotification(sender, s), sender.getLocation());
 
-		return match.isAdmin(sender) ? null : OK_COLOR + "Administrators have been notified.";
+		return sender.isSpectator() ? null : OK_COLOR + "Message sent";
 	}
 	
 	/**
@@ -1044,15 +1150,12 @@ public class TesseractUHC extends JavaPlugin {
 	 * @param sender the sender of the command
 	 * @return response
 	 */
-	private String cTpn(Player sender) {
-		UhcSpectator us = match.getSpectator(sender);
-		if (us == null) us = match.addSpectator(sender);
-
+	private String cTpn(UhcSpectator sender) {
 		Location l = match.getLastNotifierLocation();
 		if (l == null)
 			return ERROR_COLOR + "No notification.";
 
-		us.teleport(l);
+		sender.teleport(l);
 		return null;
 	}
 
@@ -1062,15 +1165,13 @@ public class TesseractUHC extends JavaPlugin {
 	 * @param sender the sender of the command
 	 * @return response
 	 */
-	private String cTpd(Player sender) {
-		UhcSpectator us = match.getSpectator(sender);
-		if (us == null) us = match.addSpectator(sender);
+	private String cTpd(UhcSpectator sender) {
 
 		Location l = match.getLastDeathLocation();
 		if (l == null)
 			return ERROR_COLOR + "Nobody has died.";
 
-		us.teleport(l);
+		sender.teleport(l);
 		return null;
 	}
 
@@ -1080,15 +1181,12 @@ public class TesseractUHC extends JavaPlugin {
 	 * @param sender the sender of the command
 	 * @return response
 	 */
-	private String cTpl(Player sender) {
-		UhcSpectator us = match.getSpectator(sender);
-		if (us == null) us = match.addSpectator(sender);
-
+	private String cTpl(UhcSpectator sender) {
 		Location l = match.getLastLogoutLocation();
 		if (l == null)
 			return ERROR_COLOR + "Nobody has logged out.";
 
-		us.teleport(l);
+		sender.teleport(l);
 		return null;
 	}
 
@@ -1099,10 +1197,7 @@ public class TesseractUHC extends JavaPlugin {
 	 * @param sender the sender of the command
 	 * @return response
 	 */
-	private String cTps(Player sender, String[] args) {
-		UhcSpectator us = match.getSpectator(sender);
-		if (us == null) us = match.addSpectator(sender);
-
+	private String cTps(UhcSpectator sender, String[] args) {
 		// Teleport sender to the specified start point, either by player name or by number
 		if (args.length != 1)
 			return ERROR_COLOR + "Incorrect number of arguments for /tps";
@@ -1110,7 +1205,7 @@ public class TesseractUHC extends JavaPlugin {
 		UhcStartPoint destination = match.findStartPoint(args[0]);
 		
 		if (destination != null) {
-			us.teleport(destination.getLocation());
+			sender.teleport(destination.getLocation());
 			return null;
 		} else {
 			return ERROR_COLOR + "Unable to find that start point";
@@ -1124,16 +1219,13 @@ public class TesseractUHC extends JavaPlugin {
 	 * @param args arguments
 	 * @return response
 	 */
-	private String cTp(Player sender, String[] args) {
-		UhcSpectator us = match.getSpectator(sender);
-		if (us == null) us = match.addSpectator(sender);
-
+	private String cTp(UhcSpectator sender, String[] args) {
 		
 		if (args.length == 0) {
 			if (match.getLastEventLocation() == null)
 				return ERROR_COLOR + "You haven't specified to who you want to teleport.";
 
-			us.teleport(match.getLastEventLocation());
+			sender.teleport(match.getLastEventLocation());
 			return null;
 		}
 		
@@ -1141,7 +1233,7 @@ public class TesseractUHC extends JavaPlugin {
 			Player to = getServer().getPlayer(args[0]);
 			if (to == null || !to.isOnline())
 				return ERROR_COLOR + "Player " + args[0] + " not found";
-			us.teleport(to,OK_COLOR + "Teleported to " + to.getName());
+			sender.teleport(to,OK_COLOR + "Teleported to " + to.getName());
 			
 			return null;
 		}
@@ -1170,8 +1262,7 @@ public class TesseractUHC extends JavaPlugin {
 				return ERROR_COLOR + "Invalid coordinates";
 			}
 			
-			Location to = new Location(sender.getWorld(),x,y,z);
-			us.teleport(to);
+			sender.teleport(x,y,z);
 			return null;
 		}
 		if(args.length==4){
@@ -1250,27 +1341,11 @@ public class TesseractUHC extends JavaPlugin {
 	 * @param args arguments
 	 * @return response
 	 */
-	private String cTp0(Player sender) {
+	private String cTp0(UhcSpectator sender) {
 		sender.teleport(match.getStartingWorld().getSpawnLocation());
 		return OK_COLOR + "Teleported to spawn";
 	}
 	
-	/**
-	 * Carry out the /tpall command
-	 * 
-	 * @param sender the sender of the command
-	 * @param args arguments
-	 * @return response
-	 */
-	private String cTpall(Player sender) {
-		for (Player p : getServer().getOnlinePlayers()) {
-			if (p.getGameMode() != GameMode.CREATIVE) {
-				p.teleport(sender);
-				p.sendMessage(OK_COLOR + "You have been teleported!");
-			}
-		}
-		return OK_COLOR + "Players have been teleported to you!";
-	}
 
 	/**
 	 * Carry out the /renewall command
@@ -1278,8 +1353,8 @@ public class TesseractUHC extends JavaPlugin {
 	 * @return response
 	 */
 	private String cRenewall() {
-		for (UhcParticipant up : match.getUhcParticipants())
-			if (up.renew()) up.sendMessage(OK_COLOR + "You have been healed and fed!");
+		for (UhcPlayer pl : match.getOnlinePlayers())
+			if (pl.renew()) pl.sendMessage(OK_COLOR + "You have been healed and fed!");
 
 		return OK_COLOR + "Renewed all players";
 	}
@@ -1294,9 +1369,9 @@ public class TesseractUHC extends JavaPlugin {
 		if (args.length == 0)
 			return ERROR_COLOR + "Please specify player to renew, or use /renewall";
 
-		UhcParticipant up = match.getUhcParticipant(args[0]);
+		UhcPlayer up = match.getPlayer(args[0]);
 		
-		if (up != null) {
+		if (up.isOnline()) {
 			if (up.renew()) {
 				up.sendMessage(OK_COLOR + "You have been healed and fed!");
 				return OK_COLOR + "Renewed " + up.getName();
@@ -1315,8 +1390,8 @@ public class TesseractUHC extends JavaPlugin {
 	 * @return response
 	 */
 	private String cClearinvall() {
-		for (UhcParticipant up : match.getUhcParticipants())
-			if (up.clearInventory()) up.sendMessage(OK_COLOR + "Your inventory has been cleared");
+		for (UhcPlayer pl : match.getOnlinePlayers())
+			if (pl.clearInventory()) pl.sendMessage(OK_COLOR + "Your inventory has been cleared");
 
 		return OK_COLOR + "Cleared all players' inventories.";
 	}
@@ -1331,9 +1406,9 @@ public class TesseractUHC extends JavaPlugin {
 		if (args.length == 0)
 			return ERROR_COLOR + "Please specify player to clear, or use /clearinvall";
 
-		UhcParticipant up = match.getUhcParticipant(args[0]);
+		UhcPlayer up = match.getPlayer(args[0]);
 		
-		if (up != null) {
+		if (up.isOnline()) {
 			if (up.clearInventory()) {
 				up.sendMessage(OK_COLOR + "Your inventory has been cleared");
 				return OK_COLOR + "Cleared inventory of " + up.getName();
@@ -1351,8 +1426,8 @@ public class TesseractUHC extends JavaPlugin {
 	 * @return response
 	 */
 	private String cFeedall() {
-		for (UhcParticipant up : match.getUhcParticipants())
-			if (up.feed()) up.sendMessage(OK_COLOR + "You have been fed");
+		for (UhcPlayer pl : match.getOnlinePlayers())
+			if (pl.feed()) pl.sendMessage(OK_COLOR + "You have been fed");
 
 		return OK_COLOR + "Fed all players.";
 	}
@@ -1367,9 +1442,9 @@ public class TesseractUHC extends JavaPlugin {
 		if (args.length == 0)
 			return ERROR_COLOR + "Please specify player to feed, or use /feedall";
 
-		UhcParticipant up = match.getUhcParticipant(args[0]);
+		UhcPlayer up = match.getPlayer(args[0]);
 		
-		if (up != null) {
+		if (up.isOnline()) {
 			if (up.feed()) {
 				up.sendMessage(OK_COLOR + "You have been fed");
 				return OK_COLOR + "Fed " + up.getName();
@@ -1388,8 +1463,8 @@ public class TesseractUHC extends JavaPlugin {
 	 * @return response
 	 */
 	private String cHealall() {
-		for (UhcParticipant up : match.getUhcParticipants())
-			if (up.heal()) up.sendMessage(OK_COLOR + "You have been healed");
+		for (UhcPlayer pl : match.getOnlinePlayers())
+			if (pl.heal()) pl.sendMessage(OK_COLOR + "You have been healed");
 
 		return OK_COLOR + "Healed all players.";
 	}
@@ -1404,9 +1479,9 @@ public class TesseractUHC extends JavaPlugin {
 		if (args.length == 0)
 			return ERROR_COLOR + "Please specify player to heal, or use /healall";
 
-		UhcParticipant up = match.getUhcParticipant(args[0]);
+		UhcPlayer up = match.getPlayer(args[0]);
 		
-		if (up != null) {
+		if (up.isOnline()) {
 			if (up.heal()) {
 				up.sendMessage(OK_COLOR + "You have been healed");
 				return OK_COLOR + "Healed " + up.getName();

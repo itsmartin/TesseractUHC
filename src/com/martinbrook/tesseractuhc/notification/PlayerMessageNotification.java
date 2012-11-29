@@ -1,16 +1,15 @@
 package com.martinbrook.tesseractuhc.notification;
 
 import org.bukkit.ChatColor;
-import org.bukkit.entity.Player;
-
 import com.martinbrook.tesseractuhc.TesseractUHC;
+import com.martinbrook.tesseractuhc.UhcPlayer;
 
 public class PlayerMessageNotification extends UhcNotification {
 
-	private Player sender;
+	private UhcPlayer sender;
 	private String message;
 	
-	public PlayerMessageNotification(Player sender, String message) {
+	public PlayerMessageNotification(UhcPlayer sender, String message) {
 		super();
 		this.sender=sender;
 		this.message=message;

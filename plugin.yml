@@ -6,9 +6,6 @@ commands:
  tp:
   description: Teleportation functions
   usage: /tp | /tp player | /tp player destinationplayer | /tp x y z | /tp player x y z
- tpall:
-  description: Teleports all non-creative players to you
-  usage: /tpall 
  butcher:
   description: Butchers hostile mobs
   usage: /butcher

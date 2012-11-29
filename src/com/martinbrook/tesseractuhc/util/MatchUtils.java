@@ -3,8 +3,14 @@ package com.martinbrook.tesseractuhc.util;
 import java.util.ArrayList;
 import java.util.Calendar;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.Plugin;
 
 import com.martinbrook.tesseractuhc.TesseractUHC;
@@ -176,6 +182,41 @@ public class MatchUtils {
 		
 		return lines;
 		
+	}
+	/**
+	 * Gets a copy of a player's current inventory, including armor/health/hunger details.
+	 *
+	 * @author AuthorBlues
+	 * @param player The player to be viewed
+	 * @return inventory The player's inventory
+	 *
+	 */
+	public static Inventory getInventoryView(Player player)
+	{
+
+		PlayerInventory pInventory = player.getInventory();
+		Inventory inventoryView = Bukkit.getServer().createInventory(null,
+			pInventory.getSize() + 9, player.getDisplayName() + "'s Inventory");
+
+		ItemStack[] oldContents = pInventory.getContents();
+		ItemStack[] newContents = inventoryView.getContents();
+
+		for (int i = 0; i < oldContents.length; ++i)
+			if (oldContents[i] != null) newContents[i] = oldContents[i];
+
+		newContents[oldContents.length + 0] = pInventory.getHelmet();
+		newContents[oldContents.length + 1] = pInventory.getChestplate();
+		newContents[oldContents.length + 2] = pInventory.getLeggings();
+		newContents[oldContents.length + 3] = pInventory.getBoots();
+
+		newContents[oldContents.length + 7] = new ItemStack(Material.APPLE, player.getHealth());
+		newContents[oldContents.length + 8] = new ItemStack(Material.COOKED_BEEF, player.getFoodLevel());
+
+		for (int i = 0; i < oldContents.length; ++i)
+			if (newContents[i] != null) newContents[i] = newContents[i].clone();
+
+		inventoryView.setContents(newContents);
+		return inventoryView;
 	}
 	
 	

@@ -19,6 +19,7 @@ import org.bukkit.inventory.ItemStack;
 
 import com.martinbrook.tesseractuhc.MatchPhase;
 import com.martinbrook.tesseractuhc.UhcMatch;
+import com.martinbrook.tesseractuhc.UhcPlayer;
 
 public class SpectateListener implements Listener {
 	private UhcMatch m;
@@ -27,31 +28,32 @@ public class SpectateListener implements Listener {
 	@EventHandler
 	public void onInteractEntityEvent(PlayerInteractEntityEvent e) {
 		Player p = e.getPlayer();
-		if (!m.isSpectator(p)) return;
+		UhcPlayer pl = m.getPlayer(p);
+		if (!pl.isSpectator()) return;
 
 		Entity clicked = e.getRightClicked();
 
 		if (clicked.getType() == EntityType.PLAYER) {
-			m.showInventory(p, (Player) clicked);
+			pl.getSpectator().showInventory((Player) clicked);
 		}
 	}
 
 	
 	@EventHandler(ignoreCancelled = true)
 	public void onPlayerPickupItem(PlayerPickupItemEvent e) {
-		if (m.isNoninteractingSpectator(e.getPlayer()) && m.getMatchPhase() == MatchPhase.MATCH) e.setCancelled(true);
+		if (m.getPlayer(e.getPlayer()).isNonInteractingSpectator() && m.getMatchPhase() == MatchPhase.MATCH) e.setCancelled(true);
 	}
 
 	@EventHandler(ignoreCancelled = true)
 	public void onPlayerDropItem(PlayerDropItemEvent e) {
-		if (m.isNoninteractingSpectator(e.getPlayer()) && m.getMatchPhase() == MatchPhase.MATCH) e.setCancelled(true);
+		if (m.getPlayer(e.getPlayer()).isNonInteractingSpectator() && m.getMatchPhase() == MatchPhase.MATCH) e.setCancelled(true);
 	}
 
 	@EventHandler(ignoreCancelled = true)
 	public void onEntityTarget(EntityTargetEvent e) {
 		Entity target = e.getTarget();
 		if (target != null && target.getType() == EntityType.PLAYER) {
-			if (m.isSpectator((Player) target) && m.getMatchPhase() == MatchPhase.MATCH) e.setCancelled(true);
+			if (m.getPlayer((Player) target).isSpectator() && m.getMatchPhase() == MatchPhase.MATCH) e.setCancelled(true);
 		}
 	}
 	/**
@@ -60,7 +62,7 @@ public class SpectateListener implements Listener {
 	 */
 	@EventHandler(ignoreCancelled = true)
 	public void onPlayerInteract(PlayerInteractEvent e) {
-		if (m.isNoninteractingSpectator(e.getPlayer()) && m.getMatchPhase() == MatchPhase.MATCH) {
+		if (m.getPlayer(e.getPlayer()).isNonInteractingSpectator() && m.getMatchPhase() == MatchPhase.MATCH) {
 
 			// Handle right-clicks on inventory blocks
 			if (e.getAction() == Action.RIGHT_CLICK_BLOCK && e.getClickedBlock().getState() instanceof InventoryHolder) {

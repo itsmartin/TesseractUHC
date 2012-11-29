@@ -10,6 +10,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import com.martinbrook.tesseractuhc.MatchPhase;
 import com.martinbrook.tesseractuhc.UhcMatch;
 import com.martinbrook.tesseractuhc.UhcParticipant;
+import com.martinbrook.tesseractuhc.UhcPlayer;
 
 public class LoginListener implements Listener {
 	private UhcMatch m;
@@ -18,27 +19,23 @@ public class LoginListener implements Listener {
 
 	@EventHandler
 	public void onJoin(PlayerJoinEvent e) {
-		m.setVanish(e.getPlayer());
+		UhcPlayer pl = m.getPlayer(e.getPlayer());
 
 		// If player is op, set them as a spectator
-		if (e.getPlayer().isOp() || m.isAdmin(e.getPlayer())) {
-			m.addSpectator(e.getPlayer());
+		if (e.getPlayer().isOp()) {
+			pl.makeSpectator();
 			return;
 		}
+
+		// Normal player. Set their vanish correctly
+		pl.setVanish();
 		
-		
-		// Get a uhcplayer if possible
-		UhcParticipant up = m.getUhcParticipant(e.getPlayer());
 				
 		// If the match has not yet started, try to launch the player if necessary
 		if (m.getMatchPhase() == MatchPhase.LAUNCHING) {
-			if (up != null) {
-				// Player is in the match, make sure they are launched
-				m.launch(up);
-			} else {
-				// Player isn't in the match, so make sure they log in at spawn
-				e.getPlayer().teleport(m.getStartingWorld().getSpawnLocation());
-			}
+			// If player is in the match, make sure they are launched. If not, put them at spawn.
+			if (pl.isParticipant()) m.launch(pl.getParticipant());
+			else e.getPlayer().teleport(m.getStartingWorld().getSpawnLocation()); // TODO improve
 			return;
 		}
 		

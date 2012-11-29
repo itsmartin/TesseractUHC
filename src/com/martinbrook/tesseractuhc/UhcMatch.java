@@ -87,7 +87,6 @@ public class UhcMatch {
 	private ArrayList<UhcPOI> uhcPOIs = new ArrayList<UhcPOI>();
 	private int proximityCheckerTask;
 	private static int PROXIMITY_THRESHOLD_SQUARED = 10000;
-	private HashMap<String, UhcSpectator> uhcSpectators = new HashMap<String, UhcSpectator>();
 	private HashMap<OfflinePlayer, UhcPlayer> allPlayers = new HashMap<OfflinePlayer, UhcPlayer>();
 
 	
@@ -296,7 +295,7 @@ public class UhcMatch {
 					adminBroadcast(TesseractUHC.ALERT_COLOR + "Warning: team has no members: " + teamName);
 				} else {
 					for (String participantName : teamMembers) {
-						if (!addParticipant(participantName, teamIdentifier))
+						if (!addParticipant(getPlayer(participantName), teamIdentifier))
 							adminBroadcast(TesseractUHC.ALERT_COLOR + "Warning: failed to add player: " + participantName);
 					}
 				}
@@ -604,17 +603,17 @@ public class UhcMatch {
 	/**
 	 * Create a new participant and add them to the game
 	 * 
-	 * @param name The participant's name
+	 * @param pl The participant's UhcPlayer object
 	 * @param sp The participant's start point
 	 * @return The newly created participant, or null if they already existed
 	 */
-	private UhcParticipant createParticipant(String name, UhcTeam team) {
+	private UhcParticipant createParticipant(UhcPlayer pl, UhcTeam team) {
 		// Fail if player exists
-		if (existsUhcParticipant(name)) return null;
+		if (pl.isParticipant()) return null;
 		
-		UhcParticipant up = new UhcParticipant(name, team, this);
+		UhcParticipant up = new UhcParticipant(pl, team);
 		team.addMember(up);
-		uhcParticipants.put(name.toLowerCase(), up);
+		uhcParticipants.put(pl.getName().toLowerCase(), up);
 		return up;
 	}
 	
@@ -720,12 +719,12 @@ public class UhcMatch {
 	 * @param teamIdentifier The team to add them to
 	 * @return success or failure
 	 */
-	public boolean addParticipant(String name, String teamIdentifier) {
+	public boolean addParticipant(UhcPlayer pl, String teamIdentifier) {
 		// If player is op, fail
-		if (server.getOfflinePlayer(name).isOp()) return false;
+		if (pl.isAdmin()) return false;
 		
-		// If player already exists, fail 
-		if (existsUhcParticipant(name)) return false;
+		// If player is already a participant, fail
+		if (pl.isParticipant()) return false;
 		
 		// Get the team
 		UhcTeam team = getTeam(teamIdentifier);
@@ -733,16 +732,11 @@ public class UhcMatch {
 		// If team doesn't exist, fail
 		if (team == null) return false;
 		
-		// If player is a spectator or an admin, make them not one
-		Player p = server.getPlayerExact(name);
-		if (p != null) {
-			removeSpectator(p);
-		} else {
-			removeSpectator(name);
-		}
+		// If player is a spectator, make them not one
+		if (pl.isSpectator()) pl.makeNotSpectator();
 		
 		// Create the player
-		UhcParticipant up = createParticipant(name, team);
+		UhcParticipant up = createParticipant(pl, team);
 
 		// If player wasn't created, fail
 		if (up == null) return false;
@@ -757,27 +751,22 @@ public class UhcMatch {
 	 * @param name The name of the player to add
 	 * @return success or failure
 	 */
-	public boolean addSoloParticipant (String name) {
+	public boolean addSoloParticipant (UhcPlayer pl) {
 		// If player is op, fail
-		if (server.getOfflinePlayer(name).isOp()) return false;
+		if (pl.isAdmin()) return false;
 		
-		// If player already exists, fail 
-		if (existsUhcParticipant(name)) return false;
+		// If player is already a participant, fail
+		if (pl.isParticipant()) return false;
 		
-		// If player is a spectator or an admin, make them not one
-		Player p = server.getPlayerExact(name);
-		if (p != null) {
-			removeSpectator(p);
-		} else {
-			removeSpectator(name);
-		}
+		// If player is a spectator, make them not one
+		if (pl.isSpectator()) pl.makeNotSpectator();
 		
 		// Create a team of one for the player
-		String teamName = name; 
+		String teamName = pl.getName(); 
 		if (!addTeam(teamName, teamName)) return false;
 		
 		// Add the new player to the team of one, and return the result
-		return addParticipant(name, teamName);
+		return addParticipant(pl, teamName);
 		
 	}
 	
@@ -949,12 +938,9 @@ public class UhcMatch {
 	private void runPlayerListUpdater() {
 		// Update the player list for all players
 		for(Player p : server.getOnlinePlayers()) {
-			UhcParticipant up = getUhcParticipant(p);
-			if (up != null && !isSpectator(p)) {
-				if (!up.isDead())
-					setSurvivorPlayerListName(p);
-				else
-					setDeceasedPlayerListName(p);
+			UhcPlayer pl = getPlayer(p);
+			if (pl.isActiveParticipant()) {
+				setSurvivorPlayerListName(p);
 			} else {
 				setNonPlayerPlayerListName(p);
 			}
@@ -976,7 +962,7 @@ public class UhcMatch {
 	
 	private void runSpawnKeeper() {
 		for (Player p : server.getOnlinePlayers()) {
-			if (!isAdmin(p) && p.getLocation().getY() < 128) {
+			if (p.getLocation().getY() < 128 && !getPlayer(p).isAdmin()) {
 				p.teleport(startingWorld.getSpawnLocation());
 			}
 			p.setHealth(20);
@@ -1010,7 +996,7 @@ public class UhcMatch {
 				UhcParticipant up2 = participantsInMatch.get(j);
 				if (up.getTeam() != up2.getTeam()) {
 					if (checkProximity(up, up2)) {
-						sendAdminNotification(new ProximityNotification(up, up2), server.getPlayerExact(up.getName()).getLocation());
+						sendSpectatorNotification(new ProximityNotification(up, up2), server.getPlayerExact(up.getName()).getLocation());
 					}
 				}
 				j++;
@@ -1019,7 +1005,7 @@ public class UhcMatch {
 			// Check proximity to all POIs. 
 			for (UhcPOI poi : uhcPOIs) {
 				if (checkProximity(up, poi)) {
-					sendAdminNotification(new ProximityNotification(up, poi), server.getPlayerExact(up.getName()).getLocation());
+					sendSpectatorNotification(new ProximityNotification(up, poi), server.getPlayerExact(up.getName()).getLocation());
 				}
 			}
 			
@@ -1336,20 +1322,7 @@ public class UhcMatch {
 
 
 
-	/**
-	 * Show a spectator the contents of a player's inventory.
-	 * 
-	 * @param spectator The player who is asking to see the inventory
-	 * @param player The player being observed
-	 */
-	public boolean showInventory(Player spectator, Player player) {
 
-		Inventory i = getInventoryView(player);
-		if (i == null) return false;
-		
-		spectator.openInventory(i);
-		return true;
-	}
 
 	/**
 	 * Gets a copy of a player's current inventory, including armor/health/hunger details.
@@ -1395,38 +1368,11 @@ public class UhcMatch {
 	 */
 	public void setVanish() {
 		for(Player p : server.getOnlinePlayers()) {
-			setVanish(p);
+			getPlayer(p).setVanish();
 		}
 	}
 
-	/**
-	 * Set the correct vanish status for the player in relation to all other players
-	 * 
-	 * @param p The player to update
-	 */
-	public void setVanish(Player p) {
-		for (Player p2 : server.getOnlinePlayers()) {
-			setVanish(p, p2);
-			setVanish(p2, p);
-		}
-	}
-	
-	/**
-	 * Set the correct vanish status between two players
-	 * 
-	 * @param viewer Player viewing
-	 * @param viewed Player being viewed
-	 */
-	public void setVanish(Player viewer, Player viewed) {
-		if (viewer == viewed) return;
-		
-		// A spec should be invisible to a non-spec if the match is launching and not ended
-		if (!isSpectator(viewer) && isSpectator(viewed) && (matchPhase == MatchPhase.LAUNCHING || matchPhase == MatchPhase.MATCH)) {
-			viewer.hidePlayer(viewed);
-		} else {
-			viewer.showPlayer(viewed);
-		}
-	}
+
 
 	public ArrayList<Location> getCalculatedStarts() {
 		return calculatedStarts;
@@ -1626,10 +1572,11 @@ public class UhcMatch {
 		if (message != null) this.broadcast(message);
 	}
 	
-	public void sendAdminNotification(UhcNotification n, Location l) {
+	public void sendSpectatorNotification(UhcNotification n, Location l) {
 		setLastNotifierLocation(l);
 		String message = n.formatForStreamers();
-		if (message != null) this.adminBroadcast(message);
+		if (message != null) this.adminBroadcast(message); 	// TODO Make this go to all streamers, not just admins
+
 	}
 
 	public boolean startMatchCountdown(int countLength) {
@@ -1681,13 +1628,7 @@ public class UhcMatch {
 		String outputName = (color + name + " - " + (int) health + (isOdd ? ".5" : ""));
 		p.setPlayerListName(outputName);
 	}
-	
-	private void setDeceasedPlayerListName(Player p) {
-		String name = p.getName();
-		if (name.length() > 10) name = name.substring(0, 10);
-		p.setPlayerListName(ChatColor.RED + name + " - D");
-		
-	}
+
 
 	private void setNonPlayerPlayerListName(Player p) {
 		String name = p.getName();
@@ -1749,54 +1690,6 @@ public class UhcMatch {
 		return uhcPOIs;
 	}
 
-	public boolean isSpectator(Player p) { 
-		return uhcSpectators.containsKey(p.getName().toLowerCase()) || p.isOp();
-	}
-	
-	public boolean isInteractingSpectator(Player p) {
-		UhcSpectator us = this.getSpectator(p);
-		if (us == null) return false;
-		return us.isInteracting();
-	}
-	
-	public boolean isNoninteractingSpectator(Player p) {
-		return isSpectator(p) && !isInteractingSpectator(p);
-	}
-	
-	public UhcSpectator addSpectator(Player p) {
-		UhcSpectator spec = new UhcSpectator(p.getName(), this);
-		uhcSpectators.put(p.getName().toLowerCase(), spec);
-		p.setGameMode(GameMode.CREATIVE);
-		setVanish(p);
-		return spec;
-	}
-	
-	public boolean removeSpectator(Player p) {
-		if (uhcSpectators.containsKey(p.getName().toLowerCase())) {
-			uhcSpectators.remove(p.getName().toLowerCase());
-			setVanish(p);
-			p.setGameMode(GameMode.SURVIVAL);
-			return true;
-		} else {
-			return false;
-		}
-	}
-	
-	private boolean removeSpectator(String name) {
-		if (uhcSpectators.containsKey(name.toLowerCase())) {
-			uhcSpectators.remove(name.toLowerCase());
-			return true;
-		} else {
-			return false;
-		}
-	}
-	
-	public UhcSpectator getSpectator(Player p) { return uhcSpectators.get(p.getName().toLowerCase()); }
-
-
-	public boolean isAdmin(Player p) {
-		return p.isOp(); // Temporary solution only
-	}
 
 
 	public String getPlayerStatusReport() {
@@ -1846,12 +1739,16 @@ public class UhcMatch {
 	public UhcPlayer getPlayer(OfflinePlayer p) {
 		UhcPlayer pl = allPlayers.get(p);
 		if (pl == null) {
-			pl = new UhcPlayer(p);
+			pl = new UhcPlayer(p, this);
 			allPlayers.put(p,  pl);
 		}
 		return pl;
 	}
 	
-	
+	public ArrayList<UhcPlayer> getOnlinePlayers() {
+		ArrayList<UhcPlayer> ups = new ArrayList<UhcPlayer>();
+		for (Player p : server.getOnlinePlayers()) ups.add(getPlayer(p));
+		return ups;
+	}
 
 }

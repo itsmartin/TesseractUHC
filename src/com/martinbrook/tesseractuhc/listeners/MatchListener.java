@@ -121,7 +121,7 @@ public class MatchListener implements Listener {
 		// Cancel any damage caused by spectators
 		if (e.getDamager() instanceof Player) {
 			Player p = (Player) e.getDamager();
-			if (m.isNoninteractingSpectator(p)) {
+			if (m.getPlayer(p).isNonInteractingSpectator()) {
 				e.setCancelled(true);
 				return;
 			}
@@ -178,7 +178,7 @@ public class MatchListener implements Listener {
 	@EventHandler(ignoreCancelled = true)
 	public void onBlockBreak(BlockBreakEvent e) {
 		// If match hasn't started, and not op, cancel the event.
-		if ((m.getMatchPhase() == MatchPhase.PRE_MATCH || m.getMatchPhase() == MatchPhase.LAUNCHING) && !m.isAdmin(e.getPlayer())) {
+		if ((m.getMatchPhase() == MatchPhase.PRE_MATCH || m.getMatchPhase() == MatchPhase.LAUNCHING) && !m.getPlayer(e.getPlayer()).isAdmin()) {
 			e.setCancelled(true);
 			return;
 		}

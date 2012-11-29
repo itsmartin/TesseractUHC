@@ -7,33 +7,23 @@ import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.PlayerInventory;
-import org.bukkit.potion.PotionEffect;
-
 import com.martinbrook.tesseractuhc.startpoint.UhcStartPoint;
 
 public class UhcParticipant implements PlayerTarget {
-	private String name;
 	private boolean launched = false;
 	private UhcTeam team;
 	private HashSet<PlayerTarget> nearbyTargets = new HashSet<PlayerTarget>();
-	private UhcMatch m;
+	private UhcPlayer player;
 
 	private boolean dead = false;
 	
-	public UhcParticipant(String name, UhcTeam team, UhcMatch m) {
-		this.name = name;
+	public UhcParticipant(UhcPlayer pl, UhcTeam team) {
+		this.player = pl;
 		this.team = team;
-		this.m = m;
 	}
 		
 	public String getName() {
-		return name;
-	}
-
-
-	public void setName(String name) {
-		this.name = name;
+		return player.getName();
 	}
 
 
@@ -80,7 +70,7 @@ public class UhcParticipant implements PlayerTarget {
 	public boolean teleport(Location l) { return this.teleport(l, "You have been teleported!"); }
 	public boolean teleport(Player p, String message) { return this.teleport(p.getLocation(), message); }
 	public boolean teleport(Location l, String message) {
-		Player p = getPlayer();
+		Player p = player.getPlayer();
 		if (p == null) return false;
 		
 		// Ensure the chunk is loaded before teleporting
@@ -98,97 +88,16 @@ public class UhcParticipant implements PlayerTarget {
 		}
 	}
 	
-	public Player getPlayer() { return m.getServer().getPlayerExact(name); }
+	public UhcPlayer getPlayer() { return player; }
 
 	public boolean sendToStartPoint() {
-		return (setGameMode(GameMode.ADVENTURE) && teleport(getStartPoint().getLocation()) && renew());
+		return (player.setGameMode(GameMode.ADVENTURE) && teleport(getStartPoint().getLocation()) && player.renew());
 	}
 	
 	public boolean start() {
-		return (feed() && clearXP() && clearPotionEffects() && heal() && setGameMode(GameMode.SURVIVAL));
+		return (player.feed() && player.clearXP() && player.clearPotionEffects() 
+				&& player.heal() && player.setGameMode(GameMode.SURVIVAL));
 	}
 
-	public boolean renew() {
-		return (heal() && feed() && clearXP() && clearPotionEffects() && clearInventory());
-	}
-	
-	/**
-	 * Heal the player
-	 */
-	public boolean heal() {
-		Player p = getPlayer();
-		if (p==null || !p.isOnline()) return false;
-		p.setHealth(20);
-		return true;
-	}
-
-	/**
-	 * Feed the player
-	 */
-	public boolean feed() {
-		Player p = getPlayer();
-		if (p==null || !p.isOnline()) return false;
-		p.setFoodLevel(20);
-		p.setExhaustion(0.0F);
-		p.setSaturation(5.0F);
-		return true;
-	}
-
-	/**
-	 * Reset XP of the given player
-	 */
-	public boolean clearXP() {
-		Player p = getPlayer();
-		if (p==null || !p.isOnline()) return false;
-		p.setTotalExperience(0);
-		p.setExp(0);
-		p.setLevel(0);
-		return true;
-	}
-
-	/**
-	 * Clear potion effects of the given player
-	 */
-	public boolean clearPotionEffects() {
-		Player p = getPlayer();
-		if (p==null || !p.isOnline()) return false;
-		for (PotionEffect pe : p.getActivePotionEffects()) {
-			p.removePotionEffect(pe.getType());
-		}
-		return true;
-	}
-
-	/**
-	 * Clear inventory and ender chest of the given player
-	 */
-	public boolean clearInventory() {
-		Player p = getPlayer();
-		if (p==null || !p.isOnline()) return false;
-		PlayerInventory i = p.getInventory();
-		i.clear();
-		i.setHelmet(null);
-		i.setChestplate(null);
-		i.setLeggings(null);
-		i.setBoots(null);
-		
-		p.getEnderChest().clear();
-		return true;
-		
-	}
-	
-	public boolean setGameMode(GameMode g) {
-		Player p = getPlayer();
-		if (p==null || !p.isOnline()) return false;
-		p.setGameMode(g);
-		return true;
-	}
-
-	public boolean sendMessage(String message) {
-		Player p = getPlayer();
-		if (p==null || !p.isOnline()) return false;
-		
-		p.sendMessage(message);
-		return true;
-	}
 
 }
