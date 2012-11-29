@@ -768,11 +768,7 @@ public class TesseractUHC extends JavaPlugin {
 		}
 		value = value.substring(0, value.length()-1);
 		if (this.setMatchParameter(parameter, value)) {
-			value = this.getMatchParameter(parameter);
-			if (value == null)
-				return ERROR_COLOR + "Error getting value of " + parameter;
-			return OK_COLOR + parameter + " = " + value;
-
+			return formatMatchParameter(parameter);
 		} else
 			return ERROR_COLOR + "Unable to set value of " + parameter;
 	}
@@ -875,13 +871,13 @@ public class TesseractUHC extends JavaPlugin {
 	
 	
 	private String cUhcParams() {
-		String response = "";
-		response += "deathban: " + getMatchParameter("deathban") + "\n";
-		response += "killerbonus: " + getMatchParameter("killerbonus") + "\n";
-		response += "miningfatigue: " + getMatchParameter("miningfatigue") + "\n";
-		response += "nopvp: " + getMatchParameter("nopvp") + "\n";
-		response += "ffa: " + getMatchParameter("ffa") + "\n";
-		response += "uhc: " + getMatchParameter("uhc") + "\n";
+		String response = ChatColor.GOLD + "Match details:\n";
+		response += "   " + formatMatchParameter("uhc") + "\n";
+		response += "   " + formatMatchParameter("ffa") + "\n";
+		response += "   " + formatMatchParameter("nopvp") + "\n";
+		response += "   " + formatMatchParameter("killerbonus") + "\n";
+		response += "   " + formatMatchParameter("miningfatigue") + "\n";
+		response += "   " + formatMatchParameter("deathban") + "\n";
 		
 		return response;
 	}
@@ -892,27 +888,67 @@ public class TesseractUHC extends JavaPlugin {
 	 * @param parameter The match parameter to look up
 	 * @return A human-readable version of the parameter's value
 	 */
-	private String getMatchParameter(String parameter) {
+	private String formatMatchParameter(String parameter) {
+		String response = ERROR_COLOR + "Unknown parameter";
+		String param = ChatColor.AQUA.toString();
+		String value = ChatColor.GOLD.toString();
+		String desc = "\n" + ChatColor.GRAY + ChatColor.ITALIC + "      ";
+		
+		
 		if ("deathban".equalsIgnoreCase(parameter)) {
-			return (match.getDeathban() ? "On" : "Off");
+			response = param + "Deathban: " + value;
+			if (match.getDeathban())
+				response += "Enabled" + desc + "Dead players will be prevented from logging back into the server";
+			else 
+				response += "Disabled" + desc + "Dead players will be allowed to stay on the server";
+			
 		} else if ("killerbonus".equalsIgnoreCase(parameter)) {
+			response = param + "Killer bonus: " + value;
 			ItemStack kb = match.getKillerBonus();
-			if (kb == null) return "Off";
-			return kb.getAmount() + " " + kb.getType().toString();
+			if (kb == null) 
+				response += "Disabled" + desc + "No additional bonus dropped after a PvP kill";
+			else
+				response += kb.getAmount() + " x " + kb.getType().toString() + desc 
+				+ "Additional items dropped when a player is killed by PvP";
 				
 		} else if ("miningfatigue".equalsIgnoreCase(parameter)) {
-			return match.getMiningFatigueGold() + " at gold, " + match.getMiningFatigueDiamond() + " at diamond";
+			response = param + "Mining hunger: " + value;
+			double mfg = match.getMiningFatigueGold();
+			double mfd = match.getMiningFatigueDiamond();
+			if (mfg > 0 || mfd > 0)
+				response += (mfg>0 ? (mfg / 8.0) + " (below y=32) " : "") + (mfd > 0 ? (mfd / 8.0) + " (below y=16)" : "" ) + desc;
+			else
+				response += "Disabled" + desc;
 			
+			response += "Hunger penalty per block mined at those depths (stone blocks only)";
+					
 		} else if ("nopvp".equalsIgnoreCase(parameter)) {
-			return String.valueOf(match.getNopvp());
+			response = param + "No-PvP period: " + value;
+			int n = match.getNopvp();
+			int mins = n / 60;
+			int secs = n % 60;
+			response += (mins > 0 ? mins + " minutes" : "")
+					+ (secs > 0 ? secs + " seconds" : "")
+					+ desc
+					+  "Period at the start of the match during which PvP is disabled";
+			
 		} else if ("ffa".equalsIgnoreCase(parameter)) {
-			return (match.isFFA() ? "Yes" : "No");
+			response = param + "Teams: " + value;
+			if (match.isFFA())
+				response += "Free for all" + desc + "No teams, no alliances, every player for themselves";
+			else
+				response += "Teams" + desc + "Teams work together, last team with a survivor wins";
+			
 		} else if ("uhc".equalsIgnoreCase(parameter)) {
-			return (match.isUHC() ? "Yes" : "No");
+			response = param + "UHC: " + value;
+			if (match.isUHC())
+				response += "Enabled" + desc + "No health regeneration, and modified recipes for golden apple and glistering melon";
+			else
+				response += "Disabled" + desc + "Health regeneration and crafting recipes are unchanged";
 		}
 		
-		return null;
 		
+		return response;
 	}
 
 	private boolean setMatchParameter(String parameter, String value) {
