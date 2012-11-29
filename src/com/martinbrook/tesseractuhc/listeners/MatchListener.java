@@ -43,12 +43,16 @@ public class MatchListener implements Listener {
 	@EventHandler
 	public void onPlayerDeath(PlayerDeathEvent e){
 		Player p = e.getEntity();
+		UhcParticipant up = m.getUhcParticipant(p);
 		
 		// If it's a pvp kill, drop bonus items
 		if (p.getKiller() != null) {
-			ItemStack bonus = m.getKillerBonus();
-			if (bonus != null)
-				e.getDrops().add(bonus);
+			UhcParticipant killer = m.getUhcParticipant(p.getKiller());
+			if (up != null && killer != null && killer.getTeam() != up.getTeam()) {
+				ItemStack bonus = m.getKillerBonus();
+				if (bonus != null)
+					e.getDrops().add(bonus);
+			}
 		}
 		
 		// Make death message red
@@ -60,7 +64,6 @@ public class MatchListener implements Listener {
 			m.setLastDeathLocation(p.getLocation());
 		
 		// Handle the death
-		UhcParticipant up = m.getUhcParticipant(p);
 		if (up != null && up.isLaunched() && !up.isDead() && m.getMatchPhase() == MatchPhase.MATCH)
 			m.handleParticipantDeath(up);
 
