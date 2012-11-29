@@ -14,6 +14,7 @@ public class UhcParticipant implements PlayerTarget {
 	private UhcPlayer player;
 
 	private boolean dead = false;
+	private boolean miningFatigueAlerted = false;
 	
 	public UhcParticipant(UhcPlayer pl, UhcTeam team) {
 		this.player = pl;
@@ -100,9 +101,14 @@ public class UhcParticipant implements PlayerTarget {
 			exhaustion = this.player.getMatch().getMiningFatigueGold();
 		}
 		
-		if (exhaustion > 0)
-			player.getPlayer().setExhaustion((float) (player.getPlayer().getExhaustion() + exhaustion));
-
+		if (exhaustion > 0) {
+			if (!miningFatigueAlerted) {
+				sendMessage(TesseractUHC.ALERT_COLOR + "Warning: mining at this depth will make you very hungry!");
+				miningFatigueAlerted=true;
+			} else {
+				player.getPlayer().setExhaustion((float) (player.getPlayer().getExhaustion() + exhaustion));
+			}
+		}
 				
 	}
 
