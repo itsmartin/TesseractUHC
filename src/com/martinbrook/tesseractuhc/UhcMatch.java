@@ -443,6 +443,8 @@ public class UhcMatch {
 	 * @param l The location to be stored
 	 */
 	public void setLastDeathLocation(Location l) {
+		// For void deaths, increase y to 0;
+		if (l.getY() < 0) l.setY(0);
 		lastDeathLocation = l;
 		lastEventLocation = l;
 	}

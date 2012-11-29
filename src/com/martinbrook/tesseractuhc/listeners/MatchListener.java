@@ -60,8 +60,7 @@ public class MatchListener implements Listener {
 		e.setDeathMessage(ChatColor.RED + msg);
 		
 		// Save death point
-		if (msg.indexOf("fell out of the world") == -1)
-			m.setLastDeathLocation(p.getLocation());
+		m.setLastDeathLocation(p.getLocation());
 		
 		// Handle the death
 		if (up != null && up.isLaunched() && !up.isDead() && m.getMatchPhase() == MatchPhase.MATCH)
