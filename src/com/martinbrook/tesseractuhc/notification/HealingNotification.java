@@ -3,16 +3,16 @@ package com.martinbrook.tesseractuhc.notification;
 import org.bukkit.ChatColor;
 import org.bukkit.event.entity.EntityRegainHealthEvent.RegainReason;
 
-import com.martinbrook.tesseractuhc.UhcPlayer;
+import com.martinbrook.tesseractuhc.UhcParticipant;
 
 public class HealingNotification extends UhcNotification {
-	private UhcPlayer player;
+	private UhcParticipant player;
 	private int healAmount;
 	private RegainReason cause;
 
 
 
-	public HealingNotification(UhcPlayer player, int healAmount, RegainReason cause) {
+	public HealingNotification(UhcParticipant player, int healAmount, RegainReason cause) {
 		super();
 		this.player = player;
 		this.healAmount = healAmount;

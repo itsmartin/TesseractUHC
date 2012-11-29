@@ -24,7 +24,7 @@ import org.bukkit.ChatColor;
 
 import com.martinbrook.tesseractuhc.MatchPhase;
 import com.martinbrook.tesseractuhc.UhcMatch;
-import com.martinbrook.tesseractuhc.UhcPlayer;
+import com.martinbrook.tesseractuhc.UhcParticipant;
 import com.martinbrook.tesseractuhc.notification.DamageNotification;
 import com.martinbrook.tesseractuhc.notification.HealingNotification;
 
@@ -59,9 +59,9 @@ public class MatchListener implements Listener {
 			m.setLastDeathLocation(p.getLocation());
 		
 		// Handle the death
-		UhcPlayer up = m.getUhcPlayer(p);
+		UhcParticipant up = m.getUhcParticipant(p);
 		if (up != null && up.isLaunched() && !up.isDead() && m.getMatchPhase() == MatchPhase.MATCH)
-			m.handlePlayerDeath(up);
+			m.handleParticipantDeath(up);
 
 	}
 
@@ -73,7 +73,7 @@ public class MatchListener implements Listener {
 		Player p = e.getPlayer();
 		
 		// If they're a dead UHC player, put them into adventure mode and make sure they respawn at overworld spawn
-		UhcPlayer up = m.getUhcPlayer(p);
+		UhcParticipant up = m.getUhcParticipant(p);
 		
 		if (up != null) {
 			if (up.isDead()) {
@@ -104,7 +104,7 @@ public class MatchListener implements Listener {
 		if(((LivingEntity)e.getEntity()).getNoDamageTicks() > ((LivingEntity)e.getEntity()).getMaximumNoDamageTicks()/2.0F)	return;
 		
 		// Only interested in registered players
-		UhcPlayer up = m.getUhcPlayer((Player) e.getEntity());
+		UhcParticipant up = m.getUhcParticipant((Player) e.getEntity());
 		if (up == null) return;
 		
 		// Only interested in living players
@@ -131,7 +131,7 @@ public class MatchListener implements Listener {
 		if (e.getEntityType() != EntityType.PLAYER) return;
 		
 		// Only interested in registered players
-		UhcPlayer up = m.getUhcPlayer((Player) e.getEntity());
+		UhcParticipant up = m.getUhcParticipant((Player) e.getEntity());
 		if (up == null) return;
 		
 		// Only interested in living players
@@ -150,7 +150,7 @@ public class MatchListener implements Listener {
 		if (m.getMatchPhase() != MatchPhase.MATCH) return;
 
 		// Only interested in registered players
-		UhcPlayer up = m.getUhcPlayer((Player) e.getEntity());
+		UhcParticipant up = m.getUhcParticipant((Player) e.getEntity());
 		if (up == null) return;
 
 		// Cancel event if it is a natural regen due to hunger being full, and UHC is enabled

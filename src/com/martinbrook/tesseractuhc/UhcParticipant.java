@@ -12,7 +12,7 @@ import org.bukkit.potion.PotionEffect;
 
 import com.martinbrook.tesseractuhc.startpoint.UhcStartPoint;
 
-public class UhcPlayer implements PlayerTarget {
+public class UhcParticipant implements PlayerTarget {
 	private String name;
 	private boolean launched = false;
 	private UhcTeam team;
@@ -21,7 +21,7 @@ public class UhcPlayer implements PlayerTarget {
 
 	private boolean dead = false;
 	
-	public UhcPlayer(String name, UhcTeam team, UhcMatch m) {
+	public UhcParticipant(String name, UhcTeam team, UhcMatch m) {
 		this.name = name;
 		this.team = team;
 		this.m = m;

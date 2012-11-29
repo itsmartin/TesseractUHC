@@ -9,7 +9,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 
 import com.martinbrook.tesseractuhc.MatchPhase;
 import com.martinbrook.tesseractuhc.UhcMatch;
-import com.martinbrook.tesseractuhc.UhcPlayer;
+import com.martinbrook.tesseractuhc.UhcParticipant;
 
 public class LoginListener implements Listener {
 	private UhcMatch m;
@@ -28,7 +28,7 @@ public class LoginListener implements Listener {
 		
 		
 		// Get a uhcplayer if possible
-		UhcPlayer up = m.getUhcPlayer(e.getPlayer());
+		UhcParticipant up = m.getUhcParticipant(e.getPlayer());
 				
 		// If the match has not yet started, try to launch the player if necessary
 		if (m.getMatchPhase() == MatchPhase.LAUNCHING) {
@@ -61,7 +61,7 @@ public class LoginListener implements Listener {
 	@EventHandler
 	public void onLogin(PlayerLoginEvent e) {
 		// Get a uhcplayer if possible
-		UhcPlayer up = m.getUhcPlayer(e.getPlayer());
+		UhcParticipant up = m.getUhcParticipant(e.getPlayer());
 		
 		// If a registered player would be prevented from logging in due to the server being full or them not being whitelisted,
 		// let them in anyway.

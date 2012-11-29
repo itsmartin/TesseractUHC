@@ -8,7 +8,7 @@ public class UhcTeam {
 	private String identifier;
 	private String name;
 	private UhcStartPoint startPoint;
-	private HashSet<UhcPlayer> players = new HashSet<UhcPlayer>();
+	private HashSet<UhcParticipant> players = new HashSet<UhcParticipant>();
 	
 	
 	/**
@@ -45,7 +45,7 @@ public class UhcTeam {
 	 * 
 	 * @param p The player to be added
 	 */
-	public void addPlayer(UhcPlayer p) {
+	public void addMember(UhcParticipant p) {
 		players.add(p);
 	}
 	
@@ -54,7 +54,7 @@ public class UhcTeam {
 	 * 
 	 * @param p The player to be removed
 	 */
-	public void removePlayer(UhcPlayer p) {
+	public void removeMember(UhcParticipant p) {
 		players.remove(p);
 	}
 	
@@ -75,13 +75,13 @@ public class UhcTeam {
 	public int aliveCount() {
 		int alive = 0;
 		
-		for(UhcPlayer p : players)
+		for(UhcParticipant p : players)
 			if (!p.isDead()) alive ++;
 		
 		return alive;
 	}
 	
-	public HashSet<UhcPlayer> getPlayers() {
+	public HashSet<UhcParticipant> getMembers() {
 		return players;
 	}
 

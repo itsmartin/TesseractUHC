@@ -142,11 +142,11 @@ public class TesseractUHC extends JavaPlugin {
 		if (us == null) us = match.addSpectator(sender);
 		
 		Player to;
-		int cycleSize = match.countPlayersInMatch();
+		int cycleSize = match.countParticipantsInMatch();
 		int attempts = 0;
 		
 		do {
-			UhcPlayer up = match.getUhcPlayer(us.nextCyclePoint(cycleSize));
+			UhcParticipant up = match.getUhcParticipant(us.nextCyclePoint(cycleSize));
 			to = getServer().getPlayerExact(up.getName());
 			attempts++;
 		} while ((to == null || !to.isOnline()) && attempts < cycleSize);
@@ -324,14 +324,14 @@ public class TesseractUHC extends JavaPlugin {
 				response += WARN_COLOR + "Warning: adding a player who is not currently online\n";
 			
 			if (match.isFFA()) {
-				if (!match.addSoloPlayer(name))
+				if (!match.addSoloParticipant(name))
 					return ERROR_COLOR + "Failed to add player";
 				
 				return response + OK_COLOR + "Player added";
 			} else {
 				if (args.length < 3)
 					return ERROR_COLOR + "Please specify the team! /players add NAME TEAM";
-				if (!match.addPlayer(p.getName(), args[2]))
+				if (!match.addParticipant(p.getName(), args[2]))
 					return ERROR_COLOR + "Failed to add player " + args[1] + " to team " + args[2];
 				
 				return response + OK_COLOR + "Player added";
@@ -344,7 +344,7 @@ public class TesseractUHC extends JavaPlugin {
 			int added = 0;
 			for (Player p : getServer().getOnlinePlayers()) {
 				if (!match.isSpectator(p))
-					if (match.addSoloPlayer(p.getName())) added++;
+					if (match.addSoloParticipant(p.getName())) added++;
 			}
 			if (added > 0)
 				return "" + OK_COLOR + added + " player" + (added == 1? "" : "s") + " added";
@@ -355,7 +355,7 @@ public class TesseractUHC extends JavaPlugin {
 		} else if (args[0].equalsIgnoreCase("remove") || args[0].equalsIgnoreCase("rm")) {
 			if (args.length < 2)
 				return ERROR_COLOR + "Specify player to remove!";
-			if (!match.removePlayer(args[1]))
+			if (!match.removeParticipant(args[1]))
 				return ERROR_COLOR + "Player could not be removed!";
 
 			return OK_COLOR + "Player removed";
@@ -398,14 +398,14 @@ public class TesseractUHC extends JavaPlugin {
 	}
 
 	private String pLeave(Player sender, String[] args) {
-		if (!match.removePlayer(sender.getName()))
+		if (!match.removeParticipant(sender.getName()))
 			return ERROR_COLOR + "Leave failed";
 		else
 			return OK_COLOR + "You have left the match";
 	}
 
 	private String pTeam(Player sender, String[] args) {
-		if (match.getUhcPlayer(sender) != null)
+		if (match.getUhcParticipant(sender) != null)
 			return ERROR_COLOR + "You have already joined this match. Please /leave before creating a new team.";
 		
 		if (match.getMatchPhase() != MatchPhase.PRE_MATCH)
@@ -433,7 +433,7 @@ public class TesseractUHC extends JavaPlugin {
 		if (!match.addTeam(identifier, name))
 			return ERROR_COLOR + "Could not add a new team. Use /join to join an existing team.";
 		
-		if (!match.addPlayer(sender.getName(), identifier))
+		if (!match.addParticipant(sender.getName(), identifier))
 			return ERROR_COLOR + "An error occurred. The team has been created but you could not be joined to it.";
 		
 		match.broadcast(ChatColor.GOLD + "Team " + ChatColor.AQUA + ChatColor.ITALIC + name + ChatColor.RESET 
@@ -449,7 +449,7 @@ public class TesseractUHC extends JavaPlugin {
 			return ERROR_COLOR + "The match is already underway. You cannot join.";
 		
 		if (match.isFFA()) {
-			if (match.addSoloPlayer(sender.getName())) {
+			if (match.addSoloParticipant(sender.getName())) {
 				return OK_COLOR + "You have joined the match";
 			} else {
 				return ERROR_COLOR + "Unable to join";
@@ -468,7 +468,7 @@ public class TesseractUHC extends JavaPlugin {
 			return response;
 		}
 		
-		if (match.addPlayer(sender.getName(), teamToJoin.getIdentifier()))
+		if (match.addParticipant(sender.getName(), teamToJoin.getIdentifier()))
 			return OK_COLOR + "You are now a member of " + teamToJoin.getName();
 		else
 			return ERROR_COLOR + "Unable to join team. Are you already on a team?";
@@ -1278,7 +1278,7 @@ public class TesseractUHC extends JavaPlugin {
 	 * @return response
 	 */
 	private String cRenewall() {
-		for (UhcPlayer up : match.getUhcPlayers())
+		for (UhcParticipant up : match.getUhcParticipants())
 			if (up.renew()) up.sendMessage(OK_COLOR + "You have been healed and fed!");
 
 		return OK_COLOR + "Renewed all players";
@@ -1294,7 +1294,7 @@ public class TesseractUHC extends JavaPlugin {
 		if (args.length == 0)
 			return ERROR_COLOR + "Please specify player to renew, or use /renewall";
 
-		UhcPlayer up = match.getUhcPlayer(args[0]);
+		UhcParticipant up = match.getUhcParticipant(args[0]);
 		
 		if (up != null) {
 			if (up.renew()) {
@@ -1315,7 +1315,7 @@ public class TesseractUHC extends JavaPlugin {
 	 * @return response
 	 */
 	private String cClearinvall() {
-		for (UhcPlayer up : match.getUhcPlayers())
+		for (UhcParticipant up : match.getUhcParticipants())
 			if (up.clearInventory()) up.sendMessage(OK_COLOR + "Your inventory has been cleared");
 
 		return OK_COLOR + "Cleared all players' inventories.";
@@ -1331,7 +1331,7 @@ public class TesseractUHC extends JavaPlugin {
 		if (args.length == 0)
 			return ERROR_COLOR + "Please specify player to clear, or use /clearinvall";
 
-		UhcPlayer up = match.getUhcPlayer(args[0]);
+		UhcParticipant up = match.getUhcParticipant(args[0]);
 		
 		if (up != null) {
 			if (up.clearInventory()) {
@@ -1351,7 +1351,7 @@ public class TesseractUHC extends JavaPlugin {
 	 * @return response
 	 */
 	private String cFeedall() {
-		for (UhcPlayer up : match.getUhcPlayers())
+		for (UhcParticipant up : match.getUhcParticipants())
 			if (up.feed()) up.sendMessage(OK_COLOR + "You have been fed");
 
 		return OK_COLOR + "Fed all players.";
@@ -1367,7 +1367,7 @@ public class TesseractUHC extends JavaPlugin {
 		if (args.length == 0)
 			return ERROR_COLOR + "Please specify player to feed, or use /feedall";
 
-		UhcPlayer up = match.getUhcPlayer(args[0]);
+		UhcParticipant up = match.getUhcParticipant(args[0]);
 		
 		if (up != null) {
 			if (up.feed()) {
@@ -1388,7 +1388,7 @@ public class TesseractUHC extends JavaPlugin {
 	 * @return response
 	 */
 	private String cHealall() {
-		for (UhcPlayer up : match.getUhcPlayers())
+		for (UhcParticipant up : match.getUhcParticipants())
 			if (up.heal()) up.sendMessage(OK_COLOR + "You have been healed");
 
 		return OK_COLOR + "Healed all players.";
@@ -1404,7 +1404,7 @@ public class TesseractUHC extends JavaPlugin {
 		if (args.length == 0)
 			return ERROR_COLOR + "Please specify player to heal, or use /healall";
 
-		UhcPlayer up = match.getUhcPlayer(args[0]);
+		UhcParticipant up = match.getUhcParticipant(args[0]);
 		
 		if (up != null) {
 			if (up.heal()) {

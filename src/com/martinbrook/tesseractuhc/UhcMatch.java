@@ -60,7 +60,7 @@ public class UhcMatch {
 	private int permadayTaskId;
 	
 	private ArrayList<UhcStartPoint> availableStartPoints = new ArrayList<UhcStartPoint>();
-	private HashMap<String, UhcPlayer> uhcPlayers = new HashMap<String, UhcPlayer>(32);
+	private HashMap<String, UhcParticipant> uhcParticipants = new HashMap<String, UhcParticipant>(32);
 	private HashMap<String, UhcTeam> uhcTeams = new HashMap<String, UhcTeam>(32);
 	
 	private ArrayList<String> launchQueue = new ArrayList<String>();
@@ -68,7 +68,7 @@ public class UhcMatch {
 	public static String DEFAULT_TEAMDATA_FILE = "uhcteams.yml";
 	public static int GOLD_LAYER = 32;
 	public static int DIAMOND_LAYER = 16;
-	private ArrayList<UhcPlayer> playersInMatch = new ArrayList<UhcPlayer>();
+	private ArrayList<UhcParticipant> participantsInMatch = new ArrayList<UhcParticipant>();
 	private ArrayList<UhcTeam> teamsInMatch = new ArrayList<UhcTeam>();
 	private Calendar matchStartTime;
 	private int matchTimer = -1;
@@ -248,11 +248,11 @@ public class UhcMatch {
 		for(Map.Entry<String, UhcTeam> e : this.uhcTeams.entrySet()) {
 			ConfigurationSection teamSection = teamData.createSection(e.getValue().getIdentifier());
 			
-			ArrayList<String> players = new ArrayList<String>();
-			for (UhcPlayer up : e.getValue().getPlayers()) players.add(up.getName());
+			ArrayList<String> participants = new ArrayList<String>();
+			for (UhcParticipant up : e.getValue().getMembers()) participants.add(up.getName());
 			
 			teamSection.set("name", e.getValue().getName());
-			teamSection.set("players", players);
+			teamSection.set("players", participants);
 		}
 		
 		
@@ -289,13 +289,13 @@ public class UhcMatch {
 			if (!addTeam(teamIdentifier, teamName)) {
 				adminBroadcast(TesseractUHC.ALERT_COLOR + "Warning: failed to create team " + teamName);
 			} else {
-				List<String> teamPlayers = teamSection.getStringList("players");
-				if (teamPlayers == null) {
-					adminBroadcast(TesseractUHC.ALERT_COLOR + "Warning: team has no players: " + teamName);
+				List<String> teamMembers = teamSection.getStringList("players");
+				if (teamMembers == null) {
+					adminBroadcast(TesseractUHC.ALERT_COLOR + "Warning: team has no members: " + teamName);
 				} else {
-					for (String playerName : teamPlayers) {
-						if (!addPlayer(playerName, teamIdentifier))
-							adminBroadcast(TesseractUHC.ALERT_COLOR + "Warning: failed to add player: " + playerName);
+					for (String participantName : teamMembers) {
+						if (!addParticipant(participantName, teamIdentifier))
+							adminBroadcast(TesseractUHC.ALERT_COLOR + "Warning: failed to add player: " + participantName);
 					}
 				}
 			}
@@ -305,10 +305,10 @@ public class UhcMatch {
 	public boolean clearTeams() {
 		if (matchPhase != MatchPhase.PRE_MATCH) return false;
 		
-		this.uhcPlayers.clear();
+		this.uhcParticipants.clear();
 		this.uhcTeams.clear();
 		this.teamsInMatch.clear();
-		this.playersInMatch.clear();
+		this.participantsInMatch.clear();
 		return true;
 	}
 	
@@ -410,9 +410,9 @@ public class UhcMatch {
 	 * @return The start point, or null if not found.
 	 */
 	public UhcStartPoint findStartPoint(String searchParam) {
-		UhcPlayer up = this.getUhcPlayer(searchParam);
+		UhcParticipant up = this.getUhcParticipant(searchParam);
 		if (up != null) {
-			// Argument matches a player
+			// Argument matches a participant
 			return up.getStartPoint();
 			
 		} else {
@@ -472,14 +472,14 @@ public class UhcMatch {
 	/**
 	 * Start the match
 	 * 
-	 * Butcher hostile mobs, turn off permaday, turn on PVP, put all players in survival and reset all players.
+	 * Butcher hostile mobs, turn off permaday, turn on PVP, put all participants in survival and reset all participants.
 	 */
 	public void startMatch() {
 		this.matchCountdown = null;
 		matchPhase = MatchPhase.MATCH;
 		startingWorld.setTime(0);
 		butcherHostile();
-		for (UhcPlayer up : this.getUhcPlayers()) up.start();
+		for (UhcParticipant up : this.getUhcParticipants()) up.start();
 		setPermaday(false);
 		startMatchTimer();
 		setVanish();
@@ -582,12 +582,12 @@ public class UhcMatch {
 	}
 	
 	/**
-	 * Get all players currently registered with the game
+	 * Get all participants currently registered with the game
 	 * 
-	 * @return All registered players
+	 * @return All registered participants
 	 */
-	public Collection<UhcPlayer> getUhcPlayers() {
-		return uhcPlayers.values();
+	public Collection<UhcParticipant> getUhcParticipants() {
+		return uhcParticipants.values();
 	}
 	
 	private UhcTeam createTeam(String identifier, String name, UhcStartPoint startPoint) {
@@ -600,19 +600,19 @@ public class UhcMatch {
 	}
 	
 	/**
-	 * Create a new player and add them to the game
+	 * Create a new participant and add them to the game
 	 * 
-	 * @param name The player's name
-	 * @param sp The player's start point
-	 * @return The newly created player, or null if they already existed
+	 * @param name The participant's name
+	 * @param sp The participant's start point
+	 * @return The newly created participant, or null if they already existed
 	 */
-	private UhcPlayer createPlayer(String name, UhcTeam team) {
+	private UhcParticipant createParticipant(String name, UhcTeam team) {
 		// Fail if player exists
-		if (existsUhcPlayer(name)) return null;
+		if (existsUhcParticipant(name)) return null;
 		
-		UhcPlayer up = new UhcPlayer(name, team, this);
-		team.addPlayer(up);
-		uhcPlayers.put(name.toLowerCase(), up);
+		UhcParticipant up = new UhcParticipant(name, team, this);
+		team.addMember(up);
+		uhcParticipants.put(name.toLowerCase(), up);
 		return up;
 	}
 	
@@ -624,8 +624,8 @@ public class UhcMatch {
 	 * @param name Player name to check (case insensitive)
 	 * @return Whether the player exists
 	 */
-	public boolean existsUhcPlayer(String name) {
-		return uhcPlayers.containsKey(name.toLowerCase());
+	public boolean existsUhcParticipant(String name) {
+		return uhcParticipants.containsKey(name.toLowerCase());
 	}
 	
 	/**
@@ -649,28 +649,28 @@ public class UhcMatch {
 	}
 	
 	/**
-	 * Get a specific UhcPlayer by name
+	 * Get a specific UhcParticipant by name
 	 * 
 	 * @param name The exact name of the player to be found  (case insensitive)
-	 * @return The UhcPlayer, or null if not found
+	 * @return The UhcParticipant, or null if not found
 	 */
-	public UhcPlayer getUhcPlayer(String name) {
-		return uhcPlayers.get(name.toLowerCase());
+	public UhcParticipant getUhcParticipant(String name) {
+		return uhcParticipants.get(name.toLowerCase());
 	}
 
 	
 	/**
-	 * Get a specific UhcPlayer matching the given Bukkit Player
+	 * Get a specific UhcParticipant matching the given Bukkit Player
 	 * 
 	 * @param playerToGet The Player to look for
-	 * @return The UhcPlayer, or null if not found
+	 * @return The UhcParticipant, or null if not found
 	 */
-	public UhcPlayer getUhcPlayer(Player playerToGet) {
-		return getUhcPlayer(playerToGet.getName());
+	public UhcParticipant getUhcParticipant(Player playerToGet) {
+		return getUhcParticipant(playerToGet.getName());
 	}
 	
-	public UhcPlayer getUhcPlayer(int index) {
-		return playersInMatch.get(index);
+	public UhcParticipant getUhcParticipant(int index) {
+		return participantsInMatch.get(index);
 	}
 	
 	/**
@@ -691,7 +691,7 @@ public class UhcMatch {
 		Random rand = new Random();
 		UhcStartPoint start = availableStartPoints.remove(rand.nextInt(availableStartPoints.size()));
 		
-		// Create the player
+		// Create the team
 		UhcTeam team = createTeam(identifier, name, start);
 		start.setTeam(team);
 		teamsInMatch.add(team);
@@ -712,18 +712,18 @@ public class UhcMatch {
 	}
 
 	/**
-	 * Add the supplied player to the specified team
+	 * Create a participant and add them to the specified team
 	 * 
 	 * @param name The name of the player to add
 	 * @param teamIdentifier The team to add them to
 	 * @return success or failure
 	 */
-	public boolean addPlayer(String name, String teamIdentifier) {
+	public boolean addParticipant(String name, String teamIdentifier) {
 		// If player is op, fail
 		if (server.getOfflinePlayer(name).isOp()) return false;
 		
 		// If player already exists, fail 
-		if (existsUhcPlayer(name)) return false;
+		if (existsUhcParticipant(name)) return false;
 		
 		// Get the team
 		UhcTeam team = getTeam(teamIdentifier);
@@ -740,12 +740,12 @@ public class UhcMatch {
 		}
 		
 		// Create the player
-		UhcPlayer up = createPlayer(name, team);
+		UhcParticipant up = createParticipant(name, team);
 
 		// If player wasn't created, fail
 		if (up == null) return false;
 		
-		playersInMatch.add(up);
+		participantsInMatch.add(up);
 		return true;
 	}
 	
@@ -755,12 +755,12 @@ public class UhcMatch {
 	 * @param name The name of the player to add
 	 * @return success or failure
 	 */
-	public boolean addSoloPlayer (String name) {
+	public boolean addSoloParticipant (String name) {
 		// If player is op, fail
 		if (server.getOfflinePlayer(name).isOp()) return false;
 		
 		// If player already exists, fail 
-		if (existsUhcPlayer(name)) return false;
+		if (existsUhcParticipant(name)) return false;
 		
 		// If player is a spectator or an admin, make them not one
 		Player p = server.getPlayerExact(name);
@@ -775,7 +775,7 @@ public class UhcMatch {
 		if (!addTeam(teamName, teamName)) return false;
 		
 		// Add the new player to the team of one, and return the result
-		return addPlayer(name, teamName);
+		return addParticipant(name, teamName);
 		
 	}
 	
@@ -783,10 +783,10 @@ public class UhcMatch {
 	/**
 	 * Launch the specified player only
 	 * 
-	 * @param p The UhcPlayer to be launched
+	 * @param p The UhcParticipant to be launched
 	 * @return success or failure
 	 */
-	public boolean launch(UhcPlayer up) {
+	public boolean launch(UhcParticipant up) {
 
 		// If player already launched, ignore
 		if (up.isLaunched()) return false;
@@ -814,7 +814,7 @@ public class UhcMatch {
 	 * @param p The player to be relaunched
 	 */
 	public boolean sendToStartPoint(Player p) {
-		UhcPlayer up = getUhcPlayer(p);
+		UhcParticipant up = getUhcParticipant(p);
 		if (up == null) return false;
 		return (up.sendToStartPoint());
 		
@@ -828,15 +828,15 @@ public class UhcMatch {
 	 * @param name The player to be removed
 	 * @return Whether the removal succeeded
 	 */
-	public boolean removePlayer(String name) {
-		UhcPlayer up = uhcPlayers.remove(name.toLowerCase());
+	public boolean removeParticipant(String name) {
+		UhcParticipant up = uhcParticipants.remove(name.toLowerCase());
 		
 		if (up != null) {
 			// Remove them from their team
-			up.getTeam().removePlayer(up);
+			up.getTeam().removeMember(up);
 			
 			// Remove them from the match
-			playersInMatch.remove(up);
+			participantsInMatch.remove(up);
 			
 			// If match is ffa, also remove the empty team
 			if (isFFA())
@@ -890,10 +890,10 @@ public class UhcMatch {
 		if (isUHC()) setupModifiedRecipes();
 		setVanish(); // Update vanish status
 		butcherHostile();
-		sortPlayersInMatch();
+		sortParticipantsInMatch();
 
 		// Add all players to the launch queue
-		for(UhcPlayer up : getUhcPlayers())
+		for(UhcParticipant up : getUhcParticipants())
 			if (!up.isLaunched()) addToLaunchQueue(up);
 
 		// Begin launching
@@ -901,12 +901,12 @@ public class UhcMatch {
 	}
 	
 
-	private void sortPlayersInMatch() {
+	private void sortParticipantsInMatch() {
 		// Refill the playersInMatch arraylist, sorting players into order.
-		playersInMatch.clear();
+		participantsInMatch.clear();
 		for (UhcTeam team : teamsInMatch)
-			for (UhcPlayer up : team.getPlayers())
-				playersInMatch.add(up);
+			for (UhcParticipant up : team.getMembers())
+				participantsInMatch.add(up);
 		
 		
 		
@@ -920,7 +920,7 @@ public class UhcMatch {
 		}
 		
 		String playerName = this.launchQueue.remove(0);
-		UhcPlayer up = this.getUhcPlayer(playerName);
+		UhcParticipant up = this.getUhcParticipant(playerName);
 		launch(up);
 		
 		server.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
@@ -931,7 +931,7 @@ public class UhcMatch {
 		
 	}
 
-	private void addToLaunchQueue(UhcPlayer up) {
+	private void addToLaunchQueue(UhcParticipant up) {
 		this.launchQueue.add(up.getName().toLowerCase());
 	}
 	
@@ -947,7 +947,7 @@ public class UhcMatch {
 	private void runPlayerListUpdater() {
 		// Update the player list for all players
 		for(Player p : server.getOnlinePlayers()) {
-			UhcPlayer up = getUhcPlayer(p);
+			UhcParticipant up = getUhcParticipant(p);
 			if (up != null && !isSpectator(p)) {
 				if (!up.isDead())
 					setSurvivorPlayerListName(p);
@@ -998,14 +998,14 @@ public class UhcMatch {
 	
 	private void runProximityChecker() {
 		// Cycle through all UhcPlayers
-		for (int i = 0; i < playersInMatch.size(); i++) {
-			UhcPlayer up = playersInMatch.get(i);
+		for (int i = 0; i < participantsInMatch.size(); i++) {
+			UhcParticipant up = participantsInMatch.get(i);
 
 			// Check proximity to other players (only if not on same team).
 			int j = i + 1;
-			while (j < playersInMatch.size()) {
+			while (j < participantsInMatch.size()) {
 				// Check proximity of player up to player j
-				UhcPlayer up2 = playersInMatch.get(j);
+				UhcParticipant up2 = participantsInMatch.get(j);
 				if (up.getTeam() != up2.getTeam()) {
 					if (checkProximity(up, up2)) {
 						sendAdminNotification(new ProximityNotification(up, up2), server.getPlayerExact(up.getName()).getLocation());
@@ -1024,7 +1024,7 @@ public class UhcMatch {
 		}
 	}
 	
-	private boolean checkProximity(UhcPlayer player, UhcPlayer enemy) {
+	private boolean checkProximity(UhcParticipant player, UhcParticipant enemy) {
 		Player p1 = server.getPlayerExact(player.getName());
 		Player p2 = server.getPlayerExact(enemy.getName());
 		if (p1 == null || p2 == null) return false;
@@ -1042,7 +1042,7 @@ public class UhcMatch {
 		}
 	}
 	
-	private boolean checkProximity(UhcPlayer player, UhcPOI poi) {
+	private boolean checkProximity(UhcParticipant player, UhcPOI poi) {
 		Player p1 = server.getPlayerExact(player.getName());
 		if (p1 == null) return false;
 		
@@ -1190,8 +1190,8 @@ public class UhcMatch {
 	/**
 	 * @return The number of players still in the match
 	 */
-	public int countPlayersInMatch() {
-		return playersInMatch.size();
+	public int countParticipantsInMatch() {
+		return participantsInMatch.size();
 	}
 
 
@@ -1203,10 +1203,10 @@ public class UhcMatch {
 	}
 
 	
-	public void handlePlayerDeath(final UhcPlayer up) {
+	public void handleParticipantDeath(final UhcParticipant up) {
 		server.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
 			public void run() {
-				processPlayerDeath(up);
+				processParticipantDeath(up);
 			}
 		});
 		
@@ -1217,14 +1217,14 @@ public class UhcMatch {
 	 * 
 	 * @param up The player who died
 	 */
-	private void processPlayerDeath(UhcPlayer up) {
+	private void processParticipantDeath(UhcParticipant up) {
 		// Set them as dead
 		up.setDead(true);
 		
 		// Reduce survivor counts
-		playersInMatch.remove(up);
-		if (isFFA() && countPlayersInMatch() == 1) {
-			processVictory(playersInMatch.get(0));
+		participantsInMatch.remove(up);
+		if (isFFA() && countParticipantsInMatch() == 1) {
+			processVictory(participantsInMatch.get(0));
 			return;
 		}
 			
@@ -1239,7 +1239,7 @@ public class UhcMatch {
 			}
 		}
 		
-		if (countPlayersInMatch() == 0) endMatch();
+		if (countParticipantsInMatch() == 0) endMatch();
 		
 		broadcastMatchStatus();
 	}
@@ -1250,7 +1250,7 @@ public class UhcMatch {
 		
 	}
 
-	private void processVictory(UhcPlayer winner) {
+	private void processVictory(UhcParticipant winner) {
 		broadcast(ChatColor.GOLD + "The winner is: " + winner.getName() + "!");
 		endMatch();
 		
@@ -1287,7 +1287,7 @@ public class UhcMatch {
 	public String matchStatusAnnouncement() {
 		if (this.matchPhase == MatchPhase.PRE_MATCH) {
 			if (this.isFFA()) {
-				int c = countPlayersInMatch();
+				int c = countParticipantsInMatch();
 				return c + " player" + (c != 1 ? "s have" : " has") + " joined";
 			} else {
 				int c = countTeamsInMatch();
@@ -1295,15 +1295,15 @@ public class UhcMatch {
 			}
 		}
 		if (this.isFFA()) {
-			int c = countPlayersInMatch();
+			int c = countParticipantsInMatch();
 			if (c == 0)
 				return "There are no surviving players";
 			if (c == 1)
-				return "1 surviving player: " + playersInMatch.get(0).getName();
+				return "1 surviving player: " + participantsInMatch.get(0).getName();
 			
 			if (c <= 4) {
 				String message = c + " surviving players: ";
-				for (UhcPlayer up : playersInMatch)
+				for (UhcParticipant up : participantsInMatch)
 					message += up.getName() + ", ";
 				
 				return message.substring(0, message.length()-2);
@@ -1800,10 +1800,10 @@ public class UhcMatch {
 	public String getPlayerStatusReport() {
 		String response = "";
 		if (this.isFFA()) {
-			Collection<UhcPlayer> allPlayers = getUhcPlayers();
-			response += allPlayers.size() + " players (" + countPlayersInMatch() + " still alive):\n";
+			Collection<UhcParticipant> allPlayers = getUhcParticipants();
+			response += allPlayers.size() + " players (" + countParticipantsInMatch() + " still alive):\n";
 			
-			for (UhcPlayer up : allPlayers) {
+			for (UhcParticipant up : allPlayers) {
 				response += (up.isDead() ? ChatColor.RED + "[D] " : ChatColor.GREEN);
 				
 				response += up.getName();
@@ -1819,7 +1819,7 @@ public class UhcMatch {
 				response += (team.aliveCount()==0 ? ChatColor.RED + "[D] " : ChatColor.GREEN) + "" +
 						ChatColor.ITALIC + team.getName() + ChatColor.GRAY +
 						" [" + team.getIdentifier() + "]\n";
-				for (UhcPlayer up : team.getPlayers()) {
+				for (UhcParticipant up : team.getMembers()) {
 					String health;
 					
 					Player p = server.getPlayerExact(up.getName());

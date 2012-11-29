@@ -12,16 +12,16 @@ import org.bukkit.entity.Skeleton;
 import org.bukkit.entity.Wolf;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
-import com.martinbrook.tesseractuhc.UhcPlayer;
+import com.martinbrook.tesseractuhc.UhcParticipant;
 
 public class DamageNotification extends UhcNotification {
-	private UhcPlayer damaged;
+	private UhcParticipant damaged;
 	private DamageCause cause;
 	private Entity damager;
 
 
 
-	public DamageNotification(UhcPlayer damaged, DamageCause cause, Entity damager) {
+	public DamageNotification(UhcParticipant damaged, DamageCause cause, Entity damager) {
 		super();
 		this.damaged = damaged;
 		this.cause = cause;
@@ -29,7 +29,7 @@ public class DamageNotification extends UhcNotification {
 	}
 
 
-	public DamageNotification(UhcPlayer damaged, DamageCause cause) {
+	public DamageNotification(UhcParticipant damaged, DamageCause cause) {
 		super();
 		this.damaged = damaged;
 		this.cause = cause;
