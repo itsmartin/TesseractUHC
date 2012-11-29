@@ -15,6 +15,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.configuration.Configuration;
@@ -87,7 +88,7 @@ public class UhcMatch {
 	private int proximityCheckerTask;
 	private static int PROXIMITY_THRESHOLD_SQUARED = 10000;
 	private HashMap<String, UhcSpectator> uhcSpectators = new HashMap<String, UhcSpectator>();
-	private HashMap<String, UhcPlayer> allPlayers = new HashMap<String, UhcPlayer>();
+	private HashMap<OfflinePlayer, UhcPlayer> allPlayers = new HashMap<OfflinePlayer, UhcPlayer>();
 
 	
 	public UhcMatch(TesseractUHC plugin, World startingWorld, Configuration defaults) {
@@ -1840,6 +1841,16 @@ public class UhcMatch {
 
 
 	public Server getServer() { return server; }
+	
+	public UhcPlayer getPlayer(String name) { return this.getPlayer(server.getOfflinePlayer(name)); }
+	public UhcPlayer getPlayer(OfflinePlayer p) {
+		UhcPlayer pl = allPlayers.get(p);
+		if (pl == null) {
+			pl = new UhcPlayer(p);
+			allPlayers.put(p,  pl);
+		}
+		return pl;
+	}
 	
 	
 
