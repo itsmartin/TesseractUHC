@@ -133,7 +133,7 @@ public class TesseractUHC extends JavaPlugin {
 		} else if (cmd.equals("permaday")) {
 			response = cPermaday(args);
 		} else if (cmd.equals("uhc")) {
-			response = cUhc(args);
+			response = cUhc(null, args);
 		} else if (cmd.equals("launch")) {
 			response = cLaunch();
 		} else if (cmd.equals("relaunch")) {
@@ -693,210 +693,204 @@ public class TesseractUHC extends JavaPlugin {
 	}
 
 	/**
-	 * Carry out the /uhc command (PLAYER)
+	 * Carry out the /uhc command
 	 * 
 	 * @param sender the sender of the command
 	 * @param args arguments
 	 * @return response
 	 */
 	private String cUhc(UhcPlayer sender, String[] args) {
-		if (args.length<1) {
+		if (args.length<1)
 			return ERROR_COLOR + "Please specify an action.";
-		}
 		
-		
-		if (sender instanceof Player && ("startpoint".equalsIgnoreCase(args[0]) || "sp".equalsIgnoreCase(args[0]))) {
-			Location l = ((Player) sender).getLocation();
-			double x = l.getBlockX() + 0.5;
-			double y = l.getBlockY();
-			double z = l.getBlockZ() + 0.5;
-			
-			UhcStartPoint startPoint = match.addStartPoint(x, y, z, args.length < 2 || !("-n".equalsIgnoreCase(args[1])));
-			
-			return OK_COLOR + "Start point " + startPoint.getNumber() + " added at your current location";
-			
-		} else if (sender instanceof Player && ("poi".equalsIgnoreCase(args[0]))) {
-			if (args.length<2) return ERROR_COLOR + "Please give a description/name";
-			String name = "";
-			for(int i = 1; i < args.length; i++) name += args[i] + " ";
-			name = name.substring(0, name.length()-1);
-			match.addPOI(((Player) sender).getLocation(), name);
-			return OK_COLOR + "POI added at your current location";
-			
+		if ("startpoint".equalsIgnoreCase(args[0]) || "sp".equalsIgnoreCase(args[0])) {
+			if (sender != null) return cUhcStartpoint(sender, args);
+			else return ERROR_COLOR + "That command is not available from the console";
+		} else if ("poi".equalsIgnoreCase(args[0])) {
+			if (sender != null) return cUhcPoi(sender, args);
+			else return ERROR_COLOR + "That command is not available from the console";
+		} else if ("setbonus".equalsIgnoreCase(args[0])) {
+			if (sender != null) return cUhcSetbonus(sender);
+			else return ERROR_COLOR + "That command is not available from the console";
+		} else if ("getbonus".equalsIgnoreCase(args[0])) {
+			if (sender != null) return cUhcGetbonus(sender);
+			else return ERROR_COLOR + "That command is not available from the console";
 		} else if ("reset".equalsIgnoreCase(args[0])) {
-			if (args.length < 2 || "params".equalsIgnoreCase(args[1])) {
-				match.resetMatchParameters();
-				return OK_COLOR + "Match data reset to default values";
-			} else if ("teams".equalsIgnoreCase(args[1]) || "players".equalsIgnoreCase(args[1])) {
-				if (!match.clearTeams())
-					return ERROR_COLOR + "Failed to clear teams and players";
-				else
-					return OK_COLOR + "Teams and players have been reset";
-			}
+			return cUhcReset(args);
 		} else if ("save".equalsIgnoreCase(args[0])) {
-			if (args.length < 2 || "params".equalsIgnoreCase(args[1])) {
-				match.saveMatchParameters();
-				return OK_COLOR + "If no errors appear above, match parameters have been saved";
-			} else if ("teams".equalsIgnoreCase(args[1]) || "players".equalsIgnoreCase(args[1])) {
-				match.saveTeams();
-				return OK_COLOR + "If no errors appear above, teams and players have been saved";
-			}
+			return cUhcSave(args);
 		} else if ("starts".equalsIgnoreCase(args[0])) {
-			HashMap<Integer, UhcStartPoint> startPoints = match.getStartPoints();
-			if (startPoints.size()==0)
-				return ERROR_COLOR + "There are no starts";
-
-			String response = "";
-			for (UhcStartPoint sp : startPoints.values()) {
-				UhcTeam t = sp.getTeam();
-				
-				response += (sp.getNumber());
-				
-				if (t != null) response += " (" + t.getName() + ")";
-				
-				response += ": " + sp.getX() + "," + sp.getY() + "," + sp.getZ() + "\n";
-			}
-			return response;
+			return cUhcStarts();
 		} else if ("pois".equalsIgnoreCase(args[0])) {
-			ArrayList<UhcPOI> pois = match.getPOIs();
-			String response = "";
-			for(int i = 0; i < pois.size(); i++) {
-				response += (i + 1) + ": " + pois.get(i).getName() + " (" + pois.get(i).toString() + ")\n"; 
-			}
-			return response;
+			return cUhcPois();
 		} else if ("params".equalsIgnoreCase(args[0])) {
-			return this.listMatchParameters();
+			return cUhcParams();
 		} else if ("set".equalsIgnoreCase(args[0])) {
-			if (args.length < 3)
-				return ERROR_COLOR + "Invalid command";
-
-			String parameter = args[1].toLowerCase();
-
-			String value = "";
-			for (int i = 2; i < args.length; i++) {
-				value += args[i] + " ";
-			}
-			value = value.substring(0, value.length()-1);
-			if (this.setMatchParameter(parameter, value)) {
-				value = this.getMatchParameter(parameter);
-				if (value == null)
-					return ERROR_COLOR + "Error getting value of " + parameter;
-				return OK_COLOR + parameter + " = " + value;
-
-			} else
-				return ERROR_COLOR + "Unable to set value of " + parameter;
-
+			return cUhcSet(args);
 		} else if ("get".equalsIgnoreCase(args[0])) {
-			if (args.length < 2)
-				return ERROR_COLOR + "Invalid command";
-			String parameter = args[1].toLowerCase();
-			String value = this.getMatchParameter(parameter);
-			if (value == null)
-				return ERROR_COLOR + "No such match parameter as " + parameter;
-			return OK_COLOR + parameter + " = " + value;
-		} else if (sender instanceof Player && "setbonus".equalsIgnoreCase(args[0])) {
-			match.setBonusChest(((Player) sender).getEnderChest().getContents());
-			return OK_COLOR + "Bonus chest saved from your ender chest";
-		} else if (sender instanceof Player && "getbonus".equalsIgnoreCase(args[0])) {
-			((Player) sender).getEnderChest().setContents(match.getBonusChest());
-			return OK_COLOR + "Bonus chest loaded into your ender chest";
+			return cUhcGet(args);
+
 		} 
 		
 		return ERROR_COLOR + "Command not understood";
 	}
-	
-	
+
+
 	/**
-	 * Carry out the /uhc command (CONSOLE)
-	 * 
-	 * @param sender the sender of the command
-	 * @param args arguments
-	 * @return response
+	 * @param sender
+	 * @return
 	 */
-	private String cUhc(String[] args) {
-		if (args.length<1) {
-			return ERROR_COLOR + "Please specify an action.";
-		}
-		
-		
-		if ("reset".equalsIgnoreCase(args[0])) {
-			if (args.length < 2 || "params".equalsIgnoreCase(args[1])) {
-				match.resetMatchParameters();
-				return OK_COLOR + "Match data reset to default values";
-			} else if ("teams".equalsIgnoreCase(args[1]) || "players".equalsIgnoreCase(args[1])) {
-				if (!match.clearTeams())
-					return ERROR_COLOR + "Failed to clear teams and players";
-				else
-					return OK_COLOR + "Teams and players have been reset";
-			}
-		} else if ("save".equalsIgnoreCase(args[0])) {
-			if (args.length < 2 || "params".equalsIgnoreCase(args[1])) {
-				match.saveMatchParameters();
-				return OK_COLOR + "If no errors appear above, match parameters have been saved";
-			} else if ("teams".equalsIgnoreCase(args[1]) || "players".equalsIgnoreCase(args[1])) {
-				match.saveTeams();
-				return OK_COLOR + "If no errors appear above, teams and players have been saved";
-			}
-		} else if ("starts".equalsIgnoreCase(args[0])) {
-			HashMap<Integer, UhcStartPoint> startPoints = match.getStartPoints();
-			if (startPoints.size()==0)
-				return ERROR_COLOR + "There are no starts";
-
-			String response = "";
-			for (UhcStartPoint sp : startPoints.values()) {
-				UhcTeam t = sp.getTeam();
-				
-				response += (sp.getNumber());
-				
-				if (t != null) response += " (" + t.getName() + ")";
-				
-				response += ": " + sp.getX() + "," + sp.getY() + "," + sp.getZ() + "\n";
-			}
-			return response;
-		} else if ("pois".equalsIgnoreCase(args[0])) {
-			ArrayList<UhcPOI> pois = match.getPOIs();
-			String response = "";
-			for(int i = 0; i < pois.size(); i++) {
-				response += (i + 1) + ": " + pois.get(i).getName() + " (" + pois.get(i).toString() + ")\n"; 
-			}
-			return response;
-		} else if ("params".equalsIgnoreCase(args[0])) {
-			return this.listMatchParameters();
-		} else if ("set".equalsIgnoreCase(args[0])) {
-			if (args.length < 3)
-				return ERROR_COLOR + "Invalid command";
-
-			String parameter = args[1].toLowerCase();
-
-			String value = "";
-			for (int i = 2; i < args.length; i++) {
-				value += args[i] + " ";
-			}
-			value = value.substring(0, value.length()-1);
-			if (this.setMatchParameter(parameter, value)) {
-				value = this.getMatchParameter(parameter);
-				if (value == null)
-					return ERROR_COLOR + "Error getting value of " + parameter;
-				return OK_COLOR + parameter + " = " + value;
-
-			} else
-				return ERROR_COLOR + "Unable to set value of " + parameter;
-
-		} else if ("get".equalsIgnoreCase(args[0])) {
-			if (args.length < 2)
-				return ERROR_COLOR + "Invalid command";
-			String parameter = args[1].toLowerCase();
-			String value = this.getMatchParameter(parameter);
-			if (value == null)
-				return ERROR_COLOR + "No such match parameter as " + parameter;
-			return OK_COLOR + parameter + " = " + value;
-		}
-		
-		return ERROR_COLOR + "Command not understood";
+	private String cUhcGetbonus(UhcPlayer sender) {
+		((Player) sender).getEnderChest().setContents(match.getBonusChest());
+		return OK_COLOR + "Bonus chest loaded into your ender chest";
 	}
 
+	/**
+	 * @param sender
+	 * @return
+	 */
+	private String cUhcSetbonus(UhcPlayer sender) {
+		match.setBonusChest(((Player) sender).getEnderChest().getContents());
+		return OK_COLOR + "Bonus chest saved from your ender chest";
+	}
+
+	/**
+	 * @param args
+	 * @return
+	 */
+	private String cUhcGet(String[] args) {
+		if (args.length < 2)
+			return ERROR_COLOR + "Invalid command";
+		String parameter = args[1].toLowerCase();
+		String value = this.getMatchParameter(parameter);
+		if (value == null)
+			return ERROR_COLOR + "No such match parameter as " + parameter;
+		return OK_COLOR + parameter + " = " + value;
+	}
+
+	/**
+	 * @param args
+	 * @return
+	 */
+	private String cUhcSet(String[] args) {
+		if (args.length < 3)
+			return ERROR_COLOR + "Invalid command";
+
+		String parameter = args[1].toLowerCase();
+
+		String value = "";
+		for (int i = 2; i < args.length; i++) {
+			value += args[i] + " ";
+		}
+		value = value.substring(0, value.length()-1);
+		if (this.setMatchParameter(parameter, value)) {
+			value = this.getMatchParameter(parameter);
+			if (value == null)
+				return ERROR_COLOR + "Error getting value of " + parameter;
+			return OK_COLOR + parameter + " = " + value;
+
+		} else
+			return ERROR_COLOR + "Unable to set value of " + parameter;
+	}
+
+	/**
+	 * @return
+	 */
+	private String cUhcPois() {
+		ArrayList<UhcPOI> pois = match.getPOIs();
+		String response = "";
+		for(int i = 0; i < pois.size(); i++) {
+			response += (i + 1) + ": " + pois.get(i).getName() + " (" + pois.get(i).toString() + ")\n"; 
+		}
+		return response;
+	}
+
+	/**
+	 * @return
+	 */
+	private String cUhcStarts() {
+		HashMap<Integer, UhcStartPoint> startPoints = match.getStartPoints();
+		if (startPoints.size()==0)
+			return ERROR_COLOR + "There are no starts";
+
+		String response = "";
+		for (UhcStartPoint sp : startPoints.values()) {
+			UhcTeam t = sp.getTeam();
+			
+			response += (sp.getNumber());
+			
+			if (t != null) response += " (" + t.getName() + ")";
+			
+			response += ": " + sp.getX() + "," + sp.getY() + "," + sp.getZ() + "\n";
+		}
+		return response;
+	}
+
+	/**
+	 * @param args
+	 * @return
+	 */
+	private String cUhcSave(String[] args) {
+		if (args.length < 2 || "params".equalsIgnoreCase(args[1])) {
+			match.saveMatchParameters();
+			return OK_COLOR + "If no errors appear above, match parameters have been saved";
+		} else if ("teams".equalsIgnoreCase(args[1]) || "players".equalsIgnoreCase(args[1])) {
+			match.saveTeams();
+			return OK_COLOR + "If no errors appear above, teams and players have been saved";
+		}
+		return ERROR_COLOR + "Argument not understood. Please use " + SIDE_COLOR + "/uhc save params" 
+		+ ERROR_COLOR + " or " + SIDE_COLOR + "/uhc save teams";
+	}
+
+	/**
+	 * @param args
+	 */
+	private String cUhcReset(String[] args) {
+		if (args.length < 2 || "params".equalsIgnoreCase(args[1])) {
+			match.resetMatchParameters();
+			return OK_COLOR + "Match data reset to default values";
+		} else if ("teams".equalsIgnoreCase(args[1]) || "players".equalsIgnoreCase(args[1])) {
+			if (!match.clearTeams())
+				return ERROR_COLOR + "Failed to clear teams and players";
+			else
+				return OK_COLOR + "Teams and players have been reset";
+		}
+		return ERROR_COLOR + "Argument not understood. Please use " + SIDE_COLOR + "/uhc reset params" 
+				+ ERROR_COLOR + " or " + SIDE_COLOR + "/uhc reset teams";
+	}
+
+	/**
+	 * @param sender
+	 * @param args
+	 * @return
+	 */
+	private String cUhcPoi(UhcPlayer sender, String[] args) {
+		if (args.length<2) return ERROR_COLOR + "Please give a description/name";
+		String name = "";
+		for(int i = 1; i < args.length; i++) name += args[i] + " ";
+		name = name.substring(0, name.length()-1);
+		match.addPOI(((Player) sender).getLocation(), name);
+		return OK_COLOR + "POI added at your current location";
+	}
+
+	/**
+	 * @param sender
+	 * @param args
+	 * @return
+	 */
+	private String cUhcStartpoint(UhcPlayer sender, String[] args) {
+		Location l = ((Player) sender).getLocation();
+		double x = l.getBlockX() + 0.5;
+		double y = l.getBlockY();
+		double z = l.getBlockZ() + 0.5;
+		
+		UhcStartPoint startPoint = match.addStartPoint(x, y, z, args.length < 2 || !("-n".equalsIgnoreCase(args[1])));
+		
+		return OK_COLOR + "Start point " + startPoint.getNumber() + " added at your current location";
+	}
 	
-	private String listMatchParameters() {
+	
+	private String cUhcParams() {
 		String response = "";
 		response += "deathban: " + getMatchParameter("deathban") + "\n";
 		response += "killerbonus: " + getMatchParameter("killerbonus") + "\n";
