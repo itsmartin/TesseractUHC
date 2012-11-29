@@ -87,6 +87,7 @@ public class UhcMatch {
 	private int proximityCheckerTask;
 	private static int PROXIMITY_THRESHOLD_SQUARED = 10000;
 	private HashMap<String, UhcSpectator> uhcSpectators = new HashMap<String, UhcSpectator>();
+	private HashMap<String, UhcPlayer> allPlayers = new HashMap<String, UhcPlayer>();
 
 	
 	public UhcMatch(TesseractUHC plugin, World startingWorld, Configuration defaults) {
