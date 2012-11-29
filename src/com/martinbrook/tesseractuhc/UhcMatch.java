@@ -515,7 +515,7 @@ public class UhcMatch {
 		stopMatchTimer();
 		matchPhase = MatchPhase.POST_MATCH;
 		// Put all players into creative
-		for (Player p : server.getOnlinePlayers()) p.setGameMode(GameMode.CREATIVE);
+		for (UhcPlayer pl : getOnlinePlayers()) pl.setGameMode(GameMode.CREATIVE);
 		setVanish();
 		disableProximityChecker();
 		server.getScheduler().cancelTasks(plugin);
@@ -947,13 +947,8 @@ public class UhcMatch {
 
 	private void runPlayerListUpdater() {
 		// Update the player list for all players
-		for(Player p : server.getOnlinePlayers()) {
-			UhcPlayer pl = getPlayer(p);
-			if (pl.isActiveParticipant()) {
-				setSurvivorPlayerListName(p);
-			} else {
-				setNonPlayerPlayerListName(p);
-			}
+		for(UhcPlayer pl : getOnlinePlayers()) {
+			pl.updatePlayerListName();
 		}
 	}
 	
@@ -971,14 +966,12 @@ public class UhcMatch {
 	}
 	
 	private void runSpawnKeeper() {
-		for (Player p : server.getOnlinePlayers()) {
-			if (p.getLocation().getY() < 128 && !getPlayer(p).isAdmin()) {
-				p.teleport(startingWorld.getSpawnLocation());
+		for (UhcPlayer pl : getOnlinePlayers()) {
+			if (pl.getLocation().getY() < 128 && !pl.isSpectator()) {
+				pl.teleport(startingWorld.getSpawnLocation(), null);
 			}
-			p.setHealth(20);
-			p.setFoodLevel(20);
-			p.setExhaustion(0.0F);
-			p.setSaturation(5.0F);
+			pl.heal();
+			pl.feed();
 		}
 	}
 	
@@ -1343,9 +1336,7 @@ public class UhcMatch {
 	 * @param p1
 	 */
 	public void setVanish() {
-		for(Player p : server.getOnlinePlayers()) {
-			getPlayer(p).setVanish();
-		}
+		for(UhcPlayer pl : getOnlinePlayers()) pl.setVanish();
 	}
 
 
@@ -1593,24 +1584,6 @@ public class UhcMatch {
 	}
 
 	
-	private void setSurvivorPlayerListName(Player p) {
-		String name = p.getName();
-		double health = p.getHealth() / 2.0;
-		ChatColor color = ChatColor.GREEN;
-		if (name.length() > 8) name = name.substring(0, 8);
-		if (health <= 5) color = ChatColor.YELLOW;
-		if (health <= 2) color = ChatColor.RED; 
-		boolean isOdd = (health - Math.floor(health) == 0.5);
-		String outputName = (color + name + " - " + (int) health + (isOdd ? ".5" : ""));
-		p.setPlayerListName(outputName);
-	}
-
-
-	private void setNonPlayerPlayerListName(Player p) {
-		String name = p.getName();
-		if (name.length() > 14) name = name.substring(0, 14);
-		p.setPlayerListName(ChatColor.DARK_GRAY + name);
-	}
 
 	public boolean isUHC() {
 		return md.getBoolean("uhc");

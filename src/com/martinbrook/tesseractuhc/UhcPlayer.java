@@ -1,5 +1,6 @@
 package com.martinbrook.tesseractuhc;
 
+import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -241,5 +242,28 @@ public class UhcPlayer {
 			return false;
 		}
 	}
+
+	public void updatePlayerListName() {
+		Player p=getPlayer();
+		if (p == null) return;
+		
+		String name = getName();
+		
+		if (isActiveParticipant()) {
+			double health = p.getHealth() / 2.0;
+			ChatColor color = ChatColor.GREEN;
+			if (name.length() > 8) name = name.substring(0, 8);
+			if (health <= 5) color = ChatColor.YELLOW;
+			if (health <= 2) color = ChatColor.RED; 
+			boolean isOdd = (health - Math.floor(health) == 0.5);
+			String outputName = (color + name + " - " + (int) health + (isOdd ? ".5" : ""));
+			p.setPlayerListName(outputName);
+		} else {
+			if (name.length() > 14) name = name.substring(0, 14);
+			p.setPlayerListName(ChatColor.DARK_GRAY + name);
+		}
+
+	}
+
 	
 }
