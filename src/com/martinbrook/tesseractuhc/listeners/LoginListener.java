@@ -6,10 +6,10 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 
 import com.martinbrook.tesseractuhc.MatchPhase;
 import com.martinbrook.tesseractuhc.UhcMatch;
-import com.martinbrook.tesseractuhc.UhcParticipant;
 import com.martinbrook.tesseractuhc.UhcPlayer;
 
 public class LoginListener implements Listener {
@@ -35,8 +35,21 @@ public class LoginListener implements Listener {
 		if (m.getMatchPhase() == MatchPhase.LAUNCHING) {
 			// If player is in the match, make sure they are launched. If not, put them at spawn.
 			if (pl.isParticipant()) m.launch(pl.getParticipant());
-			else pl.teleport(m.getStartingWorld().getSpawnLocation(), null);
 			return;
+		}
+		
+
+		// If match is launching or underway, and autospectate is enabled, make the new player a spectator
+		if (m.getMatchPhase() == MatchPhase.LAUNCHING || m.getMatchPhase() == MatchPhase.MATCH) {
+			if (m.isAutoSpectate() && !pl.isParticipant()) {
+				pl.makeSpectator();
+				return;
+			}
+			if (!pl.isSpectator() && !pl.isAdmin()) {
+				pl.teleport(m.getStartingWorld().getSpawnLocation(), null);
+				return;
+			}
+
 		}
 		
 		// If match is over, put player in creative, do nothing else
@@ -57,33 +70,42 @@ public class LoginListener implements Listener {
 	
 	@EventHandler
 	public void onLogin(PlayerLoginEvent e) {
-		// Get a uhcplayer if possible
-		UhcParticipant up = m.getUhcParticipant(e.getPlayer());
+		// Get a uhcplayer object
+		UhcPlayer pl = m.getPlayer(e.getPlayer());
 		
 		// If a registered player would be prevented from logging in due to the server being full or them not being whitelisted,
 		// let them in anyway.
-		if (up != null && (e.getResult() == PlayerLoginEvent.Result.KICK_FULL || e.getResult() == PlayerLoginEvent.Result.KICK_WHITELIST))
+		if (pl.isParticipant() && (e.getResult() == PlayerLoginEvent.Result.KICK_FULL || e.getResult() == PlayerLoginEvent.Result.KICK_WHITELIST))
 			e.allow();
 		
 		// If player not allowed to login, do no more
 		if (e.getResult() != PlayerLoginEvent.Result.ALLOWED) return;
 			
-		// If player is op, do no more
-		if (e.getPlayer().isOp()) return;
-		
-		// If match isn't in progress, do nothing
+		// If match isn't in progress, do no more
 		if (m.getMatchPhase() != MatchPhase.MATCH) return;
 
 		// If player was not launched, don't allow them in.
-		if (up == null || !up.isLaunched()) {
+		if (m.isNoLatecomers() && pl.isParticipant() && !pl.getParticipant().isLaunched()) {
 			e.disallow(PlayerLoginEvent.Result.KICK_OTHER, "The match has already started");
 			return;
 		}
 		
 		// If player has died, don't allow them in, if deathban is in effect.
-		if (m.getDeathban() && up.isDead()) {
+		if (m.getDeathban() && pl.isParticipant() && pl.getParticipant().isDead()) {
 			e.disallow(PlayerLoginEvent.Result.KICK_OTHER, "Dead players cannot rejoin!");
 			return;
+		}
+	}
+	
+	@EventHandler
+	public void onRespawn(PlayerRespawnEvent e) {
+		// Get a uhcplayer object
+		UhcPlayer pl = m.getPlayer(e.getPlayer());
+
+		// If this is an autospectate game, make the player a spectator 
+		if (m.isAutoSpectate() && pl.isParticipant() && pl.getParticipant().isDead()
+				&& (m.getMatchPhase() == MatchPhase.MATCH || m.getMatchPhase() == MatchPhase.POST_MATCH)) {
+			pl.makeSpectator();
 		}
 	}
 	

@@ -886,7 +886,10 @@ public class UhcMatch {
 	 * Start the launching phase, and launch all players who have been added to the game
 	 */
 	public void launchAll() {
-		if (matchPhase == MatchPhase.PRE_MATCH) matchPhase = MatchPhase.LAUNCHING;
+		// If already launched, do nothing.
+		if (matchPhase != MatchPhase.PRE_MATCH) return;
+		
+		matchPhase = MatchPhase.LAUNCHING;
 		disableSpawnKeeper();
 		if (isUHC()) setupModifiedRecipes();
 		setVanish(); // Update vanish status
@@ -896,6 +899,12 @@ public class UhcMatch {
 		// Add all players to the launch queue
 		for(UhcParticipant up : getUhcParticipants())
 			if (!up.isLaunched()) addToLaunchQueue(up);
+		
+		// Make all others spectators
+		if (isAutoSpectate())
+			for(UhcPlayer pl : getOnlinePlayers())
+				pl.makeSpectator();
+		
 
 		// Begin launching
 		launchNext();
@@ -1698,6 +1707,16 @@ public class UhcMatch {
 		ArrayList<UhcPlayer> ups = new ArrayList<UhcPlayer>();
 		for (Player p : server.getOnlinePlayers()) ups.add(getPlayer(p));
 		return ups;
+	}
+
+
+	public boolean isAutoSpectate() {
+		return true;
+	}
+
+
+	public boolean isNoLatecomers() {
+		return false;
 	}
 
 }
