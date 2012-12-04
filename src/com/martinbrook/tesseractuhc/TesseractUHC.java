@@ -965,13 +965,13 @@ public class TesseractUHC extends JavaPlugin {
 				response += "Disabled" + desc + "Health regeneration and crafting recipes are unchanged";
 		} else if ("autospectate".equalsIgnoreCase(parameter)) {
 			response = param + "AutoSpectate: " + value;
-			if (match.isUHC())
+			if (match.isAutoSpectate())
 				response += "Enabled" + desc + "Dead players will become invisible spectators";
 			else
 				response += "Disabled" + desc + "Dead players will not be able to spectate";
 		} else if ("nolatecomers".equalsIgnoreCase(parameter)) {
 			response = param + "NoLatecomers: " + value;
-			if (match.isUHC())
+			if (match.isNoLatecomers())
 				response += "Enabled" + desc + "Late arriving players will not be able to connect";
 			else
 				response += "Disabled" + desc + "Late arriving players will be able to join";
