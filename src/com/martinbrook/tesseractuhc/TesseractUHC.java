@@ -70,8 +70,8 @@ public class TesseractUHC extends JavaPlugin {
 			UhcPlayer pl = match.getPlayer((Player) commandSender);
 			if (pl.isAdmin()) {
 				success = runCommandAsAdmin(pl, cmd, args)
-						|| runCommandAsConsole(commandSender, cmd, args)
 						|| runCommandAsSpectator(pl.getSpectator(), cmd, args)
+						|| runCommandAsConsole(commandSender, cmd, args)
 						|| runCommandAsPlayer(pl, cmd, args);
 
 			} else if (pl.isSpectator()) {
