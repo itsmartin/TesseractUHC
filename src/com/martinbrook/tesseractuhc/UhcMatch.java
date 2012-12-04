@@ -908,7 +908,8 @@ public class UhcMatch {
 		// Make all others spectators
 		if (isAutoSpectate())
 			for(UhcPlayer pl : getOnlinePlayers())
-				pl.makeSpectator();
+				if (!pl.isParticipant())
+					pl.makeSpectator();
 		
 
 		// Begin launching
