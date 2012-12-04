@@ -232,7 +232,7 @@ public class UhcPlayer {
 			w.loadChunk(chunk);
 		
 		if (p.teleport(l)) {
-			if (isSpectator())
+			if (isSpectator() && p.getAllowFlight())
 				p.setFlying(true);
 			if (message != null && !message.isEmpty())
 				p.sendMessage(TesseractUHC.OK_COLOR + message);
