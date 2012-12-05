@@ -863,6 +863,10 @@ public class UhcMatch {
 				broadcastMatchStatus();
 			}
 			up.teleport(startingWorld.getSpawnLocation());
+			
+			if (this.isAutoSpectate())
+				getPlayer(name).makeSpectator();
+			
 			return true;
 		} else return false;
 	}
