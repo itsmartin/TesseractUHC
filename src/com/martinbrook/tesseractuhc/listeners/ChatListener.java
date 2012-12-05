@@ -21,9 +21,9 @@ public class ChatListener implements Listener {
 		
 		// Admins get gold names, spectators get gray
 		if (pl.isAdmin()) {
-			e.setFormat("<" + ChatColor.GOLD + "$s" + ChatColor.RESET + "> %s");
+			e.setFormat("<" + ChatColor.GOLD + "%s" + ChatColor.RESET + "> %s");
 		} else if (pl.isSpectator()) {
-			e.setFormat("<" + ChatColor.GRAY + "$s" + ChatColor.RESET + "> %s");
+			e.setFormat("<" + ChatColor.GRAY + "%s" + ChatColor.RESET + "> %s");
 		}
 		
 	}
