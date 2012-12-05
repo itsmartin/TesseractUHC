@@ -488,6 +488,12 @@ public class UhcMatch {
 	 * Butcher hostile mobs, turn off permaday, turn on PVP, put all participants in survival and reset all participants.
 	 */
 	public void startMatch() {
+		// Remove participants who didn't turn up
+		if (this.isNoLatecomers())
+			for (UhcPlayer up : this.allPlayers.values())
+				if (up.isParticipant() && !up.getParticipant().isLaunched())
+					this.removeParticipant(up.getName());
+
 		this.matchCountdown = null;
 		matchPhase = MatchPhase.MATCH;
 		startingWorld.setTime(0);
@@ -838,6 +844,9 @@ public class UhcMatch {
 		UhcParticipant up = uhcParticipants.remove(name.toLowerCase());
 		
 		if (up != null) {
+			// Mark them as a non participant
+			getPlayer(name).setParticipant(null);
+			
 			// Remove them from their team
 			up.getTeam().removeMember(up);
 			
