@@ -1,5 +1,6 @@
 package com.martinbrook.tesseractuhc.util;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Calendar;
 
@@ -7,6 +8,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -19,7 +21,20 @@ import com.wimbli.WorldBorder.WorldBorder;
 
 public class MatchUtils {
 
+	private static Method mAffectsSpawning = null;
+	private static Method mCollidesWithEntities = null;
+
+	static {
+		try {
+			mAffectsSpawning = HumanEntity.class.getDeclaredMethod("setAffectsSpawning", boolean.class);
+			mCollidesWithEntities = Player.class.getDeclaredMethod("setCollidesWithEntities", boolean.class);
+		}
+		catch (Exception e) {  }
+	}
+	
+
 	private MatchUtils() { }
+	
 	
 	public static String formatDuration(long d, boolean precise) {
 		if (precise) {
@@ -219,5 +234,46 @@ public class MatchUtils {
 		return inventoryView;
 	}
 	
+
+
+	/**
+	 * Checks if the SportBukkit API is available
+	 *
+	 * @author AuthorBlues
+	 * @return true if SportBukkit is installed, false otherwise
+	 * @see http://www.github.com/rmct/SportBukkit
+	 */
+	public static boolean hasSportBukkitApi() {
+		return mAffectsSpawning != null && mCollidesWithEntities != null;
+	}
+
+	/**
+	 * Sets whether player affects spawning via natural spawn and mob spawners.
+	 * Uses last_username's affects-spawning API from SportBukkit
+	 *
+	 * @author AuthorBlues
+	 * @param affectsSpawning Set whether player affects spawning
+	 * @see http://www.github.com/rmct/SportBukkit
+	 */
+	public static void setAffectsSpawning(Player player, boolean affectsSpawning) {
+		if (mAffectsSpawning != null) try {
+			mAffectsSpawning.invoke(player, affectsSpawning);
+		} catch (Exception e) { }
+	}
+
+	/**
+	 * Sets whether player collides with entities, including items and arrows.
+	 * Uses last_username's collides-with-entities API from SportBukkit
+	 *
+	 * @author AuthorBlues
+	 * @param collidesWithEntities Set whether player collides with entities
+	 * @see http://www.github.com/rmct/SportBukkit
+	 */
+	public static void setCollidesWithEntities(Player player, boolean collidesWithEntities) {
+		if (mCollidesWithEntities != null) try {
+			mCollidesWithEntities.invoke(player, collidesWithEntities);
+		}
+		catch (Exception e) { }
+	}
 	
 }
