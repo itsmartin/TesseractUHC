@@ -45,7 +45,8 @@ public class LoginListener implements Listener {
 				pl.makeSpectator();
 				return;
 			}
-			if (!pl.isSpectator() && !pl.isAdmin()) {
+			// If player has no business being here, put them at spawn
+			if (!pl.isSpectator() && !pl.isAdmin() && (!pl.isActiveParticipant())) {
 				pl.teleport(m.getStartingWorld().getSpawnLocation(), null);
 				return;
 			}
