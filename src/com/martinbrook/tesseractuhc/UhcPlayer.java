@@ -76,8 +76,6 @@ public class UhcPlayer {
 		if (isActiveParticipant()) return false;
 		if (spectator == null) spectator = new UhcSpectator(this);
 		setVanish();
-		MatchUtils.setAffectsSpawning(getPlayer(), false);
-		MatchUtils.setCollidesWithEntities(getPlayer(), false);
 		setGameMode(GameMode.CREATIVE);
 		return true;
 	}
@@ -86,9 +84,8 @@ public class UhcPlayer {
 		spectator=null;
 		setGameMode(GameMode.SURVIVAL);
 		setVanish();
-		MatchUtils.setAffectsSpawning(getPlayer(), true);
-		MatchUtils.setCollidesWithEntities(getPlayer(), true);
 	}
+	
 
 	public boolean renew() {
 		return (heal() && feed() && clearXP() && clearPotionEffects() && clearInventory());
@@ -190,8 +187,18 @@ public class UhcPlayer {
 			this.setVisibilityTo(pl);
 			pl.setVisibilityTo(this);
 		}
+		
+		updateInteractionAPIs();
 	}
 	
+	public void updateInteractionAPIs() {
+		Player p = getPlayer();
+		if (p != null) {
+			MatchUtils.setAffectsSpawning(getPlayer(), !isSpectator());
+			MatchUtils.setCollidesWithEntities(getPlayer(), !isSpectator() || getSpectator().isInteracting());
+		}
+	}
+
 	/**
 	 * Set the correct visibility for another player from this player's perspective
 	 * 

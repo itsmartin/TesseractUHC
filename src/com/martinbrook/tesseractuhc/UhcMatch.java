@@ -803,8 +803,6 @@ public class UhcMatch {
 		
 		
 		sendToStartPoint(p);
-		MatchUtils.setAffectsSpawning(p, true);
-		MatchUtils.setCollidesWithEntities(p, true);
 		
 		up.setLaunched(true);
 		up.sendMessage(ChatColor.AQUA + "To find out the parameters for this game, type " + ChatColor.GOLD + "/params" + "\n"

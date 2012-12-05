@@ -20,7 +20,11 @@ public class UhcSpectator {
 		this.tpBackLocation = player.getMatch().getStartingWorld().getSpawnLocation();
 	}
 	
-	public void setInteracting(boolean interacting) { this.interacting=interacting; }
+	public void setInteracting(boolean interacting) { 
+		this.interacting=interacting;
+		MatchUtils.setCollidesWithEntities(player.getPlayer(), interacting);
+		
+	}
 	public boolean isInteracting() { return this.interacting; }
 
 	public String getName() { return player.getName(); }
