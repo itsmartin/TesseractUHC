@@ -10,6 +10,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.potion.PotionEffect;
 
+import com.martinbrook.tesseractuhc.util.MatchUtils;
+
 /**
  * Represents a player who is, or has ever been, on the server.
  *
@@ -74,6 +76,8 @@ public class UhcPlayer {
 		if (isActiveParticipant()) return false;
 		if (spectator == null) spectator = new UhcSpectator(this);
 		setVanish();
+		MatchUtils.setAffectsSpawning(getPlayer(), false);
+		MatchUtils.setCollidesWithEntities(getPlayer(), false);
 		setGameMode(GameMode.CREATIVE);
 		return true;
 	}
@@ -82,7 +86,8 @@ public class UhcPlayer {
 		spectator=null;
 		setGameMode(GameMode.SURVIVAL);
 		setVanish();
-		
+		MatchUtils.setAffectsSpawning(getPlayer(), true);
+		MatchUtils.setCollidesWithEntities(getPlayer(), true);
 	}
 
 	public boolean renew() {
