@@ -34,7 +34,8 @@ public class SpectateListener implements Listener {
 		Entity clicked = e.getRightClicked();
 
 		if (clicked.getType() == EntityType.PLAYER) {
-			pl.getSpectator().showInventory((Player) clicked);
+			if (m.getPlayer((Player) clicked).isActiveParticipant())
+				pl.getSpectator().showInventory((Player) clicked);
 		}
 	}
 
