@@ -1652,11 +1652,19 @@ public class UhcMatch {
 			response += allPlayers.size() + " players (" + countParticipantsInMatch() + " still alive):\n";
 			
 			for (UhcParticipant up : allPlayers) {
-				response += (up.isDead() ? ChatColor.RED + "[D] " : ChatColor.GREEN);
+				String health;
 				
-				response += up.getName();
-				response += " (start point " + (up.getStartPoint().getNumber()) + ")";
-				response += "\n";
+				Player p = server.getPlayerExact(up.getName());
+				if (up.isDead()) {
+					health = ChatColor.RED + "(dead)";
+				} else {
+					if (p != null)
+						health = ChatColor.GOLD + "(" + Double.toString(p.getHealth() / 2.0) + ")";
+					else
+						health = ChatColor.GRAY + "(offline)";
+				}
+				response += (up.isDead() ? ChatColor.RED : ChatColor.GREEN)
+						+ "    " + up.getName() + " " + health + "\n";
 			}
 
 		} else {
@@ -1671,12 +1679,16 @@ public class UhcMatch {
 					String health;
 					
 					Player p = server.getPlayerExact(up.getName());
-					if (p != null)
-						health = ChatColor.GOLD + "(" + Double.toString(p.getHealth() / 2.0) + ")";
-					else
-						health = ChatColor.GRAY + "[offline]";
-					response += (up.isDead() ? ChatColor.RED + "  D " : ChatColor.GREEN + "  * ")
-							+ up.getName() + " " + health + "\n";
+					if (up.isDead()) {
+						health = ChatColor.RED + "(dead)";
+					} else {
+						if (p != null)
+							health = ChatColor.GOLD + "(" + Double.toString(p.getHealth() / 2.0) + ")";
+						else
+							health = ChatColor.GRAY + "(offline)";
+					}
+					response += (up.isDead() ? ChatColor.RED : ChatColor.GREEN)
+							+ "    " + up.getName() + " " + health + "\n";
 				}
 			}
 		}
