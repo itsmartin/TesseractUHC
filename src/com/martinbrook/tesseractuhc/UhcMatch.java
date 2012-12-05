@@ -1688,7 +1688,7 @@ public class UhcMatch {
 	public UhcPlayer getPlayer(OfflinePlayer p) {
 		UhcPlayer pl = allPlayers.get(p.getName().toLowerCase());
 		if (pl == null) {
-			pl = new UhcPlayer(p, this);
+			pl = new UhcPlayer(p.getName().toLowerCase(), this);
 			allPlayers.put(p.getName().toLowerCase(),  pl);
 		}
 		return pl;

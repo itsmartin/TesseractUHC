@@ -17,22 +17,23 @@ import com.martinbrook.tesseractuhc.util.MatchUtils;
  *
  */
 public class UhcPlayer {
-	private OfflinePlayer player;
+	private String name;
 	private UhcParticipant participant;
 	private UhcSpectator spectator;
 	private UhcMatch m;
 	
 
-	public UhcPlayer(OfflinePlayer player, UhcMatch match) {
-		this.player = player;
+	public UhcPlayer(String name, UhcMatch match) {
+		this.name = name;
 		this.m = match;
 	}
 
-	public String getName() { return player.getName(); }
+	public String getName() { return getOfflinePlayer().getName(); }
 	public UhcMatch getMatch() { return m; }
-	public boolean isOnline() { return player.isOnline(); }
-	private boolean isOp() { return player.isOp(); }
-	public Player getPlayer() { return player.getPlayer(); }
+	public boolean isOnline() { return getOfflinePlayer().isOnline(); }
+	private boolean isOp() { return getOfflinePlayer().isOp(); }
+	public Player getPlayer() { return m.getServer().getPlayerExact(name); }
+	public OfflinePlayer getOfflinePlayer() { return m.getServer().getOfflinePlayer(name); }
 	
 	public void setParticipant(UhcParticipant participant) { this.participant = participant; }
 	
@@ -222,13 +223,13 @@ public class UhcPlayer {
 	}
 
 	public String getDisplayName() {
-		Player p = player.getPlayer();
+		Player p = getPlayer();
 		if (p != null) return p.getDisplayName();
-		else return player.getName();
+		else return getName();
 	}
 
 	public Location getLocation() {
-		Player p = player.getPlayer();
+		Player p = getPlayer();
 		if (p != null) return p.getLocation();
 		else return null;
 	}
