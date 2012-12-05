@@ -85,7 +85,7 @@ public class UhcMatch {
 	private ArrayList<UhcPOI> uhcPOIs = new ArrayList<UhcPOI>();
 	private int proximityCheckerTask;
 	private static int PROXIMITY_THRESHOLD_SQUARED = 10000;
-	private HashMap<OfflinePlayer, UhcPlayer> allPlayers = new HashMap<OfflinePlayer, UhcPlayer>();
+	private HashMap<String, UhcPlayer> allPlayers = new HashMap<String, UhcPlayer>();
 
 	
 	public UhcMatch(TesseractUHC plugin, World startingWorld, Configuration defaults) {
@@ -1686,10 +1686,10 @@ public class UhcMatch {
 	
 	public UhcPlayer getPlayer(String name) { return this.getPlayer(server.getOfflinePlayer(name)); }
 	public UhcPlayer getPlayer(OfflinePlayer p) {
-		UhcPlayer pl = allPlayers.get(p);
+		UhcPlayer pl = allPlayers.get(p.getName().toLowerCase());
 		if (pl == null) {
 			pl = new UhcPlayer(p, this);
-			allPlayers.put(p,  pl);
+			allPlayers.put(p.getName().toLowerCase(),  pl);
 		}
 		return pl;
 	}
