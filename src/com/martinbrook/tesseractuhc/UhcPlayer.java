@@ -234,6 +234,7 @@ public class UhcPlayer {
 		else return null;
 	}
 	
+	public boolean teleport(Location l) { return teleport(l,"You have been teleported!"); }
 	public boolean teleport(Location l, String message) {
 		Player p = getPlayer();
 		if (p == null) return false;

@@ -34,7 +34,7 @@ public class LoginListener implements Listener {
 		// If the match has not yet started, try to launch the player if necessary
 		if (m.getMatchPhase() == MatchPhase.LAUNCHING) {
 			// If player is in the match, make sure they are launched. If not, put them at spawn.
-			if (pl.isParticipant()) m.launch(pl.getParticipant());
+			if (pl.isParticipant()) m.launch(pl);
 			return;
 		}
 		

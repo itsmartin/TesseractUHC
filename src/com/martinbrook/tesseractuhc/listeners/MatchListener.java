@@ -24,7 +24,6 @@ import org.bukkit.ChatColor;
 
 import com.martinbrook.tesseractuhc.MatchPhase;
 import com.martinbrook.tesseractuhc.UhcMatch;
-import com.martinbrook.tesseractuhc.UhcParticipant;
 import com.martinbrook.tesseractuhc.UhcPlayer;
 import com.martinbrook.tesseractuhc.notification.DamageNotification;
 import com.martinbrook.tesseractuhc.notification.HealingNotification;
@@ -43,12 +42,12 @@ public class MatchListener implements Listener {
 	@EventHandler
 	public void onPlayerDeath(PlayerDeathEvent e){
 		Player p = e.getEntity();
-		UhcParticipant up = m.getUhcParticipant(p);
+		UhcPlayer pl = m.getPlayer(p);
 		
 		// If it's a pvp kill, drop bonus items
 		if (p.getKiller() != null) {
-			UhcParticipant killer = m.getUhcParticipant(p.getKiller());
-			if (up != null && killer != null && killer.getTeam() != up.getTeam()) {
+			UhcPlayer killer = m.getPlayer(p.getKiller());
+			if (pl.isParticipant() && killer.isParticipant() && killer.getParticipant().getTeam() != pl.getParticipant().getTeam()) {
 				ItemStack bonus = m.getKillerBonus();
 				if (bonus != null)
 					e.getDrops().add(bonus);
@@ -63,8 +62,8 @@ public class MatchListener implements Listener {
 		m.setLastDeathLocation(p.getLocation());
 		
 		// Handle the death
-		if (up != null && up.isLaunched() && !up.isDead() && m.getMatchPhase() == MatchPhase.MATCH)
-			m.handleParticipantDeath(up);
+		if (pl.isActiveParticipant() && m.getMatchPhase() == MatchPhase.MATCH)
+			m.handleParticipantDeath(pl.getParticipant());
 
 	}
 
@@ -103,14 +102,12 @@ public class MatchListener implements Listener {
 		// If damage ticks not exceeded, the damage won't happen, so return
 		if(((LivingEntity)e.getEntity()).getNoDamageTicks() > ((LivingEntity)e.getEntity()).getMaximumNoDamageTicks()/2.0F)	return;
 		
-		// Only interested in registered players
-		UhcParticipant up = m.getUhcParticipant((Player) e.getEntity());
-		if (up == null) return;
+		// Only interested in registered, active participants
+		UhcPlayer pl = m.getPlayer((Player) e.getEntity());
+		if (!pl.isActiveParticipant()) return;
 		
-		// Only interested in living players
-		if (up.isDead()) return;
 		
-		m.sendNotification(new DamageNotification(up, e.getCause()), e.getEntity().getLocation());
+		m.sendNotification(new DamageNotification(pl.getParticipant(), e.getCause()), e.getEntity().getLocation());
 		
 	}
 	
@@ -130,14 +127,11 @@ public class MatchListener implements Listener {
 		// Only interested in players taking damage
 		if (e.getEntityType() != EntityType.PLAYER) return;
 		
-		// Only interested in registered players
-		UhcParticipant up = m.getUhcParticipant((Player) e.getEntity());
-		if (up == null) return;
-		
-		// Only interested in living players
-		if (up.isDead()) return;
+		// Only interested in registered, active participants
+		UhcPlayer pl = m.getPlayer((Player) e.getEntity());
+		if (!pl.isActiveParticipant()) return;
 
-		m.sendNotification(new DamageNotification(up, e.getCause(), e.getDamager()), e.getEntity().getLocation());
+		m.sendNotification(new DamageNotification(pl.getParticipant(), e.getCause(), e.getDamager()), e.getEntity().getLocation());
 		
 	}
 
@@ -149,9 +143,9 @@ public class MatchListener implements Listener {
 		// Only interested if match is in progress.
 		if (m.getMatchPhase() != MatchPhase.MATCH) return;
 
-		// Only interested in registered players
-		UhcParticipant up = m.getUhcParticipant((Player) e.getEntity());
-		if (up == null) return;
+		// Only interested in registered, active participants
+		UhcPlayer pl = m.getPlayer((Player) e.getEntity());
+		if (!pl.isActiveParticipant()) return;
 
 		// Cancel event if it is a natural regen due to hunger being full, and UHC is enabled
 		if (m.isUHC() && e.getRegainReason() == RegainReason.SATIATED) {
@@ -161,7 +155,7 @@ public class MatchListener implements Listener {
 		
 		// Announce health change (UHC only)
 		if (m.isUHC())
-			m.sendNotification(new HealingNotification(up, e.getAmount(), e.getRegainReason()), e.getEntity().getLocation());
+			m.sendNotification(new HealingNotification(pl.getParticipant(), e.getAmount(), e.getRegainReason()), e.getEntity().getLocation());
 
 		
 	}
