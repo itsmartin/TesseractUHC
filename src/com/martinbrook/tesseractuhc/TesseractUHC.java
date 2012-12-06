@@ -740,7 +740,7 @@ public class TesseractUHC extends JavaPlugin {
 	 * @return
 	 */
 	private String cUhcGetbonus(UhcPlayer sender) {
-		((Player) sender).getEnderChest().setContents(match.getBonusChest());
+		sender.getPlayer().getEnderChest().setContents(match.getBonusChest());
 		return OK_COLOR + "Bonus chest loaded into your ender chest";
 	}
 
@@ -749,7 +749,7 @@ public class TesseractUHC extends JavaPlugin {
 	 * @return
 	 */
 	private String cUhcSetbonus(UhcPlayer sender) {
-		match.setBonusChest(((Player) sender).getEnderChest().getContents());
+		match.setBonusChest(sender.getPlayer().getEnderChest().getContents());
 		return OK_COLOR + "Bonus chest saved from your ender chest";
 	}
 
