@@ -55,7 +55,7 @@ public class LoginListener implements Listener {
 		
 		// If match is over, put player in creative, do nothing else
 		if (m.getMatchPhase() == MatchPhase.POST_MATCH) {
-			e.getPlayer().setGameMode(GameMode.CREATIVE);
+			pl.setGameMode(GameMode.CREATIVE);
 			return;
 		}
 
