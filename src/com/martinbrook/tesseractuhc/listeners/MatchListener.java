@@ -57,7 +57,7 @@ public class MatchListener implements Listener {
 		
 		// Make death message red
 		String msg = e.getDeathMessage();
-		e.setDeathMessage(ChatColor.RED + msg);
+		e.setDeathMessage(ChatColor.GOLD + msg);
 		
 		// Save death point
 		m.setLastDeathLocation(p.getLocation());
