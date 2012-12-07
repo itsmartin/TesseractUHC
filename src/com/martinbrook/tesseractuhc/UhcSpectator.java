@@ -85,5 +85,13 @@ public class UhcSpectator {
 		player.getPlayer().openInventory(i);
 		return true;
 	}
+
+	public Location getLocation() {
+		return player.getLocation();
+	}
+
+	public UhcPlayer getPlayer() {
+		return player;
+	}
 	
 }

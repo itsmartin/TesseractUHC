@@ -1721,4 +1721,178 @@ public class UhcMatch {
 		return md.getBoolean("nolatecomers");
 	}
 
+	/**
+	 * Return a human-friendly representation of a specified match parameter
+	 * 
+	 * @param parameter The match parameter to look up
+	 * @return A human-readable version of the parameter's value
+	 */
+	public String formatParameter(String parameter) {
+		String response = TesseractUHC.ERROR_COLOR + "Unknown parameter";
+		String param = ChatColor.AQUA.toString();
+		String value = ChatColor.GOLD.toString();
+		String desc = "\n" + ChatColor.GRAY + ChatColor.ITALIC + "      ";
+		
+		
+		if ("deathban".equalsIgnoreCase(parameter)) {
+			response = param + "Deathban: " + value;
+			if (this.getDeathban())
+				response += "Enabled" + desc + "Dead players will be prevented from logging back into the server";
+			else 
+				response += "Disabled" + desc + "Dead players will be allowed to stay on the server";
+			
+		} else if ("killerbonus".equalsIgnoreCase(parameter)) {
+			response = param + "Killer bonus: " + value;
+			ItemStack kb = this.getKillerBonus();
+			if (kb == null) 
+				response += "Disabled" + desc + "No additional bonus dropped after a PvP kill";
+			else
+				response += kb.getAmount() + " x " + kb.getType().toString() + desc 
+				+ "Additional items dropped when a player is killed by PvP";
+				
+		} else if ("miningfatigue".equalsIgnoreCase(parameter)) {
+			response = param + "Mining hunger: " + value;
+			double mfg = this.getMiningFatigueGold();
+			double mfd = this.getMiningFatigueDiamond();
+			if (mfg > 0 || mfd > 0)
+				response += (mfg>0 ? (mfg / 8.0) + " (below y=32) " : "") + (mfd > 0 ? (mfd / 8.0) + " (below y=16)" : "" ) + desc;
+			else
+				response += "Disabled" + desc;
+			
+			response += "Hunger penalty per block mined at those depths (stone\n      blocks only)";
+					
+		} else if ("nopvp".equalsIgnoreCase(parameter)) {
+			response = param + "No-PvP period: " + value;
+			int n = this.getNopvp();
+			int mins = n / 60;
+			int secs = n % 60;
+			if (n > 0)
+				response += (mins > 0 ? mins + " minutes" : "")
+						+ (secs > 0 ? secs + " seconds" : "")
+						+ desc +  "Period at the start of the match during which PvP is\n      disabled";
+			else 
+				response += "None" + desc + "PvP will be enabled from the start";
+			
+			
+		} else if ("ffa".equalsIgnoreCase(parameter)) {
+			response = param + "Teams: " + value;
+			if (this.isFFA())
+				response += "Free for all" + desc + "No teams, no alliances, every player for themselves";
+			else
+				response += "Teams" + desc + "Teams work together, last team with a survivor wins";
+			
+		} else if ("uhc".equalsIgnoreCase(parameter)) {
+			response = param + "UHC: " + value;
+			if (this.isUHC())
+				response += "Enabled" + desc + "No health regeneration, and modified recipes for golden\n      apple and glistering melon";
+			else
+				response += "Disabled" + desc + "Health regeneration and crafting recipes are unchanged";
+		} else if ("autospectate".equalsIgnoreCase(parameter)) {
+			response = param + "AutoSpectate: " + value;
+			if (this.isAutoSpectate())
+				response += "Enabled" + desc + "Dead players will become invisible spectators";
+			else
+				response += "Disabled" + desc + "Dead players will not be able to spectate";
+		} else if ("nolatecomers".equalsIgnoreCase(parameter)) {
+			response = param + "NoLatecomers: " + value;
+			if (this.isNoLatecomers())
+				response += "Enabled" + desc + "Late arriving players will not be able to connect";
+			else
+				response += "Disabled" + desc + "Late arriving players will be able to join";
+		}
+		
+		
+		return response;
+	}
+
+	public boolean setParameter(String parameter, String value) {
+		// Look up the parameter.
+		
+		if ("deathban".equalsIgnoreCase(parameter)) {
+
+			Boolean v = MatchUtils.stringToBoolean(value);
+			if (v == null) return false;
+			this.setDeathban(v);
+			return true;
+			
+		} else if ("killerbonus".equalsIgnoreCase(parameter)) {
+			Boolean b = MatchUtils.stringToBoolean(value);
+			if (b != null && !b) {
+				this.setKillerBonus(0);
+				return true;
+			}
+			String[] split = value.split(" ");
+			if (split.length > 2)
+				return false;
+			
+			int quantity = 1;
+			
+			try {
+				int id = Integer.parseInt(split[0]);
+				if (split.length > 1)
+					quantity = Integer.parseInt(split[1]);
+				
+				this.setKillerBonus(id, quantity);
+				return true;
+			} catch (NumberFormatException e) {
+				return false;
+			}
+			
+		
+			
+		} else if ("miningfatigue".equalsIgnoreCase(parameter)) {
+			Boolean b = MatchUtils.stringToBoolean(value);
+			if (b != null && !b) {
+				this.setMiningFatigue(0,0);
+				return true;
+			}
+			
+			String[] split = value.split(" ");
+			if (split.length != 2)
+				return false;
+			
+			try {
+				double gold = Double.parseDouble(split[0]);
+				double diamond = Double.parseDouble(split[1]);
+				this.setMiningFatigue(gold, diamond);
+				return true;
+			} catch (NumberFormatException e) {
+				return false;
+			}
+			
+			
+		} else if ("nopvp".equalsIgnoreCase(parameter)) {
+			try {
+				this.setNopvp(Integer.parseInt(value));
+				return true;
+			} catch (NumberFormatException e) {
+				return false;
+			}
+		} else if ("ffa".equalsIgnoreCase(parameter)) {
+			Boolean v = MatchUtils.stringToBoolean(value);
+			if (v == null) return false;
+			this.setFFA(v);
+			return true;
+		} else if ("uhc".equalsIgnoreCase(parameter)) {
+			Boolean v = MatchUtils.stringToBoolean(value);
+			if (v == null) return false;
+			this.setUHC(v);
+			return true;
+		} else if ("autospectate".equalsIgnoreCase(parameter)) {
+			Boolean v = MatchUtils.stringToBoolean(value);
+			if (v == null) return false;
+			this.setAutoSpectate(v);
+			return true;
+		} else if ("nolatecomers".equalsIgnoreCase(parameter)) {
+			Boolean v = MatchUtils.stringToBoolean(value);
+			if (v == null) return false;
+			this.setNoLatecomers(v);
+			return true;
+		} else {
+			return false;
+		}
+		
+		
+	}
+
 }
