@@ -41,28 +41,16 @@ commands:
   usage: /gm
  heal:
   description: Heals a player
-  usage: /heal player
- healall:
-  description: Heals all players
-  usage: /healall
+  usage: /heal player | *
  feed:
   description: Feeds a player
-  usage: /feed player
- feedall:
-  description: Feeds all players
-  usage: /feedall
+  usage: /feed player | *
  clearinv:
   description: Clears a player's inventory
-  usage: /clearinv player
- clearinvall:
-  description: Clears all players' inventories
-  usage: /clearinvall
+  usage: /clearinv player | *
  renew:
   description: Feeds, heals and clearinvs a player
-  usage: /renew player
- renewall:
-  description: Renews all players
-  usage: /renewall
+  usage: /renew player | *
  ready:
   description: Starts the match countdown
   usage: /ready seconds
@@ -84,11 +72,7 @@ commands:
  notify:
   description: Sends a private notification message to an admin
   usage: /notify Message
-  alias: n
- n:
-  description: Sends a private notification message to an admin
-  usage: /n Message
-  alias: notify
+  aliases: n
  permaday:
   description: Enable/disable permaday
   usage: /permaday on | off
@@ -110,9 +94,7 @@ commands:
  vi:
   description: View a player's inventory
   usage: /vi player
- pi:
-  description: View a player's inventory
-  usage: /pi player
+  aliases: pi
  setvanish:
   description: Update vanish status of all players on the server
   usage: /setvanish
@@ -126,14 +108,9 @@ commands:
   description: Leave the match
   usage: /leave
  matchinfo:
+  aliases: [ mi, match ]
   description: Display status of the current match
   usage: /matchinfo
- mi:
-  description: Display status of the current match
-  usage: /mi
- match:
-  description: Display status of the current match
-  usage: /match
  params:
   description: Display match parameters
   usage: /params
