@@ -4,9 +4,6 @@ ffa: true
 nopvp: 300
 autospectate: true
 nolatecomers: false
-fireworktrail:
- enabled: true
- frequencyperplayer: 10000
 killerbonus:
  id: 266
  quantity: 4

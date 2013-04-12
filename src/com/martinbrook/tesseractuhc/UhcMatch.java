@@ -166,6 +166,7 @@ public class UhcMatch {
 		}
 		
 		setDefaultMatchParameters();
+		
 		// Convert saved bonus chest into an ItemStack array
 		List<?> data = md.getList("bonuschest");
 		
@@ -177,8 +178,6 @@ public class UhcMatch {
 					bonusChest[i] = (ItemStack) o;
 			}
 		}
-		
-		
 	}
 	
 	
@@ -1721,17 +1720,6 @@ public class UhcMatch {
 	public boolean isNoLatecomers() {
 		return md.getBoolean("nolatecomers");
 	}
-	
-	public void setFireworkTrail(Boolean b,int f){
-		md.set("fireworktrail.enabled",b);
-		md.set("fireworktrail.frequencyperplayer", f);
-		this.saveMatchParameters();
-		adminBroadcast(TesseractUHC.OK_COLOR + "FireworkTrail has been " + (b ? "enabled" : "disabled") + "!");	
-	}
-	
-	public boolean isFireworkTrail(){
-		return md.getBoolean("fireworktrail");
-	}
 
 	/**
 	 * Return a human-friendly representation of a specified match parameter
@@ -1852,29 +1840,6 @@ public class UhcMatch {
 			
 		
 			
-		}else if ("fireworktrail".equalsIgnoreCase(parameter)){
-			Boolean b = MatchUtils.stringToBoolean(value);
-			if (b != null && !b) {
-				this.setFireworkTrail(false, 10);
-				return true;
-			}
-			String[] split = value.split(" ");
-			if (split.length > 2)
-				return false;
-			
-			int frequency = 1;
-			
-			try {
-				Boolean enabled = MatchUtils.stringToBoolean(split[0]);
-				if (split.length > 1)
-					frequency = Integer.parseInt(split[1]);
-				
-				this.setFireworkTrail(enabled, frequency);
-				return true;
-			} catch (NumberFormatException e) {
-				return false;
-			}
-		
 		} else if ("miningfatigue".equalsIgnoreCase(parameter)) {
 			Boolean b = MatchUtils.stringToBoolean(value);
 			if (b != null && !b) {
@@ -1923,7 +1888,7 @@ public class UhcMatch {
 			if (v == null) return false;
 			this.setNoLatecomers(v);
 			return true;
-		} else{
+		} else {
 			return false;
 		}
 		
