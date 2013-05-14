@@ -48,9 +48,9 @@ public class JoinCommand extends UhcCommandExecutor {
 		}
 		
 		if (match.addParticipant(sender, teamToJoin.getIdentifier())){
-			match.broadcastTeam(OK_COLOR +sender.getName() + "has joined "+teamToJoin.getName(), teamToJoin);
+			match.broadcastTeam(OK_COLOR +sender.getName() + " has joined "+teamToJoin.getName(), teamToJoin);
 			match.adminBroadcast(OK_COLOR +sender.getName() + "has joined "+teamToJoin.getName());
-			return OK_COLOR + "You are now a member of " + teamToJoin.getName();
+			return OK_COLOR + "You are now a member of " + teamToJoin.getName()+" to leave, type /leave.";
 		}else
 			return ERROR_COLOR + "Unable to join team. Are you already on a team?";
 	}

@@ -51,9 +51,9 @@ public class TeamCommand extends UhcCommandExecutor {
 			name = name.substring(0,name.length()-1);
 		}
 		for(UhcTeam team : match.getTeams()){
-			if(team.getIdentifier()==identifier)
+			if(team.getIdentifier().equals(identifier))
 				return ERROR_COLOR +"You can't use an identifier that another team has used.";
-			if(team.getName()==name)
+			if(team.getName().equals(name))
 				return ERROR_COLOR +"You can't use a name that another team is using.";
 		}
 			
@@ -62,6 +62,7 @@ public class TeamCommand extends UhcCommandExecutor {
 		
 		if (!match.addParticipant(sender, identifier))
 			return ERROR_COLOR + "An error occurred. The team has been created but you could not be joined to it.";
+		
 		
 		match.broadcast(ChatColor.GOLD + "Team " + ChatColor.AQUA + ChatColor.ITALIC + name + ChatColor.RESET 
 				+ ChatColor.GOLD + " was created by " + sender.getDisplayName() + ".\n"

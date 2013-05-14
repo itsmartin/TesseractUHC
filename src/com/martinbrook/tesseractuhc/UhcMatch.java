@@ -838,12 +838,14 @@ public class UhcMatch {
 		UhcPlayer pl = getPlayer(name);
 		
 		if (pl.isParticipant()) {
-			// Mark them as a non participant
-			getPlayer(name).setParticipant(null);
 			
 			// Remove them from their team
 			UhcTeam team = pl.getParticipant().getTeam();
 			team.removeMember(pl.getParticipant());
+						
+			// Mark them as a non participant
+			getPlayer(name).setParticipant(null);
+			
 			
 			// Remove them from the match
 			participantsInMatch.remove(pl.getParticipant());
