@@ -338,6 +338,19 @@ public class UhcMatch {
 	public void broadcast(String string) {
 		broadcast(string,Server.BROADCAST_CHANNEL_USERS);
 	}
+	/**
+	 * Send a message to all players on a certain team
+	 * 
+	 * @param string The message to be sent
+	 * @param UhcTeam the team to be broadcast too
+	 */
+	public void broadcastTeam(String message, UhcTeam team){
+		for(UhcParticipant up: team.getMembers()){
+			if(up.getPlayer().isOnline()){
+				up.sendMessage(message);
+			}
+		}
+	}
 
 	/**
 	 * Send a message to specific players on the server
