@@ -6,6 +6,7 @@ import com.martinbrook.tesseractuhc.MatchPhase;
 import com.martinbrook.tesseractuhc.TesseractUHC;
 import com.martinbrook.tesseractuhc.UhcPlayer;
 import com.martinbrook.tesseractuhc.UhcSpectator;
+import com.martinbrook.tesseractuhc.UhcTeam;
 
 public class TeamCommand extends UhcCommandExecutor {
 
@@ -48,6 +49,12 @@ public class TeamCommand extends UhcCommandExecutor {
 		else {
 			for (int i = 1; i < args.length; i++) name += args[i] + " ";
 			name = name.substring(0,name.length()-1);
+		}
+		for(UhcTeam team : match.getTeams()){
+			if(team.getIdentifier()==identifier)
+				return ERROR_COLOR +"You can't use an identifier that another team has used.";
+			if(team.getName()==name)
+				return ERROR_COLOR +"You can't use a name that another team is using.";
 		}
 			
 		if (!match.addTeam(identifier, name))
