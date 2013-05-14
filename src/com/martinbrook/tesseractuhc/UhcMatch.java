@@ -12,12 +12,14 @@ import java.util.Random;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Difficulty;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Server;
 import org.bukkit.World;
+import org.bukkit.command.defaults.DifficultyCommand;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -518,6 +520,7 @@ public class UhcMatch {
 		startingWorld.setTime(0);
 		butcherHostile();
 		server.setSpawnRadius(0);
+		startingWorld.setDifficulty(Difficulty.HARD);
 		for (UhcParticipant up : this.getUhcParticipants()) up.start();
 		setPermaday(false);
 		startMatchTimer();
