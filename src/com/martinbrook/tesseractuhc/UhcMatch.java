@@ -827,7 +827,8 @@ public class UhcMatch {
 			getPlayer(name).setParticipant(null);
 			
 			// Remove them from their team
-			pl.getParticipant().getTeam().removeMember(pl.getParticipant());
+			UhcTeam team = pl.getParticipant().getTeam();
+			team.removeMember(pl.getParticipant());
 			
 			// Remove them from the match
 			participantsInMatch.remove(pl.getParticipant());
@@ -835,6 +836,13 @@ public class UhcMatch {
 			// If match is ffa, also remove the empty team
 			if (isFFA())
 				this.removeTeam(name);
+			//If match is team, remove team if empty
+			if(team.getMembers().size()==0&&!isFFA()){
+				removeTeam(team.getIdentifier());	
+				if (matchPhase == MatchPhase.MATCH) {
+					broadcast(ChatColor.GOLD + team.getName() + " now has no members.");
+				}
+			}
 			
 			
 			if (matchPhase == MatchPhase.MATCH) {
