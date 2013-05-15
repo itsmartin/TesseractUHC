@@ -833,13 +833,10 @@ public class UhcMatch {
 			// Remove them from the match
 			participantsInMatch.remove(pl.getParticipant());
 			
-			// If match is ffa, also remove the empty team
-			if (isFFA())
-				this.removeTeam(name);
-			//If match is team, remove team if empty
-			if(team.getMembers().size()==0&&!isFFA()){
+			// Remove team if empty
+			if(team.getMembers().size() == 0){
 				removeTeam(team.getIdentifier());	
-				if (matchPhase == MatchPhase.MATCH) {
+				if (matchPhase == MatchPhase.MATCH && !isFFA()) {
 					broadcast(ChatColor.GOLD + team.getName() + " now has no members.");
 				}
 			}
