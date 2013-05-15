@@ -28,13 +28,13 @@ public class PvpCommand extends UhcCommandExecutor {
 		if(args.length<1){
 			return ERROR_COLOR + "Syntax: /pvp [on | off]";
 		}
-		if (MatchUtils.stringToBoolean(args[0])) { 
-			match.setPVP(true);
-			return OK_COLOR +"PVP is now on.";
-		} else {
-			match.setPVP(false);
-			return OK_COLOR +"PVP is now off.";
-		}
+		
+		Boolean value = MatchUtils.stringToBoolean(args[0]);
+		if (value == null)
+			return ERROR_COLOR + "Syntax: /pvp [on | off]";
+		
+		match.setPVP(value);
+		return OK_COLOR +"PVP is now " + (value? "on" : "off");
 		
 	
 	}
