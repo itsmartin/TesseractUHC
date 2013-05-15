@@ -85,7 +85,7 @@ public class UhcParticipant implements PlayerTarget {
 		return (player.feed() && player.clearXP() && player.clearPotionEffects() 
 				&& player.heal() && player.setGameMode(GameMode.SURVIVAL));
 	}
-	public void sendMessage(String message) { player.sendMessage(message); }
+	public boolean sendMessage(String message) { return player.sendMessage(message); }
 	
 
 
