@@ -123,3 +123,9 @@ commands:
  interact:
   description: Enables/disables the ability for you to interact with the world
   usage: /interact
+ spectate:
+  description: Sets a dead player to specator
+  usage: /spectate name
+ pvp:
+  description: Enables/disables PVP
+  usage: /pvp on | off
