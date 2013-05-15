@@ -77,6 +77,7 @@ public class TesseractUHC extends JavaPlugin {
 		getCommand("team").setExecutor(new TeamCommand(this));
 		getCommand("leave").setExecutor(new LeaveCommand(this));
 		getCommand("params").setExecutor(new ParamsCommand(this));
+		getCommand("spectate").setExecutor(new SpectateCommand(this));
 	}
 		
 		
