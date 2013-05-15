@@ -346,9 +346,7 @@ public class UhcMatch {
 	 */
 	public void broadcastTeam(String message, UhcTeam team){
 		for(UhcParticipant up: team.getMembers()){
-			if(up.getPlayer().isOnline()){
-				up.sendMessage(message);
-			}
+			up.sendMessage(message);
 		}
 	}
 
