@@ -79,6 +79,7 @@ public class TesseractUHC extends JavaPlugin {
 		getCommand("params").setExecutor(new ParamsCommand(this));
 		getCommand("pvp").setExecutor(new PvpCommand(this));
 		getCommand("spectate").setExecutor(new SpectateCommand(this));
+		getCommand("nv").setExecutor(new NightVisionCommand(this));
 	}
 		
 		

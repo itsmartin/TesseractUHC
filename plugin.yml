@@ -129,3 +129,6 @@ commands:
  pvp:
   description: Enables/disables PVP
   usage: /pvp on | off
+ nv:
+  description: Enables/disables night vision on spectators
+  usage: /nv on | off

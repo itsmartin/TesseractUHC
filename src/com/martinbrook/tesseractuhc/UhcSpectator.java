@@ -4,6 +4,8 @@ import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 import com.martinbrook.tesseractuhc.util.MatchUtils;
 import com.martinbrook.tesseractuhc.util.TeleportUtils;
@@ -92,6 +94,14 @@ public class UhcSpectator {
 
 	public UhcPlayer getPlayer() {
 		return player;
+	}
+	
+	public void setNightVision(boolean b){
+		if(b){
+			this.getPlayer().getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, Integer.MAX_VALUE, 0,false));
+		}else{
+			this.getPlayer().getPlayer().removePotionEffect(PotionEffectType.NIGHT_VISION);
+		}
 	}
 	
 }

@@ -78,13 +78,16 @@ public class UhcPlayer {
 		if (spectator == null) spectator = new UhcSpectator(this);
 		setVanish();
 		setGameMode(GameMode.CREATIVE);
+		spectator.sendMessage(ChatColor.GREEN+"You are now a spectator.");
 		return true;
 	}
 
 	public void makeNotSpectator() {
+		spectator.setNightVision(false);
 		spectator=null;
 		setGameMode(GameMode.SURVIVAL);
 		setVanish();
+		
 	}
 	
 
