@@ -517,6 +517,7 @@ public class UhcMatch {
 		matchPhase = MatchPhase.MATCH;
 		startingWorld.setTime(0);
 		butcherHostile();
+		server.setSpawnRadius(0);
 		for (UhcParticipant up : this.getUhcParticipants()) up.start();
 		setPermaday(false);
 		startMatchTimer();
