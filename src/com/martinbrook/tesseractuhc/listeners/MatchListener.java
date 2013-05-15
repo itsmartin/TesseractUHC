@@ -69,14 +69,21 @@ public class MatchListener implements Listener {
 
 	@EventHandler
 	public void onRespawn(PlayerRespawnEvent e) {
-		// Only do anything if match is in progress
-		if (m.getMatchPhase() != MatchPhase.MATCH) return;
+		// Only do anything if match is in progress or completed
+		if (m.getMatchPhase() != MatchPhase.MATCH && m.getMatchPhase() != MatchPhase.POST_MATCH) return;
+		
+		// Get the UhcPlayer
 		UhcPlayer pl = m.getPlayer(e.getPlayer());
 		
-		// If they're a dead UHC player, put them into adventure mode and make sure they respawn at overworld spawn
+		// If they're a dead UHC player, make sure they respawn at overworld spawn and setup their gamemode correctly
 		if (pl.isParticipant() && pl.getParticipant().isDead()) {
 			e.setRespawnLocation(m.getStartingWorld().getSpawnLocation());
-			if (!m.isAutoSpectate())
+
+ 
+			// If this is an autospectate game, make the player a spectator, otherwise put them in adventure mode
+			if (m.isAutoSpectate())
+				pl.makeSpectator();
+			else
 				pl.setGameMode(GameMode.ADVENTURE);
 		}
 		

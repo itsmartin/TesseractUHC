@@ -6,8 +6,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.event.player.PlayerRespawnEvent;
-
 import com.martinbrook.tesseractuhc.MatchPhase;
 import com.martinbrook.tesseractuhc.UhcMatch;
 import com.martinbrook.tesseractuhc.UhcPlayer;
@@ -97,21 +95,5 @@ public class LoginListener implements Listener {
 			return;
 		}
 	}
-	
-	@EventHandler
-	public void onRespawn(PlayerRespawnEvent e) {
-		// Get a uhcplayer object
-		UhcPlayer pl = m.getPlayer(e.getPlayer());
-
-		// If this is an autospectate game, make the player a spectator 
-		if (m.isAutoSpectate() && pl.isParticipant() && pl.getParticipant().isDead()
-				&& (m.getMatchPhase() == MatchPhase.MATCH || m.getMatchPhase() == MatchPhase.POST_MATCH)) {
-			pl.makeSpectator();
-		}
-	}
-	
-	
-	
-	
 	
 }
