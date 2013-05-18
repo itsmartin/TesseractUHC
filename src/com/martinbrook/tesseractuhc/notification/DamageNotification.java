@@ -71,6 +71,7 @@ public class DamageNotification extends UhcNotification {
 				String type = "an unknown entity";
 				if (damager.getType() == EntityType.BLAZE) type = "a blaze";
 				else if (damager.getType() == EntityType.CAVE_SPIDER) type = "a cave spider";
+				else if (damager.getType() == EntityType.SPIDER) type = "a spider";
 				else if (damager.getType() == EntityType.CREEPER) type = "a creeper";
 				else if (damager.getType() == EntityType.ENDER_DRAGON) type = "the dragon";
 				else if (damager.getType() == EntityType.ENDERMAN) type = "an enderman";
