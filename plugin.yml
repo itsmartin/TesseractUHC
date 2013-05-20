@@ -100,7 +100,7 @@ commands:
   usage: /setvanish
  team:
   description: Create a new team
-  usage: /team identifier fullname
+  usage: /team fullname
  join:
   description: Join a team
   usage: /join [team]
