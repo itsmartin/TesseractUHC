@@ -1231,6 +1231,14 @@ public class UhcMatch {
 		
 	}
 
+	public void handleEliminatedPlayer(final UhcPlayer p) {
+		server.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
+			public void run() {
+				p.makeSpectator();
+			}
+		});
+
+	}
 
 	/**
 	 * Process the death of a player

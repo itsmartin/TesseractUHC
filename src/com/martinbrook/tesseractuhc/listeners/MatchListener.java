@@ -81,7 +81,7 @@ public class MatchListener implements Listener {
 
  
 			// Make the player a spectator
-			pl.makeSpectator();
+			m.handleEliminatedPlayer(pl);
 		}
 		
 	}
