@@ -3,6 +3,7 @@ uhc: true
 ffa: true
 nopvp: 300
 nolatecomers: false
+dragonmode: false
 killerbonus:
  id: 266
  quantity: 4

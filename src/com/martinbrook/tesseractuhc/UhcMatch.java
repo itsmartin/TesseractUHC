@@ -1231,7 +1231,8 @@ public class UhcMatch {
 		
 		// Reduce survivor counts
 		participantsInMatch.remove(up);
-		if (isFFA() && countParticipantsInMatch() == 1) {
+
+		if (!isDragonMode() && isFFA() && countParticipantsInMatch() == 1) {
 			processVictory(participantsInMatch.get(0));
 			return;
 		}
@@ -1241,7 +1242,7 @@ public class UhcMatch {
 		
 		if (team != null && team.aliveCount()<1) {
 			teamsInMatch.remove(team);
-			if (!isFFA() && countTeamsInMatch() == 1) {
+			if (!isDragonMode() && !isFFA() && countTeamsInMatch() == 1) {
 				processVictory(teamsInMatch.get(0));
 				return;
 			}
@@ -1744,6 +1745,16 @@ public class UhcMatch {
 	public boolean isNoLatecomers() {
 		return md.getBoolean("nolatecomers");
 	}
+	
+	public void setDragonMode(Boolean d) {
+		md.set("dragonmode", d);
+		this.saveMatchParameters();
+		adminBroadcast(TesseractUHC.OK_COLOR + "Dragon mode has been " + (d ? "enabled" : "disabled") + "!");
+	}
+	
+	public boolean isDragonMode() {
+		return md.getBoolean("dragonmode");
+	}
 
 	/**
 	 * Return a human-friendly representation of a specified match parameter
@@ -1817,6 +1828,12 @@ public class UhcMatch {
 				response += "Enabled" + desc + "Late arriving players will not be able to connect";
 			else
 				response += "Disabled" + desc + "Late arriving players will be able to join";
+		} else if ("dragonmode".equalsIgnoreCase(parameter)) {
+			response = param + "Dragon mode: " + value;
+			if (this.isDragonMode())
+				response += "Enabled" + desc + "The match will end when the dragon is slain";
+			else
+				response += "Disabled" + desc + "The match will end when only one team/player remains";
 		}
 		
 		
@@ -1900,6 +1917,11 @@ public class UhcMatch {
 			Boolean v = MatchUtils.stringToBoolean(value);
 			if (v == null) return false;
 			this.setNoLatecomers(v);
+			return true;
+		} else if ("dragonmode".equalsIgnoreCase(parameter)) {
+			Boolean v = MatchUtils.stringToBoolean(value);
+			if (v == null) return false;
+			this.setDragonMode(v);
 			return true;
 		} else {
 			return false;

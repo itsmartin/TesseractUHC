@@ -211,6 +211,7 @@ public class UhcCommand extends UhcCommandExecutor {
 		response += ChatColor.RESET + "[miningfatigue] " + match.formatParameter("miningfatigue") + "\n";
 		response += ChatColor.RESET + "[deathban]      " + match.formatParameter("deathban") + "\n";
 		response += ChatColor.RESET + "[nolatecomers]  " + match.formatParameter("nolatecomers") + "\n";
+		response += ChatColor.RESET + "[dragonmode]    " + match.formatParameter("dragonmode") + "\n";
 		
 		return response;
 	}
