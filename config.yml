@@ -4,6 +4,7 @@ ffa: true
 nopvp: 300
 nolatecomers: false
 dragonmode: false
+damagealerts: true
 killerbonus:
  id: 266
  quantity: 4

@@ -1776,6 +1776,16 @@ public class UhcMatch {
 	public boolean isDragonMode() {
 		return md.getBoolean("dragonmode");
 	}
+	
+	public void setDamageAlerts(Boolean d) {
+		md.set("damagealerts", d);
+		this.saveMatchParameters();
+		adminBroadcast(TesseractUHC.OK_COLOR + "Damage alerts for players have been " + (d ? "enabled" : "disabled") + "!");
+	}
+	
+	public boolean isDamageAlerts() {
+		return md.getBoolean("damagealerts");
+	}
 
 	/**
 	 * Return a human-friendly representation of a specified match parameter
@@ -1855,6 +1865,12 @@ public class UhcMatch {
 				response += "Enabled" + desc + "The match will end when the dragon is slain";
 			else
 				response += "Disabled" + desc + "The match will end when only one team/player remains";
+		} else if ("damagealerts".equalsIgnoreCase(parameter)) {
+			response = param + "Damage alerts: " + value;
+			if (this.isDamageAlerts())
+				response += "Enabled" + desc + "Damage alerts will be shown to all players";
+			else
+				response += "Disabled" + desc + "Damage alerts will only be shown to spectators";
 		}
 		
 		
@@ -1943,6 +1959,11 @@ public class UhcMatch {
 			Boolean v = MatchUtils.stringToBoolean(value);
 			if (v == null) return false;
 			this.setDragonMode(v);
+			return true;
+		} else if ("damagealerts".equalsIgnoreCase(parameter)) {
+			Boolean v = MatchUtils.stringToBoolean(value);
+			if (v == null) return false;
+			this.setDamageAlerts(v);
 			return true;
 		} else {
 			return false;

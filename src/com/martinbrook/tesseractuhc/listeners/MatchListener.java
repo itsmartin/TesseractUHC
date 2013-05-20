@@ -109,8 +109,11 @@ public class MatchListener implements Listener {
 		UhcPlayer pl = m.getPlayer((Player) e.getEntity());
 		if (!pl.isActiveParticipant()) return;
 		
-		
-		m.sendNotification(new DamageNotification(pl.getParticipant(), e.getCause()), e.getEntity().getLocation());
+		DamageNotification n = new DamageNotification(pl.getParticipant(), e.getCause());
+		if (m.isDamageAlerts()) 
+			m.sendNotification(n, e.getEntity().getLocation());
+		else 
+			m.sendSpectatorNotification(n, e.getEntity().getLocation());
 		
 	}
 	
@@ -134,8 +137,11 @@ public class MatchListener implements Listener {
 		UhcPlayer pl = m.getPlayer((Player) e.getEntity());
 		if (!pl.isActiveParticipant()) return;
 
-		m.sendNotification(new DamageNotification(pl.getParticipant(), e.getCause(), e.getDamager()), e.getEntity().getLocation());
-		
+		DamageNotification n = new DamageNotification(pl.getParticipant(), e.getCause(), e.getDamager());
+		if (m.isDamageAlerts()) 
+			m.sendNotification(n, e.getEntity().getLocation());
+		else 
+			m.sendSpectatorNotification(n, e.getEntity().getLocation());
 	}
 
 	@EventHandler(ignoreCancelled = true)
@@ -157,8 +163,14 @@ public class MatchListener implements Listener {
 		}
 		
 		// Announce health change (UHC only)
-		if (m.isUHC())
-			m.sendNotification(new HealingNotification(pl.getParticipant(), e.getAmount(), e.getRegainReason()), e.getEntity().getLocation());
+		if (m.isUHC()) {
+			HealingNotification n = new HealingNotification(pl.getParticipant(), e.getAmount(), e.getRegainReason());
+			if (m.isDamageAlerts())
+				m.sendNotification(n, e.getEntity().getLocation());
+			else 
+				m.sendSpectatorNotification(n,  e.getEntity().getLocation());
+		}
+			
 
 		
 	}
