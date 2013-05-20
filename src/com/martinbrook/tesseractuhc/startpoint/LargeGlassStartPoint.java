@@ -62,7 +62,18 @@ public class LargeGlassStartPoint extends UhcStartPoint {
 		b.getRelative(-1,1,2).setType(Material.GLASS);
 		b.getRelative(0,1,2).setType(Material.GLASS);
 		b.getRelative(1,1,2).setType(Material.GLASS);
-
+		
+		// 3x3 roof
+		b.getRelative(-1,2,-1).setType(Material.GLASS);
+		b.getRelative(-1,2,0).setType(Material.GLASS);
+		b.getRelative(-1,2,1).setType(Material.GLASS);
+		b.getRelative(0,2,-1).setType(Material.GLASS);
+		b.getRelative(0,2,0).setType(Material.GLASS);
+		b.getRelative(0,2,1).setType(Material.GLASS);
+		b.getRelative(1,2,-1).setType(Material.GLASS);
+		b.getRelative(1,2,0).setType(Material.GLASS);
+		b.getRelative(1,2,1).setType(Material.GLASS);
+		
 		
 		// Glowstone corners
 		
@@ -74,7 +85,7 @@ public class LargeGlassStartPoint extends UhcStartPoint {
 		// Fill with air
 		for(int x = -1; x <= 1; x++) {
 			for(int z = -1; z <= 1; z++) {
-				for (int y = 0; y <= 2; y++) {
+				for (int y = 0; y <= 1; y++) {
 					b.getRelative(x,y,z).setType(Material.AIR);
 				}
 			}

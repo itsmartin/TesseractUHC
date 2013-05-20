@@ -42,8 +42,11 @@ public class SmallGlassStartPoint extends UhcStartPoint {
 		b.getRelative(0,0,1).setType(Material.GLASS);
 		b.getRelative(0,1,1).setType(Material.GLASS);
 		
+		// Roof
+		
+		b.getRelative(0,2,0).setType(Material.GLASS);
+		
 		// Fill with air
-		b.getRelative(0,2,0).setType(Material.AIR);
 		b.getRelative(0,1,0).setType(Material.AIR);
 		b.setType(Material.AIR);
 		
