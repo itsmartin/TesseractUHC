@@ -169,6 +169,13 @@ public class MatchListener implements Listener {
 		if (m.isUHC() && e.getEntityType()==EntityType.GHAST)
 			for(ItemStack i : e.getDrops())
 				if (i.getType()==Material.GHAST_TEAR) i.setType(Material.GOLD_INGOT);
+		
+		// Handle death of dragon
+		if (m.isDragonMode() && e.getEntityType()==EntityType.ENDER_DRAGON) {
+			UhcPlayer pl = m.getPlayer(e.getEntity().getKiller());
+			if (pl != null && pl.isActiveParticipant()) m.handleDragonKill(pl.getParticipant());
+		}
+			
 	}
 	
 	
@@ -212,5 +219,6 @@ public class MatchListener implements Listener {
 		// Cancel spawn
 		e.setCancelled(true);
 	}
+	
 	
 }

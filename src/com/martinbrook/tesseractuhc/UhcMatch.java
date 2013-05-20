@@ -1220,6 +1220,16 @@ public class UhcMatch {
 		
 	}
 
+	public void handleDragonKill(final UhcParticipant killer) {
+		server.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
+			public void run() {
+				processDragonKill(killer);
+			}
+		});
+		
+	}
+
+
 	/**
 	 * Process the death of a player
 	 * 
@@ -1253,6 +1263,16 @@ public class UhcMatch {
 		broadcastMatchStatus();
 	}
 
+	private void processDragonKill(UhcParticipant winner) {
+		if (isFFA()) {
+			broadcast(ChatColor.GOLD + "The winner is: " + winner.getName() + "!");
+		} else {
+			broadcast(ChatColor.GOLD + "The winner is: " + winner.getTeam().getName() + "!");
+		}
+		endMatch();
+	}
+	
+	
 	private void processVictory(UhcTeam winner) {
 		broadcast(ChatColor.GOLD + "The winner is: " + winner.getName() + "!");
 		endMatch();
@@ -1716,6 +1736,7 @@ public class UhcMatch {
 	
 	public UhcPlayer getPlayer(String name) { return this.getPlayer(server.getOfflinePlayer(name)); }
 	public UhcPlayer getPlayer(OfflinePlayer p) {
+		if (p == null) return null;
 		UhcPlayer pl = allPlayers.get(p.getName().toLowerCase());
 		if (pl == null) {
 			pl = new UhcPlayer(p.getName().toLowerCase(), this);
