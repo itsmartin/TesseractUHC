@@ -37,9 +37,9 @@ public class LoginListener implements Listener {
 		}
 		
 
-		// If match is launching or underway, and autospectate is enabled, make the new player a spectator
+		// If match is launching or underway, make the new player a spectator
 		if (m.getMatchPhase() == MatchPhase.LAUNCHING || m.getMatchPhase() == MatchPhase.MATCH) {
-			if (m.isAutoSpectate() && !pl.isParticipant()) {
+			if (!pl.isParticipant()) {
 				pl.makeSpectator();
 				return;
 			}

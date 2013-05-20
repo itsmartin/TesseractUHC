@@ -2,7 +2,6 @@ deathban: false
 uhc: true
 ffa: true
 nopvp: 300
-autospectate: true
 nolatecomers: false
 killerbonus:
  id: 266

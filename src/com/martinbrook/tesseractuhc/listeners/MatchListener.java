@@ -6,7 +6,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
@@ -80,11 +79,8 @@ public class MatchListener implements Listener {
 			e.setRespawnLocation(m.getStartingWorld().getSpawnLocation());
 
  
-			// If this is an autospectate game, make the player a spectator, otherwise put them in adventure mode
-			if (m.isAutoSpectate())
-				pl.makeSpectator();
-			else
-				pl.setGameMode(GameMode.ADVENTURE);
+			// Make the player a spectator
+			pl.makeSpectator();
 		}
 		
 	}

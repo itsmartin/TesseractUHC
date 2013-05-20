@@ -879,8 +879,7 @@ public class UhcMatch {
 			}
 			pl.teleport(startingWorld.getSpawnLocation());
 			
-			if (this.isAutoSpectate())
-				getPlayer(name).makeSpectator();
+			getPlayer(name).makeSpectator();
 			
 			return true;
 		} else return false;
@@ -934,10 +933,9 @@ public class UhcMatch {
 			if (!up.isLaunched()) addToLaunchQueue(up);
 		
 		// Make all others spectators
-		if (isAutoSpectate())
-			for(UhcPlayer pl : getOnlinePlayers())
-				if (!pl.isParticipant())
-					pl.makeSpectator();
+		for(UhcPlayer pl : getOnlinePlayers())
+			if (!pl.isParticipant())
+				pl.makeSpectator();
 		
 
 		// Begin launching
@@ -1736,16 +1734,6 @@ public class UhcMatch {
 		return ups;
 	}
 
-	public void setAutoSpectate(Boolean d) {
-		md.set("autospectate", d);
-		this.saveMatchParameters();
-		adminBroadcast(TesseractUHC.OK_COLOR + "AutoSpectate has been " + (d ? "enabled" : "disabled") + "!");
-	}
-	
-	public boolean isAutoSpectate() {
-		return md.getBoolean("autospectate");
-	}
-
 
 	public void setNoLatecomers(Boolean d) {
 		md.set("nolatecomers", d);
@@ -1823,12 +1811,6 @@ public class UhcMatch {
 				response += "Enabled" + desc + "No health regeneration, and modified recipes for golden\n      apple and glistering melon";
 			else
 				response += "Disabled" + desc + "Health regeneration and crafting recipes are unchanged";
-		} else if ("autospectate".equalsIgnoreCase(parameter)) {
-			response = param + "AutoSpectate: " + value;
-			if (this.isAutoSpectate())
-				response += "Enabled" + desc + "Dead players will become invisible spectators";
-			else
-				response += "Disabled" + desc + "Dead players will not be able to spectate";
 		} else if ("nolatecomers".equalsIgnoreCase(parameter)) {
 			response = param + "NoLatecomers: " + value;
 			if (this.isNoLatecomers())
@@ -1913,11 +1895,6 @@ public class UhcMatch {
 			Boolean v = MatchUtils.stringToBoolean(value);
 			if (v == null) return false;
 			this.setUHC(v);
-			return true;
-		} else if ("autospectate".equalsIgnoreCase(parameter)) {
-			Boolean v = MatchUtils.stringToBoolean(value);
-			if (v == null) return false;
-			this.setAutoSpectate(v);
 			return true;
 		} else if ("nolatecomers".equalsIgnoreCase(parameter)) {
 			Boolean v = MatchUtils.stringToBoolean(value);
