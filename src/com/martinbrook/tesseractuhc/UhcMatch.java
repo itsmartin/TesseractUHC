@@ -1008,8 +1008,9 @@ public class UhcMatch {
 	}
 	
 	private void runSpawnKeeper() {
+		boolean keep = (startingWorld.getSpawnLocation().getBlockY() >= 128);
 		for (UhcPlayer pl : getOnlinePlayers()) {
-			if (pl.getLocation().getY() < 128 && !pl.isSpectator()) {
+			if (keep && pl.getLocation().getY() < 128 && !pl.isSpectator()) {
 				pl.teleport(startingWorld.getSpawnLocation(), null);
 			}
 			pl.heal();
