@@ -1916,4 +1916,17 @@ public class UhcMatch {
 		
 	}
 
+	/** Compares a passed name to existing team names
+	 * 
+	 * @param name of proposed team
+	 * @return true if an existing team has passed team else false
+	 */
+	public boolean existsTeamByName(String name) {
+		for(UhcTeam team : this.getTeams()){
+			if(team.getName().equals(name))
+				return true;
+		}
+		return false;
+	}
+
 }

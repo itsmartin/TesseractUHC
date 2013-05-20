@@ -39,24 +39,28 @@ public class TeamCommand extends UhcCommandExecutor {
 			return ERROR_COLOR + "There are no more team slots left.";
 		
 		if (args.length < 1)
-			return ERROR_COLOR + "Syntax: /team identifier [full name]";
+			return ERROR_COLOR + "Syntax: /team (team name)";
 		
-		String identifier = args[0].toLowerCase();
 		String name = "";
 		
-		if (args.length < 2)
-			name = identifier;
-		else {
-			for (int i = 1; i < args.length; i++) name += args[i] + " ";
-			name = name.substring(0,name.length()-1);
-		}
-		for(UhcTeam team : match.getTeams()){
-			if(team.getIdentifier().equals(identifier))
-				return ERROR_COLOR +"You can't use an identifier that another team has used.";
-			if(team.getName().equals(name))
-				return ERROR_COLOR +"You can't use a name that another team is using.";
-		}
-			
+		for (int i = 1; i < args.length; i++) name += args[i] + " ";
+		name = name.substring(0,name.length()-1);
+		
+		if (match.existsTeamByName(name))
+			return ERROR_COLOR +"A team with that exact name already exists.";
+		
+		
+		
+		String root = name.toLowerCase().replaceAll(" ", "");
+		if (root.length() > 5) root=root.substring(0,5);
+		
+		String identifier = root;
+		int i = 0;
+		
+		while (match.existsTeam(identifier))
+			identifier = root + Integer.toString(i++);
+		
+		
 		if (!match.addTeam(identifier, name))
 			return ERROR_COLOR + "Could not add a new team. Use /join to join an existing team.";
 		
@@ -68,9 +72,9 @@ public class TeamCommand extends UhcCommandExecutor {
 				+ ChatColor.GOLD + " was created by " + sender.getDisplayName() + ".\n"
 				+ "To join, type " + ChatColor.AQUA + ChatColor.ITALIC + "/join " + identifier);
 		
-		return OK_COLOR + "You have created the team: " + name;
-		
+		return OK_COLOR + "Team created. Your team identifier is " + ChatColor.AQUA + identifier;
 
 	}
+
 
 }
