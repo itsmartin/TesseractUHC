@@ -85,6 +85,7 @@ public class UhcMatch {
 	private ArrayList<UhcPOI> uhcPOIs = new ArrayList<UhcPOI>();
 	private int proximityCheckerTask;
 	private static int PROXIMITY_THRESHOLD_SQUARED = 10000;
+	protected static int PLAYER_DAMAGE_ALERT_TICKS = 80; // 4 seconds
 	private HashMap<String, UhcPlayer> allPlayers = new HashMap<String, UhcPlayer>();
 
 	

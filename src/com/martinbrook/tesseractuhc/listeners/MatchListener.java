@@ -23,6 +23,7 @@ import org.bukkit.ChatColor;
 
 import com.martinbrook.tesseractuhc.MatchPhase;
 import com.martinbrook.tesseractuhc.UhcMatch;
+import com.martinbrook.tesseractuhc.UhcParticipant;
 import com.martinbrook.tesseractuhc.UhcPlayer;
 import com.martinbrook.tesseractuhc.notification.DamageNotification;
 import com.martinbrook.tesseractuhc.notification.HealingNotification;
@@ -109,11 +110,16 @@ public class MatchListener implements Listener {
 		UhcPlayer pl = m.getPlayer((Player) e.getEntity());
 		if (!pl.isActiveParticipant()) return;
 		
-		DamageNotification n = new DamageNotification(pl.getParticipant(), e.getCause());
-		if (m.isDamageAlerts()) 
-			m.sendNotification(n, e.getEntity().getLocation());
-		else 
-			m.sendSpectatorNotification(n, e.getEntity().getLocation());
+		UhcParticipant pa = pl.getParticipant();
+		
+		if (!pa.isRecentlyDamaged()) {
+			DamageNotification n = new DamageNotification(pa, e.getCause());
+			if (m.isDamageAlerts()) 
+				m.sendNotification(n, e.getEntity().getLocation());
+			else 
+				m.sendSpectatorNotification(n, e.getEntity().getLocation());
+		}
+		pa.setDamageTimer();
 		
 	}
 	
@@ -137,11 +143,16 @@ public class MatchListener implements Listener {
 		UhcPlayer pl = m.getPlayer((Player) e.getEntity());
 		if (!pl.isActiveParticipant()) return;
 
-		DamageNotification n = new DamageNotification(pl.getParticipant(), e.getCause(), e.getDamager());
-		if (m.isDamageAlerts()) 
-			m.sendNotification(n, e.getEntity().getLocation());
-		else 
-			m.sendSpectatorNotification(n, e.getEntity().getLocation());
+		UhcParticipant pa = pl.getParticipant();
+		
+		if (!pa.isRecentlyDamaged()) {
+			DamageNotification n = new DamageNotification(pl.getParticipant(), e.getCause(), e.getDamager());
+			if (m.isDamageAlerts()) 
+				m.sendNotification(n, e.getEntity().getLocation());
+			else 
+				m.sendSpectatorNotification(n, e.getEntity().getLocation());
+		}
+		pa.setDamageTimer();
 	}
 
 	@EventHandler(ignoreCancelled = true)
@@ -170,7 +181,7 @@ public class MatchListener implements Listener {
 			else 
 				m.sendSpectatorNotification(n,  e.getEntity().getLocation());
 		}
-			
+		
 
 		
 	}

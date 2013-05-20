@@ -20,6 +20,7 @@ public class UhcParticipant implements PlayerTarget {
 	private boolean dead = false;
 	private boolean miningFatigueAlerted = false;
 	private int miningFatigueGrace = 20;
+	private long lastDamageTime;
 	
 	public UhcParticipant(UhcPlayer pl, UhcTeam team) {
 		this.player = pl;
@@ -122,6 +123,20 @@ public class UhcParticipant implements PlayerTarget {
 				
 		}
 				
+	}
+	
+	/**
+	 * Mark the player as having taken damage
+	 */
+	public void setDamageTimer() {
+		lastDamageTime = player.getMatch().getStartingWorld().getFullTime();
+	}
+	
+	/**
+	 * @return whether the player has taken damage recently
+	 */
+	public boolean isRecentlyDamaged() {
+		return (player.getMatch().getStartingWorld().getFullTime() - lastDamageTime < UhcMatch.PLAYER_DAMAGE_ALERT_TICKS);
 	}
 
 
