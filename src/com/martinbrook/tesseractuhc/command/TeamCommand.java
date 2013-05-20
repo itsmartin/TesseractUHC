@@ -6,7 +6,6 @@ import com.martinbrook.tesseractuhc.MatchPhase;
 import com.martinbrook.tesseractuhc.TesseractUHC;
 import com.martinbrook.tesseractuhc.UhcPlayer;
 import com.martinbrook.tesseractuhc.UhcSpectator;
-import com.martinbrook.tesseractuhc.UhcTeam;
 
 public class TeamCommand extends UhcCommandExecutor {
 
