@@ -29,7 +29,7 @@ public class TeamsCommand extends UhcCommandExecutor {
 	private String run(String[] args) {
 		// teams - lists all teams
 		// teams add identifier name name name - adds a team
-		if (match.isFFA())
+		if (config.isFFA())
 			return ERROR_COLOR + "This is not a team match. Use /players to list players";
 		
 		if (args.length < 1) {

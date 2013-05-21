@@ -48,7 +48,7 @@ public class MatchListener implements Listener {
 		if (p.getKiller() != null) {
 			UhcPlayer killer = m.getPlayer(p.getKiller());
 			if (pl.isParticipant() && killer.isParticipant() && killer.getParticipant().getTeam() != pl.getParticipant().getTeam()) {
-				ItemStack bonus = m.getKillerBonus();
+				ItemStack bonus = m.getConfig().getKillerBonus();
 				if (bonus != null)
 					e.getDrops().add(bonus);
 			}
@@ -114,7 +114,7 @@ public class MatchListener implements Listener {
 		
 		if (!pa.isRecentlyDamaged()) {
 			DamageNotification n = new DamageNotification(pa, e.getCause());
-			if (m.isDamageAlerts()) 
+			if (m.getConfig().isDamageAlerts()) 
 				m.sendNotification(n, e.getEntity().getLocation());
 			else 
 				m.sendSpectatorNotification(n, e.getEntity().getLocation());
@@ -147,7 +147,7 @@ public class MatchListener implements Listener {
 		
 		if (!pa.isRecentlyDamaged()) {
 			DamageNotification n = new DamageNotification(pl.getParticipant(), e.getCause(), e.getDamager());
-			if (m.isDamageAlerts()) 
+			if (m.getConfig().isDamageAlerts()) 
 				m.sendNotification(n, e.getEntity().getLocation());
 			else 
 				m.sendSpectatorNotification(n, e.getEntity().getLocation());
@@ -168,15 +168,15 @@ public class MatchListener implements Listener {
 		if (!pl.isActiveParticipant()) return;
 
 		// Cancel event if it is a natural regen due to hunger being full, and UHC is enabled
-		if (m.isUHC() && e.getRegainReason() == RegainReason.SATIATED) {
+		if (m.getConfig().isUHC() && e.getRegainReason() == RegainReason.SATIATED) {
 			e.setCancelled(true);
 			return;
 		}
 		
 		// Announce health change (UHC only)
-		if (m.isUHC()) {
+		if (m.getConfig().isUHC()) {
 			HealingNotification n = new HealingNotification(pl.getParticipant(), e.getAmount(), e.getRegainReason());
-			if (m.isDamageAlerts())
+			if (m.getConfig().isDamageAlerts())
 				m.sendNotification(n, e.getEntity().getLocation());
 			else 
 				m.sendSpectatorNotification(n,  e.getEntity().getLocation());
@@ -189,12 +189,12 @@ public class MatchListener implements Listener {
 	@EventHandler(ignoreCancelled = true)
 	public void onEntityDeath(EntityDeathEvent e) {
 		// Modified drops for ghasts in UHC
-		if (m.isUHC() && e.getEntityType()==EntityType.GHAST)
+		if (m.getConfig().isUHC() && e.getEntityType()==EntityType.GHAST)
 			for(ItemStack i : e.getDrops())
 				if (i.getType()==Material.GHAST_TEAR) i.setType(Material.GOLD_INGOT);
 		
 		// Handle death of dragon
-		if (m.isDragonMode() && e.getEntityType()==EntityType.ENDER_DRAGON) {
+		if (m.getConfig().isDragonMode() && e.getEntityType()==EntityType.ENDER_DRAGON) {
 			UhcPlayer pl = m.getPlayer(e.getEntity().getKiller());
 			if (pl != null && pl.isActiveParticipant()) m.handleDragonKill(pl.getParticipant());
 		}

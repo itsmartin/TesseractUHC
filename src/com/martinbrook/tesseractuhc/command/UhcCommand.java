@@ -70,7 +70,7 @@ public class UhcCommand extends UhcCommandExecutor {
 	 * @return
 	 */
 	private String cUhcGetbonus(UhcSpectator sender) {
-		sender.getPlayer().getPlayer().getEnderChest().setContents(match.getBonusChest());
+		sender.getPlayer().getPlayer().getEnderChest().setContents(config.getBonusChest());
 		return OK_COLOR + "Bonus chest loaded into your ender chest";
 	}
 
@@ -79,7 +79,7 @@ public class UhcCommand extends UhcCommandExecutor {
 	 * @return
 	 */
 	private String cUhcSetbonus(UhcSpectator sender) {
-		match.setBonusChest(sender.getPlayer().getPlayer().getEnderChest().getContents());
+		config.setBonusChest(sender.getPlayer().getPlayer().getEnderChest().getContents());
 		return OK_COLOR + "Bonus chest saved from your ender chest";
 	}
 
@@ -99,8 +99,8 @@ public class UhcCommand extends UhcCommandExecutor {
 			value += args[i] + " ";
 		}
 		value = value.substring(0, value.length()-1);
-		if (match.setParameter(parameter, value)) {
-			return match.formatParameter(parameter);
+		if (config.setParameter(parameter, value)) {
+			return config.formatParameter(parameter);
 		} else
 			return ERROR_COLOR + "Unable to set value of " + parameter;
 	}
@@ -144,10 +144,10 @@ public class UhcCommand extends UhcCommandExecutor {
 	 */
 	private String cUhcSave(String[] args) {
 		if (args.length < 2 || "params".equalsIgnoreCase(args[1])) {
-			match.saveMatchParameters();
+			config.saveMatchParameters();
 			return OK_COLOR + "If no errors appear above, match parameters have been saved";
 		} else if ("teams".equalsIgnoreCase(args[1]) || "players".equalsIgnoreCase(args[1])) {
-			match.saveTeams();
+			config.saveTeams();
 			return OK_COLOR + "If no errors appear above, teams and players have been saved";
 		}
 		return ERROR_COLOR + "Argument not understood. Please use " + SIDE_COLOR + "/uhc save params" 
@@ -159,7 +159,7 @@ public class UhcCommand extends UhcCommandExecutor {
 	 */
 	private String cUhcReset(String[] args) {
 		if (args.length < 2 || "params".equalsIgnoreCase(args[1])) {
-			match.resetMatchParameters();
+			config.resetMatchParameters();
 			return OK_COLOR + "Match data reset to default values";
 		} else if ("teams".equalsIgnoreCase(args[1]) || "players".equalsIgnoreCase(args[1])) {
 			if (!match.clearTeams())
@@ -204,15 +204,15 @@ public class UhcCommand extends UhcCommandExecutor {
 	
 	private String cUhcParams() {
 		String response = ChatColor.GOLD + "Match details:\n";
-		response += ChatColor.RESET + "[uhc]           " + match.formatParameter("uhc") + "\n";
-		response += ChatColor.RESET + "[ffa]           " + match.formatParameter("ffa") + "\n";
-		response += ChatColor.RESET + "[nopvp]         " + match.formatParameter("nopvp") + "\n";
-		response += ChatColor.RESET + "[killerbonus]   " + match.formatParameter("killerbonus") + "\n";
-		response += ChatColor.RESET + "[miningfatigue] " + match.formatParameter("miningfatigue") + "\n";
-		response += ChatColor.RESET + "[deathban]      " + match.formatParameter("deathban") + "\n";
-		response += ChatColor.RESET + "[nolatecomers]  " + match.formatParameter("nolatecomers") + "\n";
-		response += ChatColor.RESET + "[dragonmode]    " + match.formatParameter("dragonmode") + "\n";
-		response += ChatColor.RESET + "[damagealerts]  " + match.formatParameter("damagealerts") + "\n";
+		response += ChatColor.RESET + "[uhc]           " + config.formatParameter("uhc") + "\n";
+		response += ChatColor.RESET + "[ffa]           " + config.formatParameter("ffa") + "\n";
+		response += ChatColor.RESET + "[nopvp]         " + config.formatParameter("nopvp") + "\n";
+		response += ChatColor.RESET + "[killerbonus]   " + config.formatParameter("killerbonus") + "\n";
+		response += ChatColor.RESET + "[miningfatigue] " + config.formatParameter("miningfatigue") + "\n";
+		response += ChatColor.RESET + "[deathban]      " + config.formatParameter("deathban") + "\n";
+		response += ChatColor.RESET + "[nolatecomers]  " + config.formatParameter("nolatecomers") + "\n";
+		response += ChatColor.RESET + "[dragonmode]    " + config.formatParameter("dragonmode") + "\n";
+		response += ChatColor.RESET + "[damagealerts]  " + config.formatParameter("damagealerts") + "\n";
 		
 		return response;
 	}

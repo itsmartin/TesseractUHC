@@ -47,7 +47,7 @@ public class PlayersCommand extends UhcCommandExecutor {
 
 			
 			
-			if (match.isFFA()) {
+			if (config.isFFA()) {
 				if (!match.addSoloParticipant(pl))
 					return ERROR_COLOR + "Failed to add player";
 				
@@ -62,7 +62,7 @@ public class PlayersCommand extends UhcCommandExecutor {
 			}
 				
 		} else if (args[0].equalsIgnoreCase("addall")) {
-			if (!match.isFFA())
+			if (!config.isFFA())
 				return ERROR_COLOR + "Cannot auto-add players in a team match";
 			
 			int added = 0;

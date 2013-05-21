@@ -1,13 +1,10 @@
 package com.martinbrook.tesseractuhc;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 import java.util.Random;
 
 import org.bukkit.Bukkit;
@@ -20,8 +17,6 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.configuration.Configuration;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.EnderDragon;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Ghast;
@@ -63,8 +58,6 @@ public class UhcMatch {
 	private HashMap<String, UhcTeam> uhcTeams = new HashMap<String, UhcTeam>(32);
 	
 	private ArrayList<String> launchQueue = new ArrayList<String>();
-	public static String DEFAULT_MATCHDATA_FILE = "uhcmatch.yml";
-	public static String DEFAULT_TEAMDATA_FILE = "uhcteams.yml";
 	public static int GOLD_LAYER = 32;
 	public static int DIAMOND_LAYER = 16;
 	private ArrayList<UhcParticipant> participantsInMatch = new ArrayList<UhcParticipant>();
@@ -74,11 +67,8 @@ public class UhcMatch {
 	private ArrayList<Location> calculatedStarts = null;
 	private boolean pvp = false;
 	private int spawnKeeperTask = -1;
-	private YamlConfiguration md; // Match data
 	private TesseractUHC plugin;
 	private Server server;
-	private Configuration defaults;
-	private ItemStack[] bonusChest = new ItemStack[27];
 	private MatchPhase matchPhase = MatchPhase.PRE_MATCH;
 	private MatchCountdown matchCountdown;
 	private BorderCountdown borderCountdown;
@@ -87,6 +77,7 @@ public class UhcMatch {
 	private static int PROXIMITY_THRESHOLD_SQUARED = 10000;
 	protected static int PLAYER_DAMAGE_ALERT_TICKS = 80; // 4 seconds
 	private HashMap<String, UhcPlayer> allPlayers = new HashMap<String, UhcPlayer>();
+	private UhcConfiguration config;
 
 	
 	public UhcMatch(TesseractUHC plugin, World startingWorld, Configuration defaults) {
@@ -94,222 +85,21 @@ public class UhcMatch {
 		this.startingWorld = startingWorld;
 		this.plugin = plugin;
 		this.server = plugin.getServer();
-		this.defaults = defaults;
+		this.config = new UhcConfiguration(this, defaults);
 		
-		this.loadMatchParameters();
 		this.setPermaday(true);
 		this.setPVP(false);
 		this.setVanish();
 		this.enableSpawnKeeper();
 		this.enablePlayerListUpdater();
-		this.loadTeams();
 		
 	}
 	
 
-	/**
-	 * Load match data from the default file. If it does not exist, load defaults.
-	 */
-	public void loadMatchParameters() { 
-		try {
-			md = YamlConfiguration.loadConfiguration(FileUtils.getDataFile(startingWorld.getWorldFolder(), DEFAULT_MATCHDATA_FILE, true));
-			
-		} catch (Exception e) {
-			md = new YamlConfiguration();
-		}
-				
-		// Load start points
-		startPoints.clear();
-		availableStartPoints.clear();
-		
-		List<String> startData = md.getStringList("starts");
-		for (String startDataEntry : startData) {
-			String[] data = startDataEntry.split(",");
-			if (data.length == 4) {
-				try {
-					int n = Integer.parseInt(data[0]);
-					double x = Double.parseDouble(data[1]);
-					double y = Double.parseDouble(data[2]);
-					double z = Double.parseDouble(data[3]);
-					UhcStartPoint sp = createStartPoint (n, startingWorld, x, y, z, false);
-					if (sp == null) {
-						adminBroadcast("Duplicate start point: " + n);
-
-					}
-				} catch (NumberFormatException e) {
-					adminBroadcast("Bad start point definition in match data file: " + startDataEntry);
-				}
-
-			} else {
-				adminBroadcast("Bad start point definition in match data file: " + startDataEntry);
-			}
-		}
-		
-		// Load POIs
-		uhcPOIs.clear();
-		List<String> poiData = md.getStringList("pois");
-		for (String poiDataEntry : poiData) {
-			String[] data = poiDataEntry.split(",",5);
-			if (data.length == 5) {
-				try {
-					String world = data[0];
-					double x = Double.parseDouble(data[1]);
-					double y = Double.parseDouble(data[2]);
-					double z = Double.parseDouble(data[3]);
-					String name = data[4];
-					addPOI(world, x, y, z, name);
-				} catch (NumberFormatException e) {
-					adminBroadcast("Bad poi definition in match data file: " + poiDataEntry);
-				}
-
-			} else {
-				adminBroadcast("Bad poi definition in match data file: " + poiDataEntry);
-			}
-		}
-		
-		setDefaultMatchParameters();
-		
-		// Convert saved bonus chest into an ItemStack array
-		List<?> data = md.getList("bonuschest");
-		
-		if (data != null) {
-		
-			for (int i = 0; i < 27; i++) {
-				Object o = data.get(i);
-				if (o != null && o instanceof ItemStack)
-					bonusChest[i] = (ItemStack) o;
-			}
-		}
+	public UhcConfiguration getConfig() {
+		return this.config;
 	}
 	
-	
-
-	/**
-	 * Set up a default matchdata object
-	 */
-	private void setDefaultMatchParameters() {
-		
-		Map<String, Object> mapDefaults = defaults.getValues(true);
-		for (Map.Entry<String, Object> m : mapDefaults.entrySet()) {
-			if (!md.contains(m.getKey())) {
-				md.set(m.getKey(), m.getValue());
-			}
-		}
-		
-		this.saveMatchParameters();
-	}
-
-	
-	/**
-	 * Save start points to the default file
-	 * 
-	 * @return Whether the operation succeeded
-	 */
-	public void saveMatchParameters() {
-		ArrayList<String> startData = new ArrayList<String>();
-		for (UhcStartPoint sp : startPoints.values()) {
-			startData.add(sp.getNumber() + "," + sp.getX() + "," + sp.getY() + "," + sp.getZ());
-		}
-		
-		md.set("starts",startData);
-		
-		ArrayList<String> poiData = new ArrayList<String>();
-		for (UhcPOI poi : uhcPOIs) {
-			poiData.add(poi.getWorld().getName() + "," + poi.getX() + "," + poi.getY() + "," + poi.getZ() + "," + poi.getName());
-		}
-		
-		md.set("pois",poiData);
-		
-		try {
-			md.save(FileUtils.getDataFile(startingWorld.getWorldFolder(), DEFAULT_MATCHDATA_FILE, false));
-		} catch (IOException e) {
-			adminBroadcast(TesseractUHC.ALERT_COLOR + "Warning: Could not save match data");
-		}
-	}
-
-
-	/**
-	 * Reset all match parameters to default values
-	 */
-	public void resetMatchParameters() {
-		startPoints.clear();
-		availableStartPoints.clear();
-		uhcPOIs.clear();
-		md = new YamlConfiguration();
-		this.setDefaultMatchParameters();
-	}
-
-	/**
-	 * Save players and teams to the default location.
-	 */
-	public void saveTeams() {
-		YamlConfiguration teamData = new YamlConfiguration();
-
-		for(Map.Entry<String, UhcTeam> e : this.uhcTeams.entrySet()) {
-			ConfigurationSection teamSection = teamData.createSection(e.getValue().getIdentifier());
-			
-			ArrayList<String> participants = new ArrayList<String>();
-			for (UhcParticipant up : e.getValue().getMembers()) participants.add(up.getName());
-			
-			teamSection.set("name", e.getValue().getName());
-			teamSection.set("players", participants);
-		}
-		
-		
-		try {
-			teamData.save(FileUtils.getDataFile(startingWorld.getWorldFolder(), DEFAULT_TEAMDATA_FILE, false));
-		} catch (IOException e) {
-			adminBroadcast(TesseractUHC.ALERT_COLOR + "Warning: Could not save team data");
-
-		}
-	}
-	
-	
-	/**
-	 * Load players and teams from the default location.
-	 */
-	public void loadTeams() {
-		if (!clearTeams()) {
-			adminBroadcast(TesseractUHC.ALERT_COLOR + "Warning: Could not remove existing team/player data");
-			return;
-		}
-		
-		
-		YamlConfiguration teamData;
-		try {
-			teamData = YamlConfiguration.loadConfiguration(FileUtils.getDataFile(startingWorld.getWorldFolder(), DEFAULT_TEAMDATA_FILE, true));
-
-		} catch (Exception e) {
-			return;
-		}
-		
-		for(String teamIdentifier : teamData.getKeys(false)) {
-			ConfigurationSection teamSection = teamData.getConfigurationSection(teamIdentifier);
-			String teamName = teamSection.getString("name");
-			if (!addTeam(teamIdentifier, teamName)) {
-				adminBroadcast(TesseractUHC.ALERT_COLOR + "Warning: failed to create team " + teamName);
-			} else {
-				List<String> teamMembers = teamSection.getStringList("players");
-				if (teamMembers == null) {
-					adminBroadcast(TesseractUHC.ALERT_COLOR + "Warning: team has no members: " + teamName);
-				} else {
-					for (String participantName : teamMembers) {
-						if (!addParticipant(getPlayer(participantName), teamIdentifier))
-							adminBroadcast(TesseractUHC.ALERT_COLOR + "Warning: failed to add player: " + participantName);
-					}
-				}
-			}
-		}
-	}
-	
-	public boolean clearTeams() {
-		if (matchPhase != MatchPhase.PRE_MATCH) return false;
-		
-		this.uhcTeams.clear();
-		this.teamsInMatch.clear();
-		this.participantsInMatch.clear();
-		return true;
-	}
 	
 	/**
 	 * Send a message to all spectators
@@ -510,7 +300,7 @@ public class UhcMatch {
 	 */
 	public void startMatch() {
 		// Remove participants who didn't turn up
-		if (this.isNoLatecomers())
+		if (config.isNoLatecomers())
 			for (UhcPlayer up : this.allPlayers.values())
 				if (up.isParticipant() && !up.getParticipant().isLaunched())
 					this.removeParticipant(up.getName());
@@ -528,8 +318,8 @@ public class UhcMatch {
 		broadcast("GO!");
 		
 		// Set up pvp countdown
-		if (getNopvp() > 0) {
-			new PVPCountdown(getNopvp(), plugin, this);
+		if (config.getNopvp() > 0) {
+			new PVPCountdown(config.getNopvp(), plugin, this);
 		} else {
 			setPVP(true);
 		}
@@ -732,7 +522,7 @@ public class UhcMatch {
 		teamsInMatch.add(team);
 		
 		start.makeSign();
-		start.fillChest(bonusChest);
+		start.fillChest(config.getBonusChest());
 
 		return true;
 	}
@@ -868,7 +658,7 @@ public class UhcMatch {
 			// Remove team if empty
 			if(team.getMembers().size() == 0){
 				removeTeam(team.getIdentifier());	
-				if (matchPhase == MatchPhase.MATCH && !isFFA()) {
+				if (matchPhase == MatchPhase.MATCH && !config.isFFA()) {
 					broadcast(ChatColor.GOLD + team.getName() + " now has no members.");
 				}
 			}
@@ -924,7 +714,7 @@ public class UhcMatch {
 		
 		matchPhase = MatchPhase.LAUNCHING;
 		disableSpawnKeeper();
-		if (isUHC()) setupModifiedRecipes();
+		if (config.isUHC()) setupModifiedRecipes();
 		setVanish(); // Update vanish status
 		butcherHostile();
 		sortParticipantsInMatch();
@@ -1093,6 +883,10 @@ public class UhcMatch {
 		}
 	}
 	
+	public void clearStartPoints() {
+		startPoints.clear();
+		availableStartPoints.clear();
+	}
 	/**
 	 * Create a new start point at a given location
 	 * 
@@ -1107,7 +901,7 @@ public class UhcMatch {
 			return null;
 		
 		UhcStartPoint sp;
-		if (this.isFFA())
+		if (config.isFFA())
 			sp = new SmallGlassStartPoint(number, l, true);
 		else
 			sp = new LargeGlassStartPoint(number, l, true);
@@ -1131,7 +925,7 @@ public class UhcMatch {
 	 * @param buildTrough Whether to add a starting trough
 	 * @return The created start point
 	 */
-	private UhcStartPoint createStartPoint(int number, World world, Double x, Double y, Double z, Boolean buildTrough) {
+	public UhcStartPoint createStartPoint(int number, World world, Double x, Double y, Double z, Boolean buildTrough) {
 		return createStartPoint(number, new Location(world, x, y, z), buildTrough);
 	}
 	
@@ -1159,7 +953,7 @@ public class UhcMatch {
 	 */
 	public UhcStartPoint addStartPoint(Double x, Double y, Double z, Boolean buildTrough) {
 		UhcStartPoint sp = createStartPoint(new Location(startingWorld, x, y, z), buildTrough);
-		if (sp != null) this.saveMatchParameters();
+		if (sp != null) config.saveMatchParameters();
 		return sp;
 	}
 	
@@ -1252,7 +1046,7 @@ public class UhcMatch {
 		// Reduce survivor counts
 		participantsInMatch.remove(up);
 
-		if (!isDragonMode() && isFFA() && countParticipantsInMatch() == 1) {
+		if (!config.isDragonMode() && config.isFFA() && countParticipantsInMatch() == 1) {
 			processVictory(participantsInMatch.get(0));
 			return;
 		}
@@ -1262,7 +1056,7 @@ public class UhcMatch {
 		
 		if (team != null && team.aliveCount()<1) {
 			teamsInMatch.remove(team);
-			if (!isDragonMode() && !isFFA() && countTeamsInMatch() == 1) {
+			if (!config.isDragonMode() && !config.isFFA() && countTeamsInMatch() == 1) {
 				processVictory(teamsInMatch.get(0));
 				return;
 			}
@@ -1274,7 +1068,7 @@ public class UhcMatch {
 	}
 
 	private void processDragonKill(UhcParticipant winner) {
-		if (isFFA()) {
+		if (config.isFFA()) {
 			broadcast(ChatColor.GOLD + "The winner is: " + winner.getName() + "!");
 		} else {
 			broadcast(ChatColor.GOLD + "The winner is: " + winner.getTeam().getName() + "!");
@@ -1325,7 +1119,7 @@ public class UhcMatch {
 	 */
 	public String matchStatusAnnouncement() {
 		if (this.matchPhase == MatchPhase.PRE_MATCH) {
-			if (this.isFFA()) {
+			if (config.isFFA()) {
 				int c = countParticipantsInMatch();
 				return c + " player" + (c != 1 ? "s have" : " has") + " joined";
 			} else {
@@ -1333,7 +1127,7 @@ public class UhcMatch {
 				return c + " team" + (c != 1 ? "s have" : " has") + " joined";
 			}
 		}
-		if (this.isFFA()) {
+		if (config.isFFA()) {
 			int c = countParticipantsInMatch();
 			if (c == 0)
 				return "There are no surviving players";
@@ -1430,152 +1224,7 @@ public class UhcMatch {
 	}
 	
 
-	/**
-	 * Set the length of the initial no-PVP period
-	 * 
-	 * @param nopvp The duration of the no-PVP period, in seconds
-	 */
-	public void setNopvp(int nopvp) {
-		md.set("nopvp", nopvp);
-		saveMatchParameters();
-	}
 
-	/**
-	 * Get the length of the initial no-PVP period
-	 * 
-	 * @return The duration of the no-PVP period, in seconds
-	 */
-	public int getNopvp() {
-		return md.getInt("nopvp");
-	}
-
-	/**
-	 * Set the mining fatigue penalties.
-	 * 
-	 * @param gold Exhaustion penalty to add when mining at the gold layer
-	 * @param diamond Exhaustion penalty to add when mining at the diamond layer
-	 */
-	public void setMiningFatigue(double gold, double diamond) {
-		md.set("miningfatigue.gold", gold);
-		md.set("miningfatigue.diamond", diamond);
-		saveMatchParameters();
-	}
-
-
-	/**
-	 * Get the current exhaustion penalty for mining at the gold layer
-	 * 
-	 * @return Exhaustion penalty to add when mining at the gold layer
-	 */
-	public double getMiningFatigueGold() {
-		return md.getDouble("miningfatigue.gold");
-	}
-
-	/**
-	 * Get the current exhaustion penalty for mining at the diamond layer
-	 * 
-	 * @return Exhaustion penalty to add when mining at the diamond layer
-	 */
-	public double getMiningFatigueDiamond() {
-		return md.getDouble("miningfatigue.diamond");
-	}
-
-	/**
-	 * Set the bonus items dropped in a PVP kill. One of the specified item will be dropped.
-	 * 
-	 * @param id The item ID to give a pvp killer
-	 */
-	public void setKillerBonus(int id) { setKillerBonus(id,1); }
-	
-	/**
-	 * Set the bonus items dropped in a PVP kill.
-	 * 
-	 * @param id The item ID to give a pvp killer
-	 * @param quantity The number of items to drop
-	 */
-	public void setKillerBonus(int id, int quantity) {
-		if (id == 0) quantity = 0;
-		md.set("killerbonus.id", id);
-		md.set("killerbonus.quantity", quantity);
-		saveMatchParameters();
-		
-	}
-
-	/**
-	 * Get the bonus items to be dropped by a PVP-killed player in addition to their inventory
-	 * 
-	 * @return The ItemStack to be dropped
-	 */
-	public ItemStack getKillerBonus() {
-		int id = md.getInt("killerbonus.id");
-		int quantity = md.getInt("killerbonus.quantity");
-		
-		if (id == 0 || quantity == 0) return null;
-		
-		return new ItemStack(id, quantity);
-	}
-
-	/**
-	 * Set deathban on/off
-	 * 
-	 * @param d Whether deathban is to be enabled
-	 */
-	public void setDeathban(boolean d) {
-		md.set("deathban", d);
-		this.saveMatchParameters();
-		adminBroadcast(TesseractUHC.OK_COLOR + "Deathban has been " + (d ? "enabled" : "disabled") + "!");
-	}
-
-	/**
-	 * Check whether deathban is in effect
-	 * 
-	 * @return Whether deathban is enabled
-	 */
-	public boolean getDeathban() {
-		return md.getBoolean("deathban");
-	}
-	
-	
-	/**
-	 * Set FFA on/off
-	 * 
-	 * @param d Whether FFA is to be enabled
-	 */
-	public void setFFA(boolean d) {
-		md.set("ffa", d);
-		this.saveMatchParameters();
-		adminBroadcast(TesseractUHC.OK_COLOR + "FFA has been " + (d ? "enabled" : "disabled") + "!");
-	}
-
-	/**
-	 * Check whether this is an FFA match
-	 * 
-	 * @return Whether this is FFA
-	 */
-	public boolean isFFA() {
-		return md.getBoolean("ffa");
-	}
-	/**
-	 * Update the contents of the match "bonus chest"
-	 * 
-	 * @param p The player
-	 */
-	public void setBonusChest(ItemStack [] bonusChest) {
-		this.bonusChest = bonusChest;
-		md.set("bonuschest", bonusChest);
-		this.saveMatchParameters();
-		
-	}
-
-
-	/**
-	 * Get the contents of the match "bonus chest"
-	 * 
-	 * @return The contents of the bonus chest
-	 */
-	public ItemStack[] getBonusChest() {
-		return bonusChest;
-	}
 
 	public MatchPhase getMatchPhase() {
 		return matchPhase;
@@ -1631,17 +1280,16 @@ public class UhcMatch {
 		return uhcTeams.values();
 	}
 
-	
-
-	public boolean isUHC() {
-		return md.getBoolean("uhc");
+	public boolean clearTeams() {
+		if (matchPhase != MatchPhase.PRE_MATCH) return false;
+		
+		this.uhcTeams.clear();
+		this.teamsInMatch.clear();
+		this.participantsInMatch.clear();
+		return true;
 	}
 
-	public void setUHC(Boolean d) {
-		md.set("uhc", d);
-		this.saveMatchParameters();
-		adminBroadcast(TesseractUHC.OK_COLOR + "UHC has been " + (d ? "enabled" : "disabled") + "!");
-	}
+
 
 	/**
 	 * Modify the relevant recipes for UHC
@@ -1677,9 +1325,9 @@ public class UhcMatch {
 
 	public void addPOI(Location location, String name) {
 		uhcPOIs.add(new UhcPOI(location, name));
-		this.saveMatchParameters();
+		config.saveMatchParameters();
 	}
-	private void addPOI(String world, double x, double y, double z, String name) {
+	public void addPOI(String world, double x, double y, double z, String name) {
 		addPOI(new Location(server.getWorld(world), x, y, z), name);
 	}
 
@@ -1687,11 +1335,14 @@ public class UhcMatch {
 		return uhcPOIs;
 	}
 
+	public void clearPOIs() {
+		uhcPOIs.clear();
+	}
 
 
 	public String getPlayerStatusReport() {
 		String response = "";
-		if (this.isFFA()) {
+		if (config.isFFA()) {
 			Collection<UhcParticipant> allPlayers = getUhcParticipants();
 			response += allPlayers.size() + " players (" + countParticipantsInMatch() + " still alive):\n";
 			
@@ -1767,219 +1418,5 @@ public class UhcMatch {
 	}
 
 
-	public void setNoLatecomers(Boolean d) {
-		md.set("nolatecomers", d);
-		this.saveMatchParameters();
-		adminBroadcast(TesseractUHC.OK_COLOR + "NoLatecomers has been " + (d ? "enabled" : "disabled") + "!");
-	}
-	
-	public boolean isNoLatecomers() {
-		return md.getBoolean("nolatecomers");
-	}
-	
-	public void setDragonMode(Boolean d) {
-		md.set("dragonmode", d);
-		this.saveMatchParameters();
-		adminBroadcast(TesseractUHC.OK_COLOR + "Dragon mode has been " + (d ? "enabled" : "disabled") + "!");
-	}
-	
-	public boolean isDragonMode() {
-		return md.getBoolean("dragonmode");
-	}
-	
-	public void setDamageAlerts(Boolean d) {
-		md.set("damagealerts", d);
-		this.saveMatchParameters();
-		adminBroadcast(TesseractUHC.OK_COLOR + "Damage alerts for players have been " + (d ? "enabled" : "disabled") + "!");
-	}
-	
-	public boolean isDamageAlerts() {
-		return md.getBoolean("damagealerts");
-	}
-
-	/**
-	 * Return a human-friendly representation of a specified match parameter
-	 * 
-	 * @param parameter The match parameter to look up
-	 * @return A human-readable version of the parameter's value
-	 */
-	public String formatParameter(String parameter) {
-		String response = TesseractUHC.ERROR_COLOR + "Unknown parameter";
-		String param = ChatColor.AQUA.toString();
-		String value = ChatColor.GOLD.toString();
-		String desc = "\n" + ChatColor.GRAY + ChatColor.ITALIC + "      ";
-		
-		
-		if ("deathban".equalsIgnoreCase(parameter)) {
-			response = param + "Deathban: " + value;
-			if (this.getDeathban())
-				response += "Enabled" + desc + "Dead players will be prevented from logging back into the server";
-			else 
-				response += "Disabled" + desc + "Dead players will be allowed to stay on the server";
-			
-		} else if ("killerbonus".equalsIgnoreCase(parameter)) {
-			response = param + "Killer bonus: " + value;
-			ItemStack kb = this.getKillerBonus();
-			if (kb == null) 
-				response += "Disabled" + desc + "No additional bonus dropped after a PvP kill";
-			else
-				response += kb.getAmount() + " x " + kb.getType().toString() + desc 
-				+ "Additional items dropped when a player is killed by PvP";
-				
-		} else if ("miningfatigue".equalsIgnoreCase(parameter)) {
-			response = param + "Mining hunger: " + value;
-			double mfg = this.getMiningFatigueGold();
-			double mfd = this.getMiningFatigueDiamond();
-			if (mfg > 0 || mfd > 0)
-				response += (mfg>0 ? (mfg / 8.0) + " (below y=32) " : "") + (mfd > 0 ? (mfd / 8.0) + " (below y=16)" : "" ) + desc;
-			else
-				response += "Disabled" + desc;
-			
-			response += "Hunger penalty per block mined at those depths (stone\n      blocks only)";
-					
-		} else if ("nopvp".equalsIgnoreCase(parameter)) {
-			response = param + "No-PvP period: " + value;
-			int n = this.getNopvp();
-			int mins = n / 60;
-			int secs = n % 60;
-			if (n > 0)
-				response += (mins > 0 ? mins + " minutes" : "")
-						+ (secs > 0 ? secs + " seconds" : "")
-						+ desc +  "Period at the start of the match during which PvP is\n      disabled";
-			else 
-				response += "None" + desc + "PvP will be enabled from the start";
-			
-			
-		} else if ("ffa".equalsIgnoreCase(parameter)) {
-			response = param + "Teams: " + value;
-			if (this.isFFA())
-				response += "Free for all" + desc + "No teams, no alliances, every player for themselves";
-			else
-				response += "Teams" + desc + "Teams work together, last team with a survivor wins";
-			
-		} else if ("uhc".equalsIgnoreCase(parameter)) {
-			response = param + "UHC: " + value;
-			if (this.isUHC())
-				response += "Enabled" + desc + "No health regeneration, and modified recipes for golden\n      apple and glistering melon";
-			else
-				response += "Disabled" + desc + "Health regeneration and crafting recipes are unchanged";
-		} else if ("nolatecomers".equalsIgnoreCase(parameter)) {
-			response = param + "NoLatecomers: " + value;
-			if (this.isNoLatecomers())
-				response += "Enabled" + desc + "Late arriving players will not be able to connect";
-			else
-				response += "Disabled" + desc + "Late arriving players will be able to join";
-		} else if ("dragonmode".equalsIgnoreCase(parameter)) {
-			response = param + "Dragon mode: " + value;
-			if (this.isDragonMode())
-				response += "Enabled" + desc + "The match will end when the dragon is slain";
-			else
-				response += "Disabled" + desc + "The match will end when only one team/player remains";
-		} else if ("damagealerts".equalsIgnoreCase(parameter)) {
-			response = param + "Damage alerts: " + value;
-			if (this.isDamageAlerts())
-				response += "Enabled" + desc + "Damage alerts will be shown to all players";
-			else
-				response += "Disabled" + desc + "Damage alerts will only be shown to spectators";
-		}
-		
-		
-		return response;
-	}
-
-	public boolean setParameter(String parameter, String value) {
-		// Look up the parameter.
-		
-		if ("deathban".equalsIgnoreCase(parameter)) {
-
-			Boolean v = MatchUtils.stringToBoolean(value);
-			if (v == null) return false;
-			this.setDeathban(v);
-			return true;
-			
-		} else if ("killerbonus".equalsIgnoreCase(parameter)) {
-			Boolean b = MatchUtils.stringToBoolean(value);
-			if (b != null && !b) {
-				this.setKillerBonus(0);
-				return true;
-			}
-			String[] split = value.split(" ");
-			if (split.length > 2)
-				return false;
-			
-			int quantity = 1;
-			
-			try {
-				int id = Integer.parseInt(split[0]);
-				if (split.length > 1)
-					quantity = Integer.parseInt(split[1]);
-				
-				this.setKillerBonus(id, quantity);
-				return true;
-			} catch (NumberFormatException e) {
-				return false;
-			}
-			
-		
-			
-		} else if ("miningfatigue".equalsIgnoreCase(parameter)) {
-			Boolean b = MatchUtils.stringToBoolean(value);
-			if (b != null && !b) {
-				this.setMiningFatigue(0,0);
-				return true;
-			}
-			
-			String[] split = value.split(" ");
-			if (split.length != 2)
-				return false;
-			
-			try {
-				double gold = Double.parseDouble(split[0]);
-				double diamond = Double.parseDouble(split[1]);
-				this.setMiningFatigue(gold, diamond);
-				return true;
-			} catch (NumberFormatException e) {
-				return false;
-			}
-			
-			
-		} else if ("nopvp".equalsIgnoreCase(parameter)) {
-			try {
-				this.setNopvp(Integer.parseInt(value));
-				return true;
-			} catch (NumberFormatException e) {
-				return false;
-			}
-		} else if ("ffa".equalsIgnoreCase(parameter)) {
-			Boolean v = MatchUtils.stringToBoolean(value);
-			if (v == null) return false;
-			this.setFFA(v);
-			return true;
-		} else if ("uhc".equalsIgnoreCase(parameter)) {
-			Boolean v = MatchUtils.stringToBoolean(value);
-			if (v == null) return false;
-			this.setUHC(v);
-			return true;
-		} else if ("nolatecomers".equalsIgnoreCase(parameter)) {
-			Boolean v = MatchUtils.stringToBoolean(value);
-			if (v == null) return false;
-			this.setNoLatecomers(v);
-			return true;
-		} else if ("dragonmode".equalsIgnoreCase(parameter)) {
-			Boolean v = MatchUtils.stringToBoolean(value);
-			if (v == null) return false;
-			this.setDragonMode(v);
-			return true;
-		} else if ("damagealerts".equalsIgnoreCase(parameter)) {
-			Boolean v = MatchUtils.stringToBoolean(value);
-			if (v == null) return false;
-			this.setDamageAlerts(v);
-			return true;
-		} else {
-			return false;
-		}
-		
-		
-	}
 
 }

@@ -102,9 +102,9 @@ public class UhcParticipant implements PlayerTarget {
 		Double exhaustion = 0.0;
 		
 		if (blockY < UhcMatch.DIAMOND_LAYER) {
-			exhaustion = this.player.getMatch().getMiningFatigueDiamond(); 
+			exhaustion = this.player.getMatch().getConfig().getMiningFatigueDiamond(); 
 		} else if (blockY < UhcMatch.GOLD_LAYER) {
-			exhaustion = this.player.getMatch().getMiningFatigueGold();
+			exhaustion = this.player.getMatch().getConfig().getMiningFatigueGold();
 		}
 		
 		if (exhaustion > 0) {

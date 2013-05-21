@@ -31,7 +31,7 @@ public class TeamCommand extends UhcCommandExecutor {
 		if (match.getMatchPhase() != MatchPhase.PRE_MATCH)
 			return ERROR_COLOR + "The match is already underway. You cannot create a team.";
 		
-		if (match.isFFA())
+		if (config.isFFA())
 			return ERROR_COLOR + "This is a FFA match. There are no teams.";
 		
 		if (!match.roomForAnotherTeam())

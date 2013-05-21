@@ -27,7 +27,7 @@ public class JoinCommand extends UhcCommandExecutor {
 		if (match.getMatchPhase() != MatchPhase.PRE_MATCH)
 			return ERROR_COLOR + "The match is already underway. You cannot join.";
 		
-		if (match.isFFA()) {
+		if (config.isFFA()) {
 			if (match.addSoloParticipant(sender)) {
 				return OK_COLOR + "You have joined the match";
 			} else {

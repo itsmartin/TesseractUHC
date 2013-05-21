@@ -84,13 +84,13 @@ public class LoginListener implements Listener {
 		if (m.getMatchPhase() != MatchPhase.MATCH) return;
 
 		// If player was not launched, don't allow them in.
-		if (m.isNoLatecomers() && pl.isParticipant() && !pl.getParticipant().isLaunched()) {
+		if (m.getConfig().isNoLatecomers() && pl.isParticipant() && !pl.getParticipant().isLaunched()) {
 			e.disallow(PlayerLoginEvent.Result.KICK_OTHER, "The match has already started");
 			return;
 		}
 		
 		// If player has died, don't allow them in, if deathban is in effect.
-		if (m.getDeathban() && pl.isParticipant() && pl.getParticipant().isDead()) {
+		if (m.getConfig().getDeathban() && pl.isParticipant() && pl.getParticipant().isDead()) {
 			e.disallow(PlayerLoginEvent.Result.KICK_OTHER, "Dead players cannot rejoin!");
 			return;
 		}

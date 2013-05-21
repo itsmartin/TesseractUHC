@@ -9,12 +9,14 @@ import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 
 import com.martinbrook.tesseractuhc.TesseractUHC;
+import com.martinbrook.tesseractuhc.UhcConfiguration;
 import com.martinbrook.tesseractuhc.UhcMatch;
 import com.martinbrook.tesseractuhc.UhcPlayer;
 import com.martinbrook.tesseractuhc.UhcSpectator;
 
 public abstract class UhcCommandExecutor implements CommandExecutor {
 	protected UhcMatch match;
+	protected UhcConfiguration config;
 	protected Server server;
 	
 	public static final ChatColor MAIN_COLOR = ChatColor.GREEN, SIDE_COLOR = ChatColor.GOLD, OK_COLOR = ChatColor.GREEN, WARN_COLOR = ChatColor.LIGHT_PURPLE, ERROR_COLOR = ChatColor.RED,
@@ -23,6 +25,7 @@ public abstract class UhcCommandExecutor implements CommandExecutor {
 	public UhcCommandExecutor(TesseractUHC plugin) {
 		this.match = plugin.getMatch();
 		this.server = plugin.getServer();
+		this.config = match.getConfig();
 		
 	}
 

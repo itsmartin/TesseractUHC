@@ -35,11 +35,11 @@ public class ParamsCommand extends UhcCommandExecutor {
 	
 	private String run() {
 		String response = ChatColor.GOLD + "Match details:\n";
-		response += "   " + match.formatParameter("uhc") + "\n";
-		response += "   " + match.formatParameter("ffa") + "\n";
-		response += "   " + match.formatParameter("nopvp") + "\n";
-		response += "   " + match.formatParameter("killerbonus") + "\n";
-		response += "   " + match.formatParameter("miningfatigue") + "\n";
+		response += "   " + config.formatParameter("uhc") + "\n";
+		response += "   " + config.formatParameter("ffa") + "\n";
+		response += "   " + config.formatParameter("nopvp") + "\n";
+		response += "   " + config.formatParameter("killerbonus") + "\n";
+		response += "   " + config.formatParameter("miningfatigue") + "\n";
 		
 		return response;
 
