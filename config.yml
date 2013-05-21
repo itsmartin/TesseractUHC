@@ -9,8 +9,8 @@ killerbonus:
  id: 266
  quantity: 4
 miningfatigue:
- gold: 4
- diamond: 16
+ gold: 0
+ diamond: 0
 bonuschest:
 - null
 - null
