@@ -911,16 +911,16 @@ public class UhcMatch {
 	 * @param buildTrough Whether to add a starting trough
 	 * @return The created start point
 	 */
-	private UhcStartPoint createStartPoint(int number, Location l, Boolean buildTrough) {
+	private UhcStartPoint createStartPoint(int number, Location l, Boolean large, Boolean buildTrough) {
 		// Check there is not already a start point with this number		
 		if (startPoints.containsKey(number))
 			return null;
 		
 		UhcStartPoint sp;
-		if (config.isFFA())
-			sp = new SmallGlassStartPoint(number, l, true);
-		else
+		if (large)
 			sp = new LargeGlassStartPoint(number, l, true);
+		else
+			sp = new SmallGlassStartPoint(number, l, true);
 		
 		if (buildTrough) sp.buildStartingTrough();
 		
@@ -941,8 +941,8 @@ public class UhcMatch {
 	 * @param buildTrough Whether to add a starting trough
 	 * @return The created start point
 	 */
-	public UhcStartPoint createStartPoint(int number, World world, Double x, Double y, Double z, Boolean buildTrough) {
-		return createStartPoint(number, new Location(world, x, y, z), buildTrough);
+	public UhcStartPoint createStartPoint(int number, World world, Double x, Double y, Double z, Boolean large, Boolean buildTrough) {
+		return createStartPoint(number, new Location(world, x, y, z), large, buildTrough);
 	}
 	
 	/**
@@ -952,8 +952,8 @@ public class UhcMatch {
 	 * @param buildTrough Whether to add a starting trough
 	 * @return The created start point
 	 */
-	private UhcStartPoint createStartPoint(Location l, Boolean buildTrough) {
-		return createStartPoint(getNextAvailableStartNumber(), l, buildTrough);
+	private UhcStartPoint createStartPoint(Location l, Boolean large, Boolean buildTrough) {
+		return createStartPoint(getNextAvailableStartNumber(), l, large, buildTrough);
 	}
 
 	/**
@@ -968,7 +968,7 @@ public class UhcMatch {
 	 * @return The created start point
 	 */
 	public UhcStartPoint addStartPoint(Double x, Double y, Double z, Boolean buildTrough) {
-		UhcStartPoint sp = createStartPoint(new Location(startingWorld, x, y, z), buildTrough);
+		UhcStartPoint sp = createStartPoint(new Location(startingWorld, x, y, z), !config.isFFA(), buildTrough);
 		if (sp != null) config.saveMatchParameters();
 		return sp;
 	}

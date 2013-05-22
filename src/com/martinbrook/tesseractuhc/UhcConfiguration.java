@@ -60,7 +60,7 @@ public class UhcConfiguration {
 					double x = Double.parseDouble(data[1]);
 					double y = Double.parseDouble(data[2]);
 					double z = Double.parseDouble(data[3]);
-					UhcStartPoint sp = m.createStartPoint(n, m.getStartingWorld(), x, y, z, false);
+					UhcStartPoint sp = m.createStartPoint(n, m.getStartingWorld(), x, y, z, !this.isFFA(), false);
 					if (sp == null) {
 						m.adminBroadcast("Duplicate start point: " + n);
 
