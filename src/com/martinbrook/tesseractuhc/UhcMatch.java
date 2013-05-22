@@ -711,6 +711,17 @@ public class UhcMatch {
 
 
 	/**
+	 * Pre-warn 2 minutes before the match is due to begin, and inform players who haven't joined yet that
+	 * they have 30 seconds
+	 */
+	public void preWarn() {
+		// For all players on the server, check if they are joined up
+		for(Player p : server.getOnlinePlayers())
+			if (!this.getPlayer(p).isSpectator() && !this.getPlayer(p).isParticipant())
+				p.sendMessage(ChatColor.GOLD + "Joining the match will be disabled in 30 seconds. If you want to play, use /join.");
+		
+	}
+	/**
 	 * Start the launching phase, and launch all players who have been added to the game
 	 */
 	public void launchAll() {

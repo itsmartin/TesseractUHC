@@ -24,6 +24,7 @@ public abstract class UhcCountdown {
 		});
 	}
 	
+	protected abstract void preWarn();
 	protected abstract void nearing();
 	protected abstract void complete();
 	protected abstract String getDescription();
@@ -42,6 +43,9 @@ public abstract class UhcCountdown {
 		}
 		
 		if (remainingSeconds == 120)
+			this.preWarn();
+		
+		if (remainingSeconds == 90)
 			this.nearing();
 		
 		if (remainingSeconds >= 60) {

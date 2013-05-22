@@ -14,6 +14,9 @@ public class PVPCountdown extends UhcCountdown {
 	protected void nearing() {	}
 
 	@Override
+	protected void preWarn() { }
+
+	@Override
 	protected void complete() {
 		match.setPVP(true);
 		match.broadcast("PVP is now enabled!");

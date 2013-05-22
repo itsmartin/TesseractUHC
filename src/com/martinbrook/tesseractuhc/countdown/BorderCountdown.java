@@ -19,6 +19,9 @@ public class BorderCountdown extends UhcCountdown {
 	protected void nearing() { }
 
 	@Override
+	protected void preWarn() { }
+
+	@Override
 	protected void complete() {
 		if (match.worldReduce(newRadius))
 			match.broadcast(ChatColor.GOLD + "World border is now at +/- " + newRadius  + " x and z!");
@@ -30,5 +33,6 @@ public class BorderCountdown extends UhcCountdown {
 	protected String getDescription() {
 		return "World border will move to +/- " + newRadius + " x and z";
 	}
+
 
 }

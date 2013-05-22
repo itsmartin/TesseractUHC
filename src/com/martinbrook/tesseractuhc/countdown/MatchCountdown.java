@@ -24,5 +24,10 @@ public class MatchCountdown extends UhcCountdown {
 	protected void nearing() {
 		match.launchAll();
 	}
+	
+	@Override
+	protected void preWarn() {
+		match.preWarn();
+	}
 
 }
