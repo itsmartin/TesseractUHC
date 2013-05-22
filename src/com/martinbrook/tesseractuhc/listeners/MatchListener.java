@@ -211,10 +211,18 @@ public class MatchListener implements Listener {
 			return;
 		}
 		
-		// Mining fatigue
+		// Apply penalties for mining stone
 		if (e.getBlock().getType() == Material.STONE && pl.isActiveParticipant()) {
+			
+			// Mining fatigue
 			pl.getParticipant().doMiningFatigue(e.getBlock().getLocation().getBlockY());
+			
+			// Hard stone
+			if (m.getConfig().isHardStone())
+				pl.getParticipant().doHardStone(e.getBlock().getLocation().getBlockY(), pl.getPlayer().getItemInHand());
 		}
+		
+		
 	}
 	
 

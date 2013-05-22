@@ -5,7 +5,9 @@ import java.util.HashSet;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
@@ -21,6 +23,7 @@ public class UhcParticipant implements PlayerTarget {
 	private boolean miningFatigueAlerted = false;
 	private int miningFatigueGrace = 20;
 	private long lastDamageTime;
+	private boolean warnedHardStone = false;
 	
 	public UhcParticipant(UhcPlayer pl, UhcTeam team) {
 		this.player = pl;
@@ -123,6 +126,45 @@ public class UhcParticipant implements PlayerTarget {
 				
 		}
 				
+	}
+	
+	/**
+	 * Apply the hard stone game mechanic
+	 * 
+	 * Players who mine stone below a certain depth increase their hunger
+	 * 
+	 * @param blockY The Y coordinate of the mined block
+	 * @param tool The tool that was used to mine the block
+	 */
+	public void doHardStone(int blockY, ItemStack tool) {
+		
+		// Calculate applicable durability penalty
+		
+		short penalty;
+		
+		if (tool.getType() == Material.GOLD_PICKAXE) {
+			penalty = UhcMatch.DURABILITY_PENALTY_GOLD;
+		} else if (tool.getType() == Material.WOOD_PICKAXE) {
+			penalty = UhcMatch.DURABILITY_PENALTY_WOOD;
+		} else if (tool.getType() == Material.STONE_PICKAXE) {
+			penalty = UhcMatch.DURABILITY_PENALTY_STONE;
+		} else if (tool.getType() == Material.IRON_PICKAXE) {
+			penalty = UhcMatch.DURABILITY_PENALTY_IRON;
+		} else if (tool.getType() == Material.DIAMOND_PICKAXE) {
+			penalty = UhcMatch.DURABILITY_PENALTY_DIAMOND;
+		} else return;
+		
+		// Warn the player the first time
+		
+		if (!warnedHardStone) {
+			player.sendMessage(ChatColor.GOLD + "Warning! Mining smoothstone will wear out your tools more quickly than in normal Minecraft.");
+			warnedHardStone=true;
+		}
+		
+		// Apply durability cost
+		
+		tool.setDurability((short) (tool.getDurability() - penalty));
+
 	}
 	
 	/**

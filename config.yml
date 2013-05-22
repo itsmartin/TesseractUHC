@@ -11,6 +11,7 @@ killerbonus:
 miningfatigue:
  gold: 0
  diamond: 0
+hardstone: true
 bonuschest:
 - null
 - null

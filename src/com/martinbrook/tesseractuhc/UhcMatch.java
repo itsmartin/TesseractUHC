@@ -76,6 +76,11 @@ public class UhcMatch {
 	private int proximityCheckerTask;
 	private static int PROXIMITY_THRESHOLD_SQUARED = 10000;
 	protected static int PLAYER_DAMAGE_ALERT_TICKS = 80; // 4 seconds
+	public static short DURABILITY_PENALTY_GOLD = 1;
+	public static short DURABILITY_PENALTY_WOOD = 2;
+	public static short DURABILITY_PENALTY_STONE = 3;
+	public static short DURABILITY_PENALTY_IRON = 4;
+	public static short DURABILITY_PENALTY_DIAMOND = 5;
 	private HashMap<String, UhcPlayer> allPlayers = new HashMap<String, UhcPlayer>();
 	private UhcConfiguration config;
 

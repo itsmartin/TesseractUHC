@@ -351,6 +351,25 @@ public class UhcConfiguration {
 	}
 
 	/**
+	 * Check whether Hard Stone is enabled
+	 * 
+	 * @return Whether hard stone is on
+	 */
+	public boolean isHardStone() {
+		return md.getBoolean("hardstone");
+	}
+	/**
+	 * Set hard stone on/off
+	 * 
+	 * @param d Whether hard stone is to be enabled
+	 */
+	public void setHardStone(boolean d) {
+		md.set("hardstone", d);
+		this.saveMatchParameters();
+		m.adminBroadcast(TesseractUHC.OK_COLOR + "Hard stone has been " + (d ? "enabled" : "disabled") + "!");
+	}
+
+	/**
 	 * Check whether this is an FFA match
 	 * 
 	 * @return Whether this is FFA
@@ -479,6 +498,13 @@ public class UhcConfiguration {
 			else
 				response += "Teams" + desc + "Teams work together, last team with a survivor wins";
 			
+		} else if ("hardstone".equalsIgnoreCase(parameter)) {
+			response = param + "Hard stone: " + value;
+			if (this.isHardStone())
+				response += "Enabled" + desc + "Mining smoothstone wears out your tools really quickly";
+			else
+				response += "Disabled" + desc + "Tool durability is unchanged";
+			
 		} else if ("uhc".equalsIgnoreCase(parameter)) {
 			response = param + "UHC: " + value;
 			if (this.isUHC())
@@ -576,6 +602,11 @@ public class UhcConfiguration {
 			Boolean v = MatchUtils.stringToBoolean(value);
 			if (v == null) return false;
 			this.setFFA(v);
+			return true;
+		} else if ("hardstone".equalsIgnoreCase(parameter)) {
+			Boolean v = MatchUtils.stringToBoolean(value);
+			if (v == null) return false;
+			this.setHardStone(v);
 			return true;
 		} else if ("uhc".equalsIgnoreCase(parameter)) {
 			Boolean v = MatchUtils.stringToBoolean(value);
