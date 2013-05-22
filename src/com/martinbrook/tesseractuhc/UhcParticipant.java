@@ -163,7 +163,7 @@ public class UhcParticipant implements PlayerTarget {
 		
 		// Apply durability cost
 		
-		tool.setDurability((short) (tool.getDurability() - penalty));
+		tool.setDurability((short) (tool.getDurability() + penalty));
 
 	}
 	
