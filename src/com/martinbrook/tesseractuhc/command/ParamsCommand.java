@@ -40,6 +40,7 @@ public class ParamsCommand extends UhcCommandExecutor {
 		response += "   " + config.formatParameter("nopvp") + "\n";
 		response += "   " + config.formatParameter("killerbonus") + "\n";
 		response += "   " + config.formatParameter("miningfatigue") + "\n";
+		response += "   " + config.formatParameter("hardstone") + "\n";
 		
 		return response;
 

@@ -209,6 +209,7 @@ public class UhcCommand extends UhcCommandExecutor {
 		response += ChatColor.RESET + "[nopvp]         " + config.formatParameter("nopvp") + "\n";
 		response += ChatColor.RESET + "[killerbonus]   " + config.formatParameter("killerbonus") + "\n";
 		response += ChatColor.RESET + "[miningfatigue] " + config.formatParameter("miningfatigue") + "\n";
+		response += ChatColor.RESET + "[hardstone]     " + config.formatParameter("hardstone") + "\n";
 		response += ChatColor.RESET + "[deathban]      " + config.formatParameter("deathban") + "\n";
 		response += ChatColor.RESET + "[nolatecomers]  " + config.formatParameter("nolatecomers") + "\n";
 		response += ChatColor.RESET + "[dragonmode]    " + config.formatParameter("dragonmode") + "\n";
