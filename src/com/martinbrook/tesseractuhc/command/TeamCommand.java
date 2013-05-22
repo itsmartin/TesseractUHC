@@ -42,7 +42,7 @@ public class TeamCommand extends UhcCommandExecutor {
 		
 		String name = "";
 		
-		for (int i = 1; i < args.length; i++) name += args[i] + " ";
+		for (int i = 0; i < args.length; i++) name += args[i] + " ";
 		name = name.substring(0,name.length()-1);
 		
 		if (match.existsTeamByName(name))
