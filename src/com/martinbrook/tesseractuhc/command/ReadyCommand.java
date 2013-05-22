@@ -27,7 +27,7 @@ public class ReadyCommand extends UhcCommandExecutor {
 			return (ERROR_COLOR + "Usage: /ready [seconds]");
 		}
 		
-		int countLength = 300;
+		int countLength = 120;
 		
 		try {
 			if (args.length == 1)
