@@ -2,7 +2,6 @@ package com.martinbrook.tesseractuhc;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -24,7 +23,6 @@ public class UhcConfiguration {
 	private YamlConfiguration md; // Match data
 	public static String DEFAULT_MATCHDATA_FILE = "uhcmatch.yml";
 	public static String DEFAULT_TEAMDATA_FILE = "uhcteams.yml";
-	private HashMap<Integer, UhcStartPoint> startPoints = new HashMap<Integer, UhcStartPoint>();
 	private ItemStack[] bonusChest = new ItemStack[27];
 
 	
@@ -139,7 +137,7 @@ public class UhcConfiguration {
 	 */
 	public void saveMatchParameters() {
 		ArrayList<String> startData = new ArrayList<String>();
-		for (UhcStartPoint sp : startPoints.values()) {
+		for (UhcStartPoint sp : m.getStartPoints().values()) {
 			startData.add(sp.getNumber() + "," + sp.getX() + "," + sp.getY() + "," + sp.getZ());
 		}
 		
