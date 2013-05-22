@@ -22,7 +22,7 @@ public class UhcParticipant implements PlayerTarget {
 	private boolean dead = false;
 	private boolean miningFatigueAlerted = false;
 	private int miningFatigueGrace = 20;
-	private long lastDamageTime;
+	private long lastDamageTime = 0;
 	private boolean warnedHardStone = false;
 	
 	public UhcParticipant(UhcPlayer pl, UhcTeam team) {
