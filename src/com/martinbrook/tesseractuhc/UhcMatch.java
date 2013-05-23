@@ -644,7 +644,7 @@ public class UhcMatch {
 		up.sendToStartPoint();
 		
 		up.setLaunched(true);
-		up.sendMessage(ChatColor.GOLD + "This is " + ChatColor.BOLD + config.getMatchTitle() + "\n" 
+		up.sendMessage(ChatColor.GOLD + "This is " + ChatColor.ITALIC + config.getMatchTitle() + "\n" 
 				+ ChatColor.RESET + ChatColor.AQUA + "To find out the parameters for this game, type " + ChatColor.GOLD + "/params" + "\n"
 				+ ChatColor.AQUA + "To view the match status at any time, type " + ChatColor.GOLD + "/match");
 
