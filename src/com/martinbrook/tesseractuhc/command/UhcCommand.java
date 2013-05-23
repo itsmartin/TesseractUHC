@@ -204,6 +204,7 @@ public class UhcCommand extends UhcCommandExecutor {
 	
 	private String cUhcParams() {
 		String response = ChatColor.GOLD + "Match details:\n";
+		response += ChatColor.RESET + "[matchtitle]    " + config.formatParameter("matchtitle") + "\n";
 		response += ChatColor.RESET + "[uhc]           " + config.formatParameter("uhc") + "\n";
 		response += ChatColor.RESET + "[ffa]           " + config.formatParameter("ffa") + "\n";
 		response += ChatColor.RESET + "[nopvp]         " + config.formatParameter("nopvp") + "\n";

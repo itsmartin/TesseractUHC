@@ -1,5 +1,6 @@
 package com.martinbrook.tesseractuhc.command;
 
+import org.bukkit.ChatColor;
 import org.bukkit.command.ConsoleCommandSender;
 
 import com.martinbrook.tesseractuhc.TesseractUHC;
@@ -33,7 +34,8 @@ public class MatchinfoCommand extends UhcCommandExecutor {
 	}
 
 	private String run() {
-		return match.matchTimeAnnouncement(true) + "\n" + match.getPlayerStatusReport(); 
+		return ChatColor.AQUA + "This is " + ChatColor.ITALIC + match.getConfig().getMatchTitle() + "\n" 
+				+ ChatColor.RESET + match.matchTimeAnnouncement(true) + "\n" + match.getPlayerStatusReport(); 
 
 	}
 

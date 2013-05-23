@@ -397,6 +397,17 @@ public class UhcConfiguration {
 		return bonusChest;
 	}
 	
+	public String getMatchTitle() {
+		String title = md.getString("matchtitle");
+		if (title==null) title=TesseractUHC.getInstance().getName();
+		return title;
+	}
+	
+	public void setMatchTitle(String title) {
+		md.set("matchtitle", title);
+		this.saveMatchParameters();
+	}
+	
 	public boolean isUHC() {
 		return md.getBoolean("uhc");
 	}
@@ -485,6 +496,10 @@ public class UhcConfiguration {
 				response += "Disabled" + desc;
 			
 			response += "Hunger penalty per block mined at those depths (stone\n      blocks only)";
+					
+		} else if ("matchtitle".equalsIgnoreCase(parameter)) {
+			response = param + "Title: " + value + this.getMatchTitle()
+					+ desc + "The title of the match";
 					
 		} else if ("nopvp".equalsIgnoreCase(parameter)) {
 			response = param + "No-PvP period: " + value;
@@ -582,7 +597,10 @@ public class UhcConfiguration {
 				return false;
 			}
 			
-		
+		} else if ("matchtitle".equalsIgnoreCase(parameter)) {
+			if (value.trim().length()<1) return false;
+			this.setMatchTitle(value.trim());
+			return true;
 			
 		} else if ("miningfatigue".equalsIgnoreCase(parameter)) {
 			Boolean b = MatchUtils.stringToBoolean(value);
