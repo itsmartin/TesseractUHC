@@ -214,6 +214,7 @@ public class UhcCommand extends UhcCommandExecutor {
 		response += ChatColor.RESET + "[nolatecomers]  " + config.formatParameter("nolatecomers") + "\n";
 		response += ChatColor.RESET + "[dragonmode]    " + config.formatParameter("dragonmode") + "\n";
 		response += ChatColor.RESET + "[damagealerts]  " + config.formatParameter("damagealerts") + "\n";
+		response += ChatColor.RESET + "[dropheads]     " + config.formatParameter("dropheads") + "\n";
 		
 		return response;
 	}

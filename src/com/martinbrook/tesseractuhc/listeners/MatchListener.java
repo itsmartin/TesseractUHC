@@ -7,6 +7,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.Material;
+import org.bukkit.SkullType;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
@@ -18,6 +19,7 @@ import org.bukkit.event.entity.EntityRegainHealthEvent.RegainReason;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.SkullMeta;
 
 import org.bukkit.ChatColor;
 
@@ -54,6 +56,16 @@ public class MatchListener implements Listener {
 			}
 		}
 		
+		// If dropheads is enabled, drop a skull
+		if (m.getConfig().isDropHeads()) {
+			ItemStack head = new ItemStack(Material.SKULL_ITEM, 1, (short) SkullType.PLAYER.ordinal());
+			SkullMeta meta = (SkullMeta) head.getItemMeta();
+	        meta.setOwner(p.getName());
+	        //meta.setDisplayName(p.getName());
+	        head.setItemMeta(meta);
+	        e.getDrops().add(head);
+		}
+        
 		// Make death message red
 		String msg = e.getDeathMessage();
 		e.setDeathMessage(ChatColor.GOLD + msg);

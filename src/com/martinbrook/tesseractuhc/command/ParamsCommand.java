@@ -41,6 +41,7 @@ public class ParamsCommand extends UhcCommandExecutor {
 		response += "   " + config.formatParameter("killerbonus") + "\n";
 		response += "   " + config.formatParameter("miningfatigue") + "\n";
 		response += "   " + config.formatParameter("hardstone") + "\n";
+		response += "   " + config.formatParameter("dropheads") + "\n";
 		
 		return response;
 

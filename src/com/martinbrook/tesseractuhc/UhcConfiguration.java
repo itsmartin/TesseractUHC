@@ -426,6 +426,16 @@ public class UhcConfiguration {
 		return md.getBoolean("dragonmode");
 	}
 	
+	public void setDropHeads(Boolean d) {
+		md.set("dropheads", d);
+		this.saveMatchParameters();
+		m.adminBroadcast(TesseractUHC.OK_COLOR + "Drop heads has been " + (d ? "enabled" : "disabled") + "!");
+	}
+	
+	public boolean isDropHeads() {
+		return md.getBoolean("dropheads");
+	}
+	
 	public void setDamageAlerts(Boolean d) {
 		md.set("damagealerts", d);
 		this.saveMatchParameters();
@@ -527,6 +537,12 @@ public class UhcConfiguration {
 				response += "Enabled" + desc + "Damage alerts will be shown to all players";
 			else
 				response += "Disabled" + desc + "Damage alerts will only be shown to spectators";
+		} else if ("dropheads".equalsIgnoreCase(parameter)) {
+			response = param + "Drop heads: " + value;
+			if (this.isDropHeads())
+				response += "Enabled" + desc + "Players will drop their heads upon death";
+			else
+				response += "Disabled" + desc + "Players will not drop their heads upon death";
 		}
 		
 		
@@ -625,6 +641,11 @@ public class UhcConfiguration {
 			Boolean v = MatchUtils.stringToBoolean(value);
 			if (v == null) return false;
 			this.setDamageAlerts(v);
+			return true;
+		} else if ("dropheads".equalsIgnoreCase(parameter)) {
+			Boolean v = MatchUtils.stringToBoolean(value);
+			if (v == null) return false;
+			this.setDropHeads(v);
 			return true;
 		} else {
 			return false;
