@@ -1,5 +1,7 @@
 package com.martinbrook.tesseractuhc.listeners;
 
+import org.bukkit.block.Block;
+import org.bukkit.block.Skull;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -19,8 +21,6 @@ import org.bukkit.event.entity.EntityRegainHealthEvent.RegainReason;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.SkullMeta;
-
 import org.bukkit.ChatColor;
 
 import com.martinbrook.tesseractuhc.MatchPhase;
@@ -29,6 +29,7 @@ import com.martinbrook.tesseractuhc.UhcParticipant;
 import com.martinbrook.tesseractuhc.UhcPlayer;
 import com.martinbrook.tesseractuhc.notification.DamageNotification;
 import com.martinbrook.tesseractuhc.notification.HealingNotification;
+import com.martinbrook.tesseractuhc.util.MatchUtils;
 
 public class MatchListener implements Listener {
 	private UhcMatch m;
@@ -58,12 +59,14 @@ public class MatchListener implements Listener {
 		
 		// If dropheads is enabled, drop a skull
 		if (m.getConfig().isDropHeads()) {
-			ItemStack head = new ItemStack(Material.SKULL_ITEM, 1, (short) SkullType.PLAYER.ordinal());
-			SkullMeta meta = (SkullMeta) head.getItemMeta();
-	        meta.setOwner(p.getName());
-	        //meta.setDisplayName(p.getName());
-	        head.setItemMeta(meta);
-	        e.getDrops().add(head);
+			Block b = p.getLocation().getBlock();
+			b.setTypeIdAndData(Material.SKULL.getId(), (byte) 1, true);
+			
+			Skull s = (Skull) b.getState();
+			s.setSkullType(SkullType.PLAYER);
+			s.setRotation(MatchUtils.getBlockFaceDirection(p.getLocation()));
+			s.setOwner(p.getName());
+			s.update(true);
 		}
         
 		// Make death message red
