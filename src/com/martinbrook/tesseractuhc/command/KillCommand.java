@@ -1,5 +1,6 @@
 package com.martinbrook.tesseractuhc.command;
 
+import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 
 import com.martinbrook.tesseractuhc.TesseractUHC;
@@ -13,6 +14,15 @@ public class KillCommand extends UhcCommandExecutor {
 
 	@Override
 	protected String runAsAdmin(UhcSpectator sender, String[] args) {
+		return run(args);
+	}
+	
+	@Override
+	protected String runAsConsole(ConsoleCommandSender sender, String[] args) {
+		return run(args);
+	}
+	
+	protected String run(String[] args) {
 		
 		if (args.length < 1) return ERROR_COLOR + "Please specify the player to kill";
 		
@@ -26,5 +36,6 @@ public class KillCommand extends UhcCommandExecutor {
 		
 		return null;
 	}
+
 
 }
