@@ -3,7 +3,6 @@ package com.martinbrook.tesseractuhc.countdown;
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.Plugin;
 
-import com.martinbrook.tesseractuhc.TesseractUHC;
 import com.martinbrook.tesseractuhc.UhcMatch;
 
 
@@ -16,17 +15,17 @@ public class BorderCountdown extends UhcCountdown {
 	}
 
 	@Override
-	protected void nearing() { }
+	protected void nearing() {
+		match.sendBorderWarnings(newRadius);
+	}
 
 	@Override
 	protected void preWarn() { }
 
 	@Override
 	protected void complete() {
-		if (match.worldReduce(newRadius))
-			match.broadcast(ChatColor.GOLD + "World border is now at +/- " + newRadius  + " x and z!");
-		else
-			match.adminBroadcast(TesseractUHC.ALERT_COLOR + "World border reduction failed - is WorldBorder installed?");
+		match.setWorldBorder(newRadius);
+		match.broadcast(ChatColor.GOLD + "World border is now at +/- " + newRadius  + " x and z!");
 	}
 
 	@Override

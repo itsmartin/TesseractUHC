@@ -14,11 +14,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
-import org.bukkit.plugin.Plugin;
-
 import com.martinbrook.tesseractuhc.TesseractUHC;
-import com.wimbli.WorldBorder.BorderData;
-import com.wimbli.WorldBorder.WorldBorder;
 
 public class MatchUtils {
 
@@ -63,38 +59,7 @@ public class MatchUtils {
 		return (t2.getTimeInMillis() - t1.getTimeInMillis()) / 1000;
 	}
 
-	/**
-     * Get a BorderData from the WorldBorder plugin
-     * 
-     * @param w The world to get borders for
-     * @return The WorldBorder BorderData object
-     */
-    private static BorderData getWorldBorder(World w) {
-        Plugin plugin = TesseractUHC.getInstance().getServer().getPluginManager().getPlugin("WorldBorder");
 
-        // Check if the plugin is loaded
-        if (plugin == null || !(plugin instanceof WorldBorder))
-        	return null;
-
-        WorldBorder wb = (WorldBorder) plugin;
-        return wb.GetWorldBorder(w.getName());
-    }
-    
-    /**
-     * Change the WorldBorder radius for a world
-     * 
-     * @param w The world to be changed
-     * @param radius The new radius
-     * @return Whether the operation succeeded
-     */
-    public static boolean setWorldRadius(World w, int radius) {
-    	BorderData border = getWorldBorder(w);
-    	if (border != null) {
-    		border.setRadius(radius);
-    		return true;
-    	}
-    	return false;
-    }
 
 	/**
 	 * Attempt to parse a calcstarts command and return a list of start points

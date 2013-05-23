@@ -24,6 +24,7 @@ public class UhcParticipant implements PlayerTarget {
 	private int miningFatigueGrace = 20;
 	private long lastDamageTime = 0;
 	private boolean warnedHardStone = false;
+	private boolean worldEdgeWarningActive = false;
 	
 	public UhcParticipant(UhcPlayer pl, UhcTeam team) {
 		this.player = pl;
@@ -179,6 +180,29 @@ public class UhcParticipant implements PlayerTarget {
 	 */
 	public boolean isRecentlyDamaged() {
 		return (player.getMatch().getStartingWorld().getFullTime() - lastDamageTime < UhcMatch.PLAYER_DAMAGE_ALERT_TICKS);
+	}
+
+	public void doWorldEdgeWarning() {
+		if (worldEdgeWarningActive) return;
+		worldEdgeWarningActive=true;
+		sendMessage("You are close to the edge of the world!");
+		player.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, Integer.MAX_VALUE, 0));
+		player.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.SLOW, Integer.MAX_VALUE, 1));
+		
+	}
+
+	public void clearWorldEdgeWarning() {
+		if (!worldEdgeWarningActive) return;
+		worldEdgeWarningActive=false;
+		player.getPlayer().removePotionEffect(PotionEffectType.BLINDNESS);
+		player.getPlayer().removePotionEffect(PotionEffectType.SLOW);
+		
+	}
+
+	public boolean isOutsideBorder(int border) {
+		Location l = player.getLocation();
+		return l.getBlockX() > border || l.getBlockZ() > border
+				|| l.getBlockX() < -border || l.getBlockZ() < -border;
 	}
 
 

@@ -83,6 +83,9 @@ public class UhcMatch {
 	public static short DURABILITY_PENALTY_DIAMOND = 5;
 	private HashMap<String, UhcPlayer> allPlayers = new HashMap<String, UhcPlayer>();
 	private UhcConfiguration config;
+	private int borderCheckerTask;
+	private Integer worldRadiusFinal = null;
+	private Integer worldRadius = null;
 
 	
 	public UhcMatch(TesseractUHC plugin, World startingWorld, Configuration defaults) {
@@ -97,6 +100,7 @@ public class UhcMatch {
 		this.setVanish();
 		this.enableSpawnKeeper();
 		this.enablePlayerListUpdater();
+		this.setWorldBorder(config.getWorldBorder());
 		
 	}
 	
@@ -329,6 +333,7 @@ public class UhcMatch {
 			setPVP(true);
 		}
 		enableProximityChecker();
+		enableBorderChecker();
 	}
 	
 	/**
@@ -344,13 +349,27 @@ public class UhcMatch {
 		for (UhcPlayer pl : getOnlinePlayers()) pl.setGameMode(GameMode.CREATIVE);
 		setVanish();
 		disableProximityChecker();
+		disableBorderChecker();
 		server.getScheduler().cancelTasks(plugin);
 
 	}
 	
 
-	public boolean worldReduce(int nextRadius) {
-		return MatchUtils.setWorldRadius(startingWorld,nextRadius);
+	public void setWorldBorder(Integer nextRadius) {
+		if (nextRadius==null || nextRadius == 0) {
+			worldRadiusFinal = null;
+			worldRadius = null;
+			return;
+		}
+		
+		worldRadiusFinal = nextRadius;
+		if (worldRadiusFinal >= 100) {
+			worldRadius = worldRadiusFinal-25;
+		} else {
+			worldRadius = (int) (worldRadiusFinal * 0.9);
+		}
+			
+
 	}
 	
 	
@@ -822,6 +841,72 @@ public class UhcMatch {
 			}
 			pl.heal();
 			pl.feed();
+		}
+	}
+	
+	private void enableBorderChecker() {
+		borderCheckerTask = server.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
+			public void run() {
+				runBorderChecker();
+			}
+		}, 10L, 10L);
+	}
+
+	private void disableBorderChecker() {
+		server.getScheduler().cancelTask(borderCheckerTask);
+	}
+	
+	private void runBorderChecker() {
+		// If there is no world border, do nothing
+		if (worldRadiusFinal == null) return;
+		
+		// Cycle through all UhcPlayers, checking their location
+		for (UhcParticipant up : participantsInMatch) {
+			if (!up.getPlayer().isOnline()) continue;
+			if (up.isOutsideBorder(worldRadius)) {
+				if (up.getPlayer().getLocation().getWorld().equals(startingWorld)
+						&& up.isOutsideBorder(worldRadiusFinal)) {
+					
+					// Player is outside the hard world boundary in the overworld, TP them back
+					Location l = up.getPlayer().getLocation();
+
+					double newX = l.getX();
+					double newZ = l.getZ();
+					if (newX > worldRadiusFinal) newX = worldRadius;
+					if (newZ > worldRadiusFinal) newZ = worldRadius;
+					if (newX < -worldRadiusFinal) newX = -worldRadius;
+					if (newZ < -worldRadiusFinal) newZ = -worldRadius;
+					
+					Location l2 = l.clone();
+					l2.setX(newX);
+					l2.setZ(newZ);
+					l2.setY(l2.getWorld().getHighestBlockYAt(l2));
+					up.getPlayer().teleport(l2);
+					up.clearWorldEdgeWarning();
+				} else {
+					up.doWorldEdgeWarning();
+				}
+			} else {
+				up.clearWorldEdgeWarning();
+			}
+		}
+	}
+	
+
+
+	/**
+	 * Send warnings to players who are outside the new border
+	 * @param newRadius
+	 */
+	public void sendBorderWarnings(int newRadius) {
+		if (newRadius == 0) return;
+		
+		// Cycle through all UhcPlayers, checking their location
+		for (UhcParticipant up : participantsInMatch) {
+			if (!up.getPlayer().isOnline()) continue;
+			if (up.isOutsideBorder(newRadius)) {
+				up.sendMessage(ChatColor.YELLOW + "Warning! You are currently OUTSIDE the new world border.");
+			}
 		}
 	}
 	
@@ -1433,6 +1518,7 @@ public class UhcMatch {
 		for (Player p : server.getOnlinePlayers()) ups.add(getPlayer(p));
 		return ups;
 	}
+
 
 
 

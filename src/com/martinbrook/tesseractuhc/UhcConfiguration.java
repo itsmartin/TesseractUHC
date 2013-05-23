@@ -242,6 +242,25 @@ public class UhcConfiguration {
 	}
 
 	/**
+	 * Get the world border
+	 * 
+	 * @return The world border
+	 */
+	public int getWorldBorder() {
+		return md.getInt("worldborder");
+	}
+	/**
+	 * Set the world border
+	 * 
+	 * @param nopvp The world border
+	 */
+	public void setWorldBorder(int wb) {
+		md.set("worldborder", wb);
+		m.setWorldBorder(wb);
+		saveMatchParameters();
+	}
+
+	/**
 	 * Get the length of the initial no-PVP period
 	 * 
 	 * @return The duration of the no-PVP period, in seconds
@@ -513,6 +532,15 @@ public class UhcConfiguration {
 			else 
 				response += "None" + desc + "PvP will be enabled from the start";
 			
+		} else if ("worldborder".equalsIgnoreCase(parameter)) {
+			response = param + "Initial world border: " + value;
+			int n = this.getWorldBorder();
+			if (n == 0)
+				response += "None" + desc + "There is no world border";
+			else 
+				response += String.valueOf(n) + desc + "The world border at the start of the match";
+						
+			
 			
 		} else if ("ffa".equalsIgnoreCase(parameter)) {
 			response = param + "Teams: " + value;
@@ -626,6 +654,13 @@ public class UhcConfiguration {
 		} else if ("nopvp".equalsIgnoreCase(parameter)) {
 			try {
 				this.setNopvp(Integer.parseInt(value));
+				return true;
+			} catch (NumberFormatException e) {
+				return false;
+			}
+		} else if ("worldborder".equalsIgnoreCase(parameter)) {
+			try {
+				this.setWorldBorder(Integer.parseInt(value));
 				return true;
 			} catch (NumberFormatException e) {
 				return false;

@@ -208,6 +208,7 @@ public class UhcCommand extends UhcCommandExecutor {
 		response += ChatColor.RESET + "[uhc]           " + config.formatParameter("uhc") + "\n";
 		response += ChatColor.RESET + "[ffa]           " + config.formatParameter("ffa") + "\n";
 		response += ChatColor.RESET + "[nopvp]         " + config.formatParameter("nopvp") + "\n";
+		response += ChatColor.RESET + "[worldborder]   " + config.formatParameter("worldborder") + "\n";
 		response += ChatColor.RESET + "[killerbonus]   " + config.formatParameter("killerbonus") + "\n";
 		response += ChatColor.RESET + "[miningfatigue] " + config.formatParameter("miningfatigue") + "\n";
 		response += ChatColor.RESET + "[hardstone]     " + config.formatParameter("hardstone") + "\n";
