@@ -108,7 +108,8 @@ public class MatchListener implements Listener {
 		}
 		
 		// If damage caused by another entity, ignore it here (it will be handled by onEntityDamageByEntity)
-		if (e.getCause() == DamageCause.ENTITY_ATTACK || e.getCause() == DamageCause.ENTITY_EXPLOSION) return;
+		if (e.getCause() == DamageCause.ENTITY_ATTACK || e.getCause() == DamageCause.ENTITY_EXPLOSION
+				|| e.getCause() == DamageCause.PROJECTILE) return;
 		
 		// If damage ticks not exceeded, the damage won't happen, so return
 		if(((LivingEntity)e.getEntity()).getNoDamageTicks() > ((LivingEntity)e.getEntity()).getMaximumNoDamageTicks()/2.0F)	return;
