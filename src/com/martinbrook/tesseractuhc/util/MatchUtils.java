@@ -82,6 +82,18 @@ public class MatchUtils {
 			}
 			return calculateRadialStarts(count, radius);
 			
+		} else if ("grid".equalsIgnoreCase(method)) {
+			if (args.length != 3) return null;
+			int count;
+			int radius;
+			try {
+				count = Integer.parseInt(args[1]);
+				radius = Integer.parseInt(args[2]);
+			} catch (NumberFormatException e) {
+				return null;
+			}
+			return calculateGridStarts(count, radius);
+
 		}
 		return null;
 		
@@ -108,6 +120,22 @@ public class MatchUtils {
 			int y = w.getHighestBlockYAt(x, z);
 			locations.add(new Location(w,x,y,z));
 		}
+		return locations;
+	
+	}
+	
+	/**
+	 * Generate a list of radial start points
+	 * 
+	 * @param count Number of starts to generate
+	 * @param radius Radius of circle
+	 * @return List of starts
+	 */
+	private static ArrayList<Location> calculateGridStarts(int count, int radius) {
+		ArrayList<Location> locations = new ArrayList<Location>();
+		
+		// TODO
+		
 		return locations;
 	
 	}
