@@ -1,7 +1,5 @@
 package com.martinbrook.tesseractuhc.listeners;
 
-import org.bukkit.block.Block;
-import org.bukkit.block.Skull;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -9,7 +7,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.Material;
-import org.bukkit.SkullType;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
@@ -29,7 +26,6 @@ import com.martinbrook.tesseractuhc.UhcParticipant;
 import com.martinbrook.tesseractuhc.UhcPlayer;
 import com.martinbrook.tesseractuhc.notification.DamageNotification;
 import com.martinbrook.tesseractuhc.notification.HealingNotification;
-import com.martinbrook.tesseractuhc.util.MatchUtils;
 
 public class MatchListener implements Listener {
 	private UhcMatch m;
@@ -59,14 +55,10 @@ public class MatchListener implements Listener {
 		
 		// If dropheads is enabled, drop a skull
 		if (m.getConfig().isDropHeads()) {
-			Block b = p.getLocation().getBlock();
-			b.setTypeIdAndData(Material.SKULL.getId(), (byte) 1, true);
+			m.placeHeadDelayed(p.getLocation(), p.getName());
+
 			
-			Skull s = (Skull) b.getState();
-			s.setSkullType(SkullType.PLAYER);
-			s.setRotation(MatchUtils.getBlockFaceDirection(p.getLocation()));
-			s.setOwner(p.getName());
-			s.update(true);
+
 		}
         
 		// Make death message red

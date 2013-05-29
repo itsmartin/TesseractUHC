@@ -6,7 +6,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Random;
-
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Difficulty;
@@ -15,7 +14,10 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Server;
+import org.bukkit.SkullType;
 import org.bukkit.World;
+import org.bukkit.block.Block;
+import org.bukkit.block.Skull;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.entity.EnderDragon;
 import org.bukkit.entity.Entity;
@@ -350,7 +352,6 @@ public class UhcMatch {
 		setVanish();
 		disableProximityChecker();
 		disableBorderChecker();
-		server.getScheduler().cancelTasks(plugin);
 
 	}
 	
@@ -1108,6 +1109,25 @@ public class UhcMatch {
 		return teamsInMatch.size();
 	}
 
+	public void placeHeadDelayed(final Location l, final String name) {
+		server.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
+			public void run() {
+				placeHead(l,name);
+			}
+		});
+	}
+	
+	public void placeHead(Location l, String name) {
+		Block b = l.getBlock();
+		b.setTypeIdAndData(Material.SKULL.getId(), (byte) 1, true);
+		
+		Skull s = (Skull) b.getState();
+		s.setSkullType(SkullType.PLAYER);
+		s.setRotation(MatchUtils.getBlockFaceDirection(l));
+		s.setOwner(name);
+		s.update(true);
+
+	}
 	
 	public void handleParticipantDeath(final UhcParticipant up) {
 		server.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
