@@ -14,6 +14,7 @@ import org.bukkit.inventory.ItemStack;
 import com.martinbrook.tesseractuhc.startpoint.UhcStartPoint;
 import com.martinbrook.tesseractuhc.util.FileUtils;
 import com.martinbrook.tesseractuhc.util.MatchUtils;
+import com.martinbrook.tesseractuhc.util.PluginChannelUtils;
 
 public class UhcConfiguration {
 
@@ -669,6 +670,7 @@ public class UhcConfiguration {
 			Boolean v = MatchUtils.stringToBoolean(value);
 			if (v == null) return false;
 			this.setFFA(v);
+			PluginChannelUtils.messageSpectators("match", "gamerule","FFA",v ? "on" : "off");
 			return true;
 		} else if ("hardstone".equalsIgnoreCase(parameter)) {
 			Boolean v = MatchUtils.stringToBoolean(value);

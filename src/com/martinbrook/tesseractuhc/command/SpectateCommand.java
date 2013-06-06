@@ -40,9 +40,8 @@ public class SpectateCommand extends UhcCommandExecutor {
 			return ERROR_COLOR +"That player is still playing. ";
 		}
 		pl.setParticipant(null);
-		pl.makeSpectator();
-		return OK_COLOR +pl.getName()+" has been made a spectator;";
-		
+		pl.makeSpectator();		
+		return OK_COLOR +pl.getName()+" has been made a spectator;";		
 	}
 	
 }
