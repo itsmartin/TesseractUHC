@@ -83,11 +83,11 @@ public class UhcPlayer {
 	}
 
 	public void makeNotSpectator() {
+		if (spectator==null) return;
 		spectator.setNightVision(false);
 		spectator=null;
 		setGameMode(GameMode.SURVIVAL);
 		setVanish();
-		
 	}
 	
 

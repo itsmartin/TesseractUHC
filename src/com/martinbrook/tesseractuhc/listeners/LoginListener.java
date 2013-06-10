@@ -29,6 +29,10 @@ public class LoginListener implements Listener {
 		if (e.getPlayer().isOp()) {
 			pl.makeSpectator();
 			return;
+		} else {
+			// Player is not op. If it's pre-game, reset their spectator status
+			if (m.getMatchPhase() == MatchPhase.PRE_MATCH)
+				pl.makeNotSpectator();
 		}
 
 		// Normal player. Set their vanish correctly
