@@ -7,6 +7,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
@@ -87,6 +89,32 @@ public class SpectateListener implements Listener {
 			}
 			// Cancel all other actions
 			e.setCancelled(true);
+		}
+	}
+	
+	@EventHandler(ignoreCancelled = true)
+	public void onBlockPlace(BlockPlaceEvent e) {
+		UhcPlayer pl = m.getPlayer(e.getPlayer());
+		if (pl.isAdmin()) return; // Ignore this event for admins.
+		
+		// Cancel the event if player is a spec, or match hasn't started
+		if (pl.isNonInteractingSpectator()
+				|| (m.getMatchPhase() == MatchPhase.PRE_MATCH || m.getMatchPhase() == MatchPhase.LAUNCHING)) {
+			e.setCancelled(true);
+			return;
+		}
+	}
+	
+	@EventHandler(ignoreCancelled = true)
+	public void onBlockBreak(BlockBreakEvent e) {
+		UhcPlayer pl = m.getPlayer(e.getPlayer());
+		if (pl.isAdmin()) return; // Ignore this event for admins.
+		
+		// Cancel the event if player is a spec, or match hasn't started
+		if (pl.isNonInteractingSpectator()
+				|| (m.getMatchPhase() == MatchPhase.PRE_MATCH || m.getMatchPhase() == MatchPhase.LAUNCHING)) {
+			e.setCancelled(true);
+			return;
 		}
 	}
 }

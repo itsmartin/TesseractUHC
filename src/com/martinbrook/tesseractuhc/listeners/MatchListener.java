@@ -213,11 +213,6 @@ public class MatchListener implements Listener {
 	@EventHandler(ignoreCancelled = true)
 	public void onBlockBreak(BlockBreakEvent e) {
 		UhcPlayer pl = m.getPlayer(e.getPlayer());
-		// If match hasn't started, and not op, cancel the event.
-		if ((m.getMatchPhase() == MatchPhase.PRE_MATCH || m.getMatchPhase() == MatchPhase.LAUNCHING) && !pl.isAdmin()) {
-			e.setCancelled(true);
-			return;
-		}
 		
 		// Apply penalties for mining stone
 		if (e.getBlock().getType() == Material.STONE && pl.isActiveParticipant()) {
