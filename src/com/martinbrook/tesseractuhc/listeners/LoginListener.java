@@ -66,6 +66,11 @@ public class LoginListener implements Listener {
 			pl.setGameMode(GameMode.CREATIVE);
 			return;
 		}
+		
+		// If player is a participant. Make sure he is marked as online in the mod
+		if (pl.isParticipant()){
+			pl.getParticipant().setIsOnline(true);
+		}
 
 	}
 
@@ -73,6 +78,12 @@ public class LoginListener implements Listener {
 	@EventHandler
 	public void onQuit(PlayerQuitEvent e) {
 		m.setLastLogoutLocation(e.getPlayer().getLocation());
+		
+		// If player is a participant. Make sure he is marked as offline
+		UhcPlayer up = m.getPlayer(e.getPlayer());
+		if (up.isParticipant()){
+			up.getParticipant().setIsOnline(false);
+		}
 	}
 	
 

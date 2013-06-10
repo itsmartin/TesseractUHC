@@ -41,6 +41,7 @@ import com.martinbrook.tesseractuhc.startpoint.SmallGlassStartPoint;
 import com.martinbrook.tesseractuhc.startpoint.UhcStartPoint;
 import com.martinbrook.tesseractuhc.util.FileUtils;
 import com.martinbrook.tesseractuhc.util.MatchUtils;
+import com.martinbrook.tesseractuhc.util.PluginChannelUtils;
 
 public class UhcMatch {
 
@@ -88,7 +89,9 @@ public class UhcMatch {
 	private int borderCheckerTask;
 	private Integer worldRadiusFinal = null;
 	private Integer worldRadius = null;
-
+	
+	// ALL COLORS. Currently doesn't include white.
+	private static final ChatColor[] COLORS = {ChatColor.BLUE, ChatColor.RED, ChatColor.DARK_GREEN, ChatColor.DARK_PURPLE, ChatColor.YELLOW, ChatColor.GRAY, ChatColor.DARK_GRAY, ChatColor.DARK_AQUA, ChatColor.DARK_RED, ChatColor.LIGHT_PURPLE, ChatColor.GREEN, ChatColor.BLACK, ChatColor.BLUE, ChatColor.AQUA, ChatColor.GOLD};
 	
 	public UhcMatch(TesseractUHC plugin, World startingWorld, Configuration defaults) {
 
@@ -457,7 +460,7 @@ public class UhcMatch {
 		// Fail if team exists
 		if (existsTeam(identifier)) return null;
 		
-		UhcTeam team = new UhcTeam(identifier, name, startPoint);
+		UhcTeam team = new UhcTeam(identifier, name, startPoint,COLORS[uhcTeams.size() % COLORS.length]);
 		uhcTeams.put(identifier.toLowerCase(), team);
 		return team;
 	}
@@ -549,6 +552,9 @@ public class UhcMatch {
 		start.makeSign();
 		start.fillChest(config.getBonusChest());
 
+		// Send update to the spectators
+		PluginChannelUtils.messageSpectators("team", name, "init");
+		
 		return true;
 	}
 	
@@ -575,6 +581,13 @@ public class UhcMatch {
 		// If player is already a participant, fail
 		if (pl.isParticipant()) return false;
 		
+		// If the player has the autoreferee-client mod, fail
+		if (pl.getAutoRefereeClientEnabled()) {
+			this.spectatorBroadcast(pl.getDisplayName() + ChatColor.DARK_GRAY + " attempted to log in with a modified client!");
+			pl.sendMessage(TesseractUHC.WARN_COLOR + " you attempted to join with a modified client mod.");
+			return false;
+		}
+		
 		// Get the team
 		UhcTeam team = getTeam(teamIdentifier);
 		
@@ -589,6 +602,9 @@ public class UhcMatch {
 
 		// If player wasn't created, fail
 		if (up == null) return false;
+		
+		// Message client mod that player joined team
+		PluginChannelUtils.messageSpectators("team", team.getName(), "player", "+" + up.getName());
 		
 		participantsInMatch.add(up);
 		return true;
@@ -606,6 +622,13 @@ public class UhcMatch {
 		
 		// If player is already a participant, fail
 		if (pl.isParticipant()) return false;
+		
+		// If the player has the autoreferee-client mod, fail
+		if (pl.getAutoRefereeClientEnabled()) {
+			this.spectatorBroadcast(pl.getDisplayName() + ChatColor.DARK_GRAY + " attempted to log in with a modified client!");
+			pl.sendMessage(TesseractUHC.WARN_COLOR + " you attempted to join with a modified client mod.");
+			return false;
+		}
 		
 		// If player is a spectator, make them not one
 		if (pl.isSpectator()) pl.makeNotSpectator();
@@ -677,6 +700,8 @@ public class UhcMatch {
 			// Mark them as a non participant
 			getPlayer(name).setParticipant(null);
 			
+			// Message client mod that player left team
+			PluginChannelUtils.messageSpectators("team", team.getName(), "player", "-" + pl.getName());
 			
 			// Remove them from the match
 			participantsInMatch.remove(pl.getParticipant());
@@ -697,7 +722,6 @@ public class UhcMatch {
 			pl.teleport(startingWorld.getSpawnLocation());
 			
 			getPlayer(name).makeSpectator();
-			
 			return true;
 		} else return false;
 	}
@@ -726,6 +750,9 @@ public class UhcMatch {
 		sp.makeSign();
 		sp.emptyChest();
 		availableStartPoints.add(sp);
+		
+		// Message client mod that player left team
+		PluginChannelUtils.messageSpectators("team", team.getName(), "destroy");
 		
 		return true;
 	}
@@ -1538,8 +1565,13 @@ public class UhcMatch {
 		for (Player p : server.getOnlinePlayers()) ups.add(getPlayer(p));
 		return ups;
 	}
-
-
-
+	
+	public Calendar getMatchStartTime(){
+		return matchStartTime;
+	}
+	
+	public ArrayList<UhcParticipant> getParticipants(){
+		return participantsInMatch;
+	}
 
 }
