@@ -36,10 +36,9 @@ public class SpectateCommand extends UhcCommandExecutor {
 		UhcPlayer pl =match.getPlayer(name);
 		if(!pl.isOnline()){
 			return ERROR_COLOR +"That player does not seem to be online.";
-		}else if(pl.isActiveParticipant()){
+		}else if(pl.isParticipant()){
 			return ERROR_COLOR +"That player is still playing. ";
 		}
-		pl.setParticipant(null);
 		pl.makeSpectator();		
 		return OK_COLOR +pl.getName()+" has been made a spectator;";		
 	}
