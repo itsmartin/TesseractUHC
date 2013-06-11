@@ -10,6 +10,8 @@ import com.martinbrook.tesseractuhc.TesseractUHC;
 import com.martinbrook.tesseractuhc.UhcPOI;
 import com.martinbrook.tesseractuhc.UhcSpectator;
 import com.martinbrook.tesseractuhc.UhcTeam;
+import com.martinbrook.tesseractuhc.event.UhcEvent;
+import com.martinbrook.tesseractuhc.event.UhcEventFactory;
 import com.martinbrook.tesseractuhc.startpoint.UhcStartPoint;
 
 public class UhcCommand extends UhcCommandExecutor {
@@ -58,7 +60,9 @@ public class UhcCommand extends UhcCommandExecutor {
 			return cUhcParams();
 		} else if ("set".equalsIgnoreCase(args[0])) {
 			return cUhcSet(args);
-		} 
+		} else if ("events".equalsIgnoreCase(args[0])) {
+			return cUhcEvents(args);
+		}
 		
 		return ERROR_COLOR + "Command not understood";
 	}
@@ -115,6 +119,34 @@ public class UhcCommand extends UhcCommandExecutor {
 			response += (i + 1) + ": " + pois.get(i).getName() + " (" + pois.get(i).toString() + ")\n"; 
 		}
 		return response;
+	}
+	
+	private String cUhcEvents(String[] args) {
+		if (args.length < 2) {
+			// list events
+			String response = "Events:\n";
+			for(UhcEvent e : match.getEvents()) {
+				response += "  At " + e.getTime() + "mins: " + e.getDescription();
+			}
+			return response;
+		}
+
+		if (args[1].equalsIgnoreCase("clear")) {
+			match.clearEvents();
+			match.getConfig().saveMatchParameters();
+			return OK_COLOR + "All events have been cleared";
+		}
+		if (args[1].equalsIgnoreCase("add")) {
+			if (args.length < 3) return ERROR_COLOR + "Insufficient parameters";
+			UhcEvent e = UhcEventFactory.newEvent(args[2], match);
+			if (e != null) {
+				match.addEvent(e);
+				return OK_COLOR + "Event created";
+			} else {
+				return ERROR_COLOR + "Event could not be created, please check your syntax";
+			}
+		}
+		return ERROR_COLOR + "Command not understood";
 	}
 
 	/**
@@ -204,19 +236,20 @@ public class UhcCommand extends UhcCommandExecutor {
 	
 	private String cUhcParams() {
 		String response = ChatColor.GOLD + "Match details:\n";
-		response += ChatColor.RESET + "[matchtitle]    " + config.formatParameter("matchtitle") + "\n";
-		response += ChatColor.RESET + "[uhc]           " + config.formatParameter("uhc") + "\n";
-		response += ChatColor.RESET + "[ffa]           " + config.formatParameter("ffa") + "\n";
-		response += ChatColor.RESET + "[nopvp]         " + config.formatParameter("nopvp") + "\n";
-		response += ChatColor.RESET + "[worldborder]   " + config.formatParameter("worldborder") + "\n";
-		response += ChatColor.RESET + "[killerbonus]   " + config.formatParameter("killerbonus") + "\n";
-		response += ChatColor.RESET + "[miningfatigue] " + config.formatParameter("miningfatigue") + "\n";
-		response += ChatColor.RESET + "[hardstone]     " + config.formatParameter("hardstone") + "\n";
-		response += ChatColor.RESET + "[deathban]      " + config.formatParameter("deathban") + "\n";
-		response += ChatColor.RESET + "[nolatecomers]  " + config.formatParameter("nolatecomers") + "\n";
-		response += ChatColor.RESET + "[dragonmode]    " + config.formatParameter("dragonmode") + "\n";
-		response += ChatColor.RESET + "[damagealerts]  " + config.formatParameter("damagealerts") + "\n";
-		response += ChatColor.RESET + "[dropheads]     " + config.formatParameter("dropheads") + "\n";
+		response += ChatColor.RESET + "[matchtitle]           " + config.formatParameter("matchtitle") + "\n";
+		response += ChatColor.RESET + "[uhc]                  " + config.formatParameter("uhc") + "\n";
+		response += ChatColor.RESET + "[ffa]                  " + config.formatParameter("ffa") + "\n";
+		response += ChatColor.RESET + "[nopvp]                " + config.formatParameter("nopvp") + "\n";
+		response += ChatColor.RESET + "[announcementinterval] " + config.formatParameter("announcementinterval") + "\n";
+		response += ChatColor.RESET + "[worldborder]          " + config.formatParameter("worldborder") + "\n";
+		response += ChatColor.RESET + "[killerbonus]          " + config.formatParameter("killerbonus") + "\n";
+		response += ChatColor.RESET + "[miningfatigue]        " + config.formatParameter("miningfatigue") + "\n";
+		response += ChatColor.RESET + "[hardstone]            " + config.formatParameter("hardstone") + "\n";
+		response += ChatColor.RESET + "[deathban]             " + config.formatParameter("deathban") + "\n";
+		response += ChatColor.RESET + "[nolatecomers]         " + config.formatParameter("nolatecomers") + "\n";
+		response += ChatColor.RESET + "[dragonmode]           " + config.formatParameter("dragonmode") + "\n";
+		response += ChatColor.RESET + "[damagealerts]         " + config.formatParameter("damagealerts") + "\n";
+		response += ChatColor.RESET + "[dropheads]            " + config.formatParameter("dropheads") + "\n";
 		
 		return response;
 	}

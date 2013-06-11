@@ -34,6 +34,8 @@ import org.bukkit.inventory.ShapelessRecipe;
 import com.martinbrook.tesseractuhc.countdown.BorderCountdown;
 import com.martinbrook.tesseractuhc.countdown.MatchCountdown;
 import com.martinbrook.tesseractuhc.countdown.PVPCountdown;
+import com.martinbrook.tesseractuhc.countdown.PermadayCountdown;
+import com.martinbrook.tesseractuhc.event.UhcEvent;
 import com.martinbrook.tesseractuhc.notification.ProximityNotification;
 import com.martinbrook.tesseractuhc.notification.UhcNotification;
 import com.martinbrook.tesseractuhc.startpoint.LargeGlassStartPoint;
@@ -67,6 +69,7 @@ public class UhcMatch {
 	private ArrayList<UhcTeam> teamsInMatch = new ArrayList<UhcTeam>();
 	private Calendar matchStartTime;
 	private int matchTimer = -1;
+	private long lastMatchTimeAnnouncement = 0;
 	private ArrayList<Location> calculatedStarts = null;
 	private boolean pvp = false;
 	private int spawnKeeperTask = -1;
@@ -75,7 +78,10 @@ public class UhcMatch {
 	private MatchPhase matchPhase = MatchPhase.PRE_MATCH;
 	private MatchCountdown matchCountdown;
 	private BorderCountdown borderCountdown;
+	private PermadayCountdown permadayCountdown;
+	private PVPCountdown pvpCountdown;
 	private ArrayList<UhcPOI> uhcPOIs = new ArrayList<UhcPOI>();
+	private ArrayList<UhcEvent> uhcEvents = new ArrayList<UhcEvent>();
 	private int proximityCheckerTask;
 	private static int PROXIMITY_THRESHOLD_SQUARED = 10000;
 	protected static int PLAYER_DAMAGE_ALERT_TICKS = 80; // 4 seconds
@@ -84,6 +90,7 @@ public class UhcMatch {
 	public static short DURABILITY_PENALTY_STONE = 3;
 	public static short DURABILITY_PENALTY_IRON = 4;
 	public static short DURABILITY_PENALTY_DIAMOND = 5;
+	public static int EVENT_COUNTDOWN_LENGTH = 3; // 3 minute countdown for all match events
 	private HashMap<String, UhcPlayer> allPlayers = new HashMap<String, UhcPlayer>();
 	private UhcConfiguration config;
 	private int borderCheckerTask;
@@ -327,18 +334,19 @@ public class UhcMatch {
 		startingWorld.setDifficulty(Difficulty.HARD);
 		for (UhcParticipant up : this.getUhcParticipants()) up.start();
 		setPermaday(false);
-		startMatchTimer();
 		setVanish();
 		broadcast("GO!");
 		
 		// Set up pvp countdown
 		if (config.getNopvp() > 0) {
-			new PVPCountdown(config.getNopvp(), plugin, this);
+			new PVPCountdown(config.getNopvp(), plugin, this, true);
 		} else {
 			setPVP(true);
 		}
 		enableProximityChecker();
 		enableBorderChecker();
+		enableMatchTimer();
+
 	}
 	
 	/**
@@ -348,7 +356,7 @@ public class UhcMatch {
 	 */
 	public void endMatch() {
 		broadcast(matchTimeAnnouncement(true));
-		stopMatchTimer();
+		disableMatchTimer();
 		matchPhase = MatchPhase.POST_MATCH;
 		// Put all players into creative
 		for (UhcPlayer pl : getOnlinePlayers()) pl.setGameMode(GameMode.CREATIVE);
@@ -380,19 +388,24 @@ public class UhcMatch {
 	/**
 	 * Starts the match timer
 	 */
-	private void startMatchTimer() {
+	private void enableMatchTimer() {
 		matchStartTime = Calendar.getInstance();
+		
+		// Immediately do the first one
+		doScheduledTasks();
+		
+		// Repeat every 20 seconds
 		matchTimer = server.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
 			public void run() {
-				doMatchProgressAnnouncement();
+				doScheduledTasks();
 			}
-		}, 1200L, 1200L);
+		}, 420L, 400L);
 	}
 	
 	/**
 	 * Stops the match timer
 	 */
-	private void stopMatchTimer() {
+	private void disableMatchTimer() {
 		if (matchTimer != -1) {
 			server.getScheduler().cancelTask(matchTimer);
 		}
@@ -401,10 +414,24 @@ public class UhcMatch {
 	/**
 	 * Display the current match time if it is a multiple of 30.
 	 */
-	private void doMatchProgressAnnouncement() {
+	private void doScheduledTasks() {
+		// Get current match time
 		long matchTime = MatchUtils.getDuration(matchStartTime, Calendar.getInstance()) / 60;
-		if (matchTime % 30 == 0 && matchTime > 0) {
-			broadcast(matchTimeAnnouncement(false));
+		
+		// Make a match time announcement if necessary
+		if (config.getAnnouncementinterval() > 0) {
+			if (matchTime % config.getAnnouncementinterval() == 0 && matchTime > this.lastMatchTimeAnnouncement) {
+				broadcast(matchTimeAnnouncement(false));
+				this.lastMatchTimeAnnouncement = matchTime;
+			}
+		}
+		
+		// Process any UhcEvents that are due
+		for(UhcEvent e : this.uhcEvents) {
+			if (!e.isHandled() && e.getTime() <= matchTime + e.getCountdownLength()) {
+				e.startCountdown((int)(e.getTime() - matchTime));
+			}
+				
 		}
 	}
 
@@ -1424,6 +1451,38 @@ public class UhcMatch {
 		}
 		return false;
 	}
+	
+	public boolean startPVPCountdown(int countLength, Boolean newValue) {
+		if (this.pvpCountdown == null && this.matchPhase == MatchPhase.MATCH) {
+			this.pvpCountdown = new PVPCountdown(countLength, plugin, this, newValue);
+			return true;
+		}
+		return false;
+	}
+
+	public boolean cancelPVPCountdown() {
+		if (this.pvpCountdown == null) return false;
+
+		pvpCountdown.cancel();
+		pvpCountdown = null;
+		return true;
+	}
+	
+	public boolean startPermadayCountdown(int countLength, Boolean newValue) {
+		if (this.permadayCountdown == null && this.matchPhase == MatchPhase.MATCH) {
+			this.permadayCountdown = new PermadayCountdown(countLength, plugin, this, newValue);
+			return true;
+		}
+		return false;
+	}
+	
+	public boolean cancelPermadayCountdown() {
+		if (this.permadayCountdown == null) return false;
+
+		permadayCountdown.cancel();
+		permadayCountdown = null;
+		return true;
+	}
 
 	public Collection<UhcTeam> getTeams() {
 		return uhcTeams.values();
@@ -1486,6 +1545,18 @@ public class UhcMatch {
 
 	public void clearPOIs() {
 		uhcPOIs.clear();
+	}
+	
+	public ArrayList<UhcEvent> getEvents() {
+		return uhcEvents;
+	}
+	
+	public void addEvent(UhcEvent event) {
+		uhcEvents.add(event);
+	}
+	
+	public void clearEvents() {
+		uhcEvents.clear();
 	}
 
 

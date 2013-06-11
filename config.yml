@@ -2,6 +2,7 @@ matchtitle: TesseractUHC
 deathban: false
 uhc: true
 ffa: true
+announcementinterval: 20
 nopvp: 300
 nolatecomers: false
 dragonmode: false
