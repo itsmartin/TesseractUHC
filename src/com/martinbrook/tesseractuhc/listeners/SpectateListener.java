@@ -17,6 +17,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
+import org.bukkit.event.vehicle.VehicleDamageEvent;
 import org.bukkit.inventory.DoubleChestInventory;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
@@ -73,7 +74,15 @@ public class SpectateListener implements Listener {
 	public void onPlayerDropItem(PlayerDropItemEvent e) {
 		if (m.getPlayer(e.getPlayer()).isNonInteractingSpectator() && m.getMatchPhase() == MatchPhase.MATCH) e.setCancelled(true);
 	}
-
+        
+        @EventHandler(ignoreCancelled = true)
+        public void onVehicleDamage(VehicleDamageEvent e) {
+            Entity attacker = e.getAttacker();
+            if (attacker != null && attacker.getType() == EntityType.PLAYER) {
+                	if (m.getPlayer((Player) attacker).isSpectator() && m.getMatchPhase() == MatchPhase.MATCH) e.setCancelled(true);
+        	}
+        }
+        
 	@EventHandler(ignoreCancelled = true)
 	public void onEntityTarget(EntityTargetEvent e) {
 		Entity target = e.getTarget();
