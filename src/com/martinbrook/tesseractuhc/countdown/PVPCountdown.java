@@ -22,7 +22,6 @@ public class PVPCountdown extends UhcCountdown {
 	@Override
 	protected void complete() {
 		match.setPVP(newValue);
-		match.resetPVPCountdown();
 		match.broadcast("PVP is now " + (newValue ? "enabled" : "disabled") + "!");
 
 	}

@@ -22,7 +22,6 @@ public class PermadayCountdown extends UhcCountdown {
 	@Override
 	protected void complete() {
 		match.setPermaday(newValue);
-		match.resetPermadayCountdown();
 		match.broadcast("Permaday is now " + (newValue ? "enabled" : "disabled") + "!");
 
 	}
