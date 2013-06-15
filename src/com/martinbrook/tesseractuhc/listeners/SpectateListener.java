@@ -79,7 +79,7 @@ public class SpectateListener implements Listener {
 	public void onVehicleDamage(VehicleDamageEvent e) {
 		Entity attacker = e.getAttacker();
 		if (attacker != null && attacker.getType() == EntityType.PLAYER) {
-			if (m.getPlayer((Player) attacker).isSpectator() && m.getMatchPhase() == MatchPhase.MATCH) e.setCancelled(true);
+			if (m.getPlayer((Player) attacker).isNonInteractingSpectator() && m.getMatchPhase() == MatchPhase.MATCH) e.setCancelled(true);
 		}
 	}
 
