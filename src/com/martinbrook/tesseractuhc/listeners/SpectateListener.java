@@ -10,10 +10,14 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityTargetEvent;
+import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
+import org.bukkit.event.player.PlayerBucketEmptyEvent;
+import org.bukkit.event.player.PlayerBucketFillEvent;
+import org.bukkit.event.vehicle.VehicleDamageEvent;
 import org.bukkit.inventory.DoubleChestInventory;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
@@ -39,8 +43,27 @@ public class SpectateListener implements Listener {
 			if (m.getPlayer((Player) clicked).isActiveParticipant())
 				pl.getSpectator().showInventory((Player) clicked);
 		}
+                
+                if (m.getPlayer(e.getPlayer()).isNonInteractingSpectator() && m.getMatchPhase() == MatchPhase.MATCH) e.setCancelled(true);
 	}
-
+        
+        @EventHandler(ignoreCancelled = true)
+        public void onProjectileLaunch(ProjectileLaunchEvent e) {
+            Entity launcher = e.getEntity().getShooter();
+            if (launcher != null && launcher.getType() == EntityType.PLAYER) {
+                if (m.getPlayer((Player) launcher).isSpectator() && m.getMatchPhase() == MatchPhase.MATCH) e.setCancelled(true);
+            }
+        }
+        
+        @EventHandler(ignoreCancelled = true)
+        public void onPlayerBucketEmpty(PlayerBucketEmptyEvent e) {
+            if (m.getPlayer(e.getPlayer()).isNonInteractingSpectator() && m.getMatchPhase() == MatchPhase.MATCH) e.setCancelled(true);
+        }        
+        
+        @EventHandler(ignoreCancelled = true)
+        public void onPlayerBucketFill(PlayerBucketFillEvent e) {
+            if (m.getPlayer(e.getPlayer()).isNonInteractingSpectator() && m.getMatchPhase() == MatchPhase.MATCH) e.setCancelled(true);
+        }
 	
 	@EventHandler(ignoreCancelled = true)
 	public void onPlayerPickupItem(PlayerPickupItemEvent e) {
@@ -51,7 +74,15 @@ public class SpectateListener implements Listener {
 	public void onPlayerDropItem(PlayerDropItemEvent e) {
 		if (m.getPlayer(e.getPlayer()).isNonInteractingSpectator() && m.getMatchPhase() == MatchPhase.MATCH) e.setCancelled(true);
 	}
-
+        
+        @EventHandler(ignoreCancelled = true)
+        public void onVehicleDamage(VehicleDamageEvent e) {
+            Entity attacker = e.getAttacker();
+            if (attacker != null && attacker.getType() == EntityType.PLAYER) {
+                	if (m.getPlayer((Player) attacker).isSpectator() && m.getMatchPhase() == MatchPhase.MATCH) e.setCancelled(true);
+        	}
+        }
+        
 	@EventHandler(ignoreCancelled = true)
 	public void onEntityTarget(EntityTargetEvent e) {
 		Entity target = e.getTarget();
