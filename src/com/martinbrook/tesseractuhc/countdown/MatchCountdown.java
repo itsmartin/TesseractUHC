@@ -16,6 +16,7 @@ public class MatchCountdown extends UhcCountdown {
 	@Override
 	protected void complete() {
 		match.startMatch();
+		match.resetMatchCountdown();
 		PluginChannelUtils.messageSpectators("match",TesseractUHC.PLUGIN_CHANNEL_WORLD,"start");
 	}
 

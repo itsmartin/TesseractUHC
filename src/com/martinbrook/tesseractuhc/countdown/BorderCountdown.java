@@ -25,6 +25,7 @@ public class BorderCountdown extends UhcCountdown {
 	@Override
 	protected void complete() {
 		match.setWorldBorder(newRadius);
+		match.resetBorderCountdown();
 		match.broadcast(ChatColor.GOLD + "World border is now at +/- " + newRadius  + " x and z!");
 	}
 

@@ -1436,6 +1436,10 @@ public class UhcMatch {
 		return true;
 	}
 	
+	public void resetMatchCountdown(){
+		this.matchCountdown = null;
+	}
+	
 	public boolean cancelBorderCountdown() {
 		if (this.borderCountdown == null) return false;
 
@@ -1450,6 +1454,10 @@ public class UhcMatch {
 			return true;
 		}
 		return false;
+	}
+	
+	public void resetBorderCountdown(){
+		this.borderCountdown = null;
 	}
 	
 	public boolean startPVPCountdown(int countLength, Boolean newValue) {
@@ -1468,6 +1476,10 @@ public class UhcMatch {
 		return true;
 	}
 	
+	public void resetPVPCountdown(){
+		this.pvpCountdown = null;
+	}
+	
 	public boolean startPermadayCountdown(int countLength, Boolean newValue) {
 		if (this.permadayCountdown == null && this.matchPhase == MatchPhase.MATCH) {
 			this.permadayCountdown = new PermadayCountdown(countLength, plugin, this, newValue);
@@ -1482,6 +1494,10 @@ public class UhcMatch {
 		permadayCountdown.cancel();
 		permadayCountdown = null;
 		return true;
+	}
+	
+	public void resetPermadayCountdown(){
+		this.permadayCountdown = null;
 	}
 
 	public Collection<UhcTeam> getTeams() {
