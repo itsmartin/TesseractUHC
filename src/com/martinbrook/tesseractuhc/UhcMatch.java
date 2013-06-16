@@ -580,8 +580,10 @@ public class UhcMatch {
 		start.fillChest(config.getBonusChest());
 
 		// Send update to the spectators
-		PluginChannelUtils.messageSpectators("team", name, "init");
-		PluginChannelUtils.messageSpectators("team", name, "color", team.getColor().toString());
+		if (!getConfig().isFFA()){
+			PluginChannelUtils.messageSpectators("team", name, "init");
+			PluginChannelUtils.messageSpectators("team", name, "color", team.getColor().toString());
+		}
 		
 		return true;
 	}
