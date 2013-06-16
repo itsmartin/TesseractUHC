@@ -581,6 +581,7 @@ public class UhcMatch {
 
 		// Send update to the spectators
 		PluginChannelUtils.messageSpectators("team", name, "init");
+		PluginChannelUtils.messageSpectators("team", name, "color", team.getColor().toString());
 		
 		return true;
 	}
