@@ -111,7 +111,6 @@ public class UhcMatch {
 		this.setPVP(false);
 		this.setVanish();
 		this.enableSpawnKeeper();
-		this.enablePlayerListUpdater();
 		this.setWorldBorder(config.getWorldBorder());
 		
 	}
@@ -862,20 +861,13 @@ public class UhcMatch {
 		this.launchQueue.add(up.getName().toLowerCase());
 	}
 	
-	private void enablePlayerListUpdater() {
-		server.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
+	
+	public void schedulePlayerListUpdate(final UhcPlayer pl) {
+		server.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
 			public void run() {
-				runPlayerListUpdater();
+				pl.updatePlayerListName();
 			}
-		}, 60L, 60L);
-	}
-
-
-	private void runPlayerListUpdater() {
-		// Update the player list for all players
-		for(UhcPlayer pl : getOnlinePlayers()) {
-			pl.updatePlayerListName();
-		}
+		});
 	}
 	
 
@@ -1423,7 +1415,7 @@ public class UhcMatch {
 	}
 
 	public boolean startMatchCountdown(int countLength) {
-		if (this.matchCountdown == null && (this.matchPhase == MatchPhase.LAUNCHING || this.matchPhase == MatchPhase.PRE_MATCH)) {
+		if ((this.matchCountdown == null || !this.matchCountdown.isActive()) && (this.matchPhase == MatchPhase.LAUNCHING || this.matchPhase == MatchPhase.PRE_MATCH)) {
 			this.matchCountdown = new MatchCountdown(countLength, plugin, this);
 			return true;
 		}
@@ -1433,38 +1425,24 @@ public class UhcMatch {
 	
 	public boolean cancelMatchCountdown() {
 		if (this.matchCountdown == null) return false;
-
-		matchCountdown.cancel();
-		matchCountdown = null;
-		return true;
-	}
-	
-	public void resetMatchCountdown(){
-		this.matchCountdown = null;
+		return matchCountdown.cancel();
 	}
 	
 	public boolean cancelBorderCountdown() {
 		if (this.borderCountdown == null) return false;
-
-		borderCountdown.cancel();
-		borderCountdown = null;
-		return true;
+		return borderCountdown.cancel();
 	}
 
 	public boolean startBorderCountdown(int countLength, int newRadius) {
-		if (this.borderCountdown == null && this.matchPhase == MatchPhase.MATCH) {
+		if ((this.borderCountdown == null || !this.borderCountdown.isActive()) && this.matchPhase == MatchPhase.MATCH) {
 			this.borderCountdown = new BorderCountdown(countLength, plugin, this, newRadius);
 			return true;
 		}
 		return false;
 	}
 	
-	public void resetBorderCountdown(){
-		this.borderCountdown = null;
-	}
-	
 	public boolean startPVPCountdown(int countLength, Boolean newValue) {
-		if (this.pvpCountdown == null && this.matchPhase == MatchPhase.MATCH) {
+		if ((this.pvpCountdown == null || !this.pvpCountdown.isActive()) && this.matchPhase == MatchPhase.MATCH) {
 			this.pvpCountdown = new PVPCountdown(countLength, plugin, this, newValue);
 			return true;
 		}
@@ -1473,18 +1451,11 @@ public class UhcMatch {
 
 	public boolean cancelPVPCountdown() {
 		if (this.pvpCountdown == null) return false;
-
-		pvpCountdown.cancel();
-		pvpCountdown = null;
-		return true;
-	}
-	
-	public void resetPVPCountdown(){
-		this.pvpCountdown = null;
+		return pvpCountdown.cancel();
 	}
 	
 	public boolean startPermadayCountdown(int countLength, Boolean newValue) {
-		if (this.permadayCountdown == null && this.matchPhase == MatchPhase.MATCH) {
+		if ((this.permadayCountdown == null || !this.permadayCountdown.isActive()) && this.matchPhase == MatchPhase.MATCH) {
 			this.permadayCountdown = new PermadayCountdown(countLength, plugin, this, newValue);
 			return true;
 		}
@@ -1493,16 +1464,9 @@ public class UhcMatch {
 	
 	public boolean cancelPermadayCountdown() {
 		if (this.permadayCountdown == null) return false;
-
-		permadayCountdown.cancel();
-		permadayCountdown = null;
-		return true;
+		return permadayCountdown.cancel();
 	}
 	
-	public void resetPermadayCountdown(){
-		this.permadayCountdown = null;
-	}
-
 	public Collection<UhcTeam> getTeams() {
 		return uhcTeams.values();
 	}

@@ -68,8 +68,6 @@ public class MatchListener implements Listener {
 		if (m.getConfig().isDropHeads()) {
 			m.placeHeadDelayed(p.getLocation(), p.getName());
 
-			
-
 		}
         
 		// Make death message red
@@ -82,6 +80,10 @@ public class MatchListener implements Listener {
 		// Handle the death
 		if (pl.isActiveParticipant() && m.getMatchPhase() == MatchPhase.MATCH)
 			m.handleParticipantDeath(pl.getParticipant());
+		
+
+		// Update the tab list
+		m.schedulePlayerListUpdate(pl);
 
 	}
 
@@ -141,6 +143,9 @@ public class MatchListener implements Listener {
 		
 		// Update the client mod
 		updateHealth(pl.getPlayer());
+
+		// Update the tab list
+		m.schedulePlayerListUpdate(pl);
 	}
 	
 	
@@ -204,6 +209,9 @@ public class MatchListener implements Listener {
 		
 		// Send update to client mod
 		updateHealth(pl.getPlayer());	
+
+		// Update the tab list
+		m.schedulePlayerListUpdate(pl);
 	}
 	
 	@EventHandler(ignoreCancelled = true)
