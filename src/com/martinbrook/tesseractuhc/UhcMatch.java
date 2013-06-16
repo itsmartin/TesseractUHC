@@ -111,7 +111,6 @@ public class UhcMatch {
 		this.setPVP(false);
 		this.setVanish();
 		this.enableSpawnKeeper();
-		this.enablePlayerListUpdater();
 		this.setWorldBorder(config.getWorldBorder());
 		
 	}
@@ -859,20 +858,13 @@ public class UhcMatch {
 		this.launchQueue.add(up.getName().toLowerCase());
 	}
 	
-	private void enablePlayerListUpdater() {
-		server.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
+	
+	public void schedulePlayerListUpdate(final UhcPlayer pl) {
+		server.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
 			public void run() {
-				runPlayerListUpdater();
+				pl.updatePlayerListName();
 			}
-		}, 60L, 60L);
-	}
-
-
-	private void runPlayerListUpdater() {
-		// Update the player list for all players
-		for(UhcPlayer pl : getOnlinePlayers()) {
-			pl.updatePlayerListName();
-		}
+		});
 	}
 	
 

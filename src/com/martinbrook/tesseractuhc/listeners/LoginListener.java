@@ -19,7 +19,10 @@ public class LoginListener implements Listener {
 	@EventHandler
 	public void onJoin(PlayerJoinEvent e) {
 		UhcPlayer pl = m.getPlayer(e.getPlayer());
-		
+
+		// Update the tab list
+		m.schedulePlayerListUpdate(pl);
+
 		// Send a welcome message if pre-game
 		if (m.getMatchPhase() == MatchPhase.PRE_MATCH)
 			pl.sendMessage(ChatColor.AQUA + "Welcome to " + ChatColor.ITALIC + m.getConfig().getMatchTitle() 
