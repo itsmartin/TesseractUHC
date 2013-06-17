@@ -346,6 +346,7 @@ public class UhcMatch {
 		enableProximityChecker();
 		enableBorderChecker();
 		enableMatchTimer();
+		server.getPluginManager().callEvent(new UhcMatchStartEvent(this, startingWorld.getSpawnLocation()));
 
 	}
 	
