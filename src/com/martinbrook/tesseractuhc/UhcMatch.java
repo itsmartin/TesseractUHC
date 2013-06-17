@@ -35,6 +35,7 @@ import com.martinbrook.tesseractuhc.countdown.BorderCountdown;
 import com.martinbrook.tesseractuhc.countdown.MatchCountdown;
 import com.martinbrook.tesseractuhc.countdown.PVPCountdown;
 import com.martinbrook.tesseractuhc.countdown.PermadayCountdown;
+import com.martinbrook.tesseractuhc.customevent.UhcMatchStartEvent;
 import com.martinbrook.tesseractuhc.event.UhcEvent;
 import com.martinbrook.tesseractuhc.notification.ProximityNotification;
 import com.martinbrook.tesseractuhc.notification.UhcNotification;
@@ -67,7 +68,7 @@ public class UhcMatch {
 	public static int DIAMOND_LAYER = 16;
 	private ArrayList<UhcParticipant> participantsInMatch = new ArrayList<UhcParticipant>();
 	private ArrayList<UhcTeam> teamsInMatch = new ArrayList<UhcTeam>();
-	private Calendar matchStartTime;
+	private Calendar matchStartTime = null;
 	private int matchTimer = -1;
 	private long lastMatchTimeAnnouncement = 0;
 	private ArrayList<Location> calculatedStarts = null;
@@ -411,11 +412,21 @@ public class UhcMatch {
 	}
 	
 	/**
+	 * Get the current match time in seconds
+	 * 
+	 * @return Time since the match started, in seconds
+	 */
+	public long getMatchTime() {
+		if (matchStartTime == null) return 0;
+		return MatchUtils.getDuration(matchStartTime, Calendar.getInstance());
+	}
+	
+	/**
 	 * Display the current match time if it is a multiple of 30.
 	 */
 	private void doScheduledTasks() {
 		// Get current match time
-		long matchTime = MatchUtils.getDuration(matchStartTime, Calendar.getInstance()) / 60;
+		long matchTime = getMatchTime() / 60;
 		
 		// Make a match time announcement if necessary
 		if (config.getAnnouncementinterval() > 0) {
