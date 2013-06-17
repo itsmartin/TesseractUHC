@@ -35,6 +35,7 @@ import com.martinbrook.tesseractuhc.countdown.BorderCountdown;
 import com.martinbrook.tesseractuhc.countdown.MatchCountdown;
 import com.martinbrook.tesseractuhc.countdown.PVPCountdown;
 import com.martinbrook.tesseractuhc.countdown.PermadayCountdown;
+import com.martinbrook.tesseractuhc.customevent.UhcMatchEndEvent;
 import com.martinbrook.tesseractuhc.customevent.UhcMatchStartEvent;
 import com.martinbrook.tesseractuhc.event.UhcEvent;
 import com.martinbrook.tesseractuhc.notification.ProximityNotification;
@@ -356,6 +357,7 @@ public class UhcMatch {
 	 * Announce the total match duration
 	 */
 	public void endMatch() {
+		server.getPluginManager().callEvent(new UhcMatchEndEvent(this, startingWorld.getSpawnLocation()));
 		broadcast(matchTimeAnnouncement(true));
 		disableMatchTimer();
 		matchPhase = MatchPhase.POST_MATCH;
