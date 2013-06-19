@@ -13,6 +13,8 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
+import com.martinbrook.tesseractuhc.customevent.UhcArmorChangeEvent;
+import com.martinbrook.tesseractuhc.customevent.UhcHealthChangeEvent;
 import com.martinbrook.tesseractuhc.startpoint.UhcStartPoint;
 import com.martinbrook.tesseractuhc.util.ArmorPoints;
 import com.martinbrook.tesseractuhc.util.PluginChannelUtils;
@@ -257,6 +259,7 @@ public class UhcParticipant implements PlayerTarget {
 
 		if (newHealth != currentHealth){
 			PluginChannelUtils.messageSpectators("player", getName(), "hp", Integer.toString(newHealth));
+			this.player.getMatch().getServer().getPluginManager().callEvent(new UhcHealthChangeEvent(this.player.getMatch(), this.player.getLocation(), player, newHealth));
 			currentHealth = newHealth;
 		}
 	}
@@ -269,6 +272,7 @@ public class UhcParticipant implements PlayerTarget {
 
 		if (newArmor != currentArmor){
 			PluginChannelUtils.messageSpectators("player", getName(), "armor", Integer.toString(newArmor));
+			this.player.getMatch().getServer().getPluginManager().callEvent(new UhcArmorChangeEvent(this.player.getMatch(), this.player.getLocation(), player, newArmor));
 			currentArmor = newArmor;
 		}
 	}
