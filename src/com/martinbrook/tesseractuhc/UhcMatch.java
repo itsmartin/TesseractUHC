@@ -35,6 +35,7 @@ import com.martinbrook.tesseractuhc.countdown.BorderCountdown;
 import com.martinbrook.tesseractuhc.countdown.MatchCountdown;
 import com.martinbrook.tesseractuhc.countdown.PVPCountdown;
 import com.martinbrook.tesseractuhc.countdown.PermadayCountdown;
+import com.martinbrook.tesseractuhc.customevent.UhcJoinEvent;
 import com.martinbrook.tesseractuhc.customevent.UhcMatchEndEvent;
 import com.martinbrook.tesseractuhc.customevent.UhcMatchStartEvent;
 import com.martinbrook.tesseractuhc.customevent.UhcPlayerLocationUpdateEvent;
@@ -715,6 +716,9 @@ public class UhcMatch {
 		up.sendMessage(ChatColor.GOLD + "This is " + ChatColor.ITALIC + config.getMatchTitle() + "\n" 
 				+ ChatColor.RESET + ChatColor.AQUA + "To find out the parameters for this game, type " + ChatColor.GOLD + "/params" + "\n"
 				+ ChatColor.AQUA + "To view the match status at any time, type " + ChatColor.GOLD + "/match");
+
+		// Trigger a join event
+		server.getPluginManager().callEvent(new UhcJoinEvent(this, up.getStartPoint().getLocation(), p));
 
 		return true;
 
