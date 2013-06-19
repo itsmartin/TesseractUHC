@@ -32,6 +32,7 @@ import com.martinbrook.tesseractuhc.TesseractUHC;
 import com.martinbrook.tesseractuhc.UhcMatch;
 import com.martinbrook.tesseractuhc.UhcParticipant;
 import com.martinbrook.tesseractuhc.UhcPlayer;
+import com.martinbrook.tesseractuhc.customevent.UhcDeathEvent;
 import com.martinbrook.tesseractuhc.notification.DamageNotification;
 import com.martinbrook.tesseractuhc.notification.HealingNotification;
 
@@ -71,19 +72,23 @@ public class MatchListener implements Listener {
 		}
         
 		// Make death message red
-		String msg = e.getDeathMessage();
-		e.setDeathMessage(ChatColor.GOLD + msg);
+		String deathMessage = e.getDeathMessage();
+		e.setDeathMessage(ChatColor.GOLD + deathMessage);
 		
 		// Save death point
 		m.setLastDeathLocation(p.getLocation());
 		
 		// Handle the death
-		if (pl.isActiveParticipant() && m.getMatchPhase() == MatchPhase.MATCH)
+		if (pl.isActiveParticipant() && m.getMatchPhase() == MatchPhase.MATCH) {
 			m.handleParticipantDeath(pl.getParticipant());
-		
+			
+			// Trigger death event
+			m.getServer().getPluginManager().callEvent(new UhcDeathEvent(m, p.getLocation(), deathMessage, p, p.getKiller()));
+		}
 
 		// Update the tab list
 		m.schedulePlayerListUpdate(pl);
+		
 
 	}
 
