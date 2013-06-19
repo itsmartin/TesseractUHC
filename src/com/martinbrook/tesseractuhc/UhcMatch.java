@@ -1012,6 +1012,8 @@ public class UhcMatch {
 				}
 			}
 			
+			// Trigger a location event
+			server.getPluginManager().callEvent(new UhcPlayerLocationUpdateEvent(this, up.getPlayer().getLocation()));
 		}
 	}
 	
