@@ -37,6 +37,7 @@ import com.martinbrook.tesseractuhc.countdown.PVPCountdown;
 import com.martinbrook.tesseractuhc.countdown.PermadayCountdown;
 import com.martinbrook.tesseractuhc.customevent.UhcMatchEndEvent;
 import com.martinbrook.tesseractuhc.customevent.UhcMatchStartEvent;
+import com.martinbrook.tesseractuhc.customevent.UhcPlayerLocationUpdateEvent;
 import com.martinbrook.tesseractuhc.event.UhcEvent;
 import com.martinbrook.tesseractuhc.notification.ProximityNotification;
 import com.martinbrook.tesseractuhc.notification.UhcNotification;
@@ -84,7 +85,7 @@ public class UhcMatch {
 	private PVPCountdown pvpCountdown;
 	private ArrayList<UhcPOI> uhcPOIs = new ArrayList<UhcPOI>();
 	private ArrayList<UhcEvent> uhcEvents = new ArrayList<UhcEvent>();
-	private int proximityCheckerTask;
+	private int locationCheckerTask;
 	private static int PROXIMITY_THRESHOLD_SQUARED = 10000;
 	protected static int PLAYER_DAMAGE_ALERT_TICKS = 80; // 4 seconds
 	public static short DURABILITY_PENALTY_GOLD = 1;
@@ -344,7 +345,7 @@ public class UhcMatch {
 		} else {
 			setPVP(true);
 		}
-		enableProximityChecker();
+		enableLocationChecker();
 		enableBorderChecker();
 		enableMatchTimer();
 		server.getPluginManager().callEvent(new UhcMatchStartEvent(this, startingWorld.getSpawnLocation()));
@@ -364,7 +365,7 @@ public class UhcMatch {
 		// Put all players into creative
 		for (UhcPlayer pl : getOnlinePlayers()) pl.setGameMode(GameMode.CREATIVE);
 		setVanish();
-		disableProximityChecker();
+		disableLocationChecker();
 		disableBorderChecker();
 
 	}
@@ -974,19 +975,19 @@ public class UhcMatch {
 		}
 	}
 	
-	private void enableProximityChecker() {
-		proximityCheckerTask = server.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
+	private void enableLocationChecker() {
+		locationCheckerTask = server.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
 			public void run() {
-				runProximityChecker();
+				runLocationChecker();
 			}
 		}, 200L, 600L);
 	}
 
-	private void disableProximityChecker() {
-		server.getScheduler().cancelTask(proximityCheckerTask);
+	private void disableLocationChecker() {
+		server.getScheduler().cancelTask(locationCheckerTask);
 	}
 	
-	private void runProximityChecker() {
+	private void runLocationChecker() {
 		// Cycle through all UhcPlayers
 		for (int i = 0; i < participantsInMatch.size(); i++) {
 			UhcParticipant up = participantsInMatch.get(i);
