@@ -13,7 +13,9 @@ public class UhcHealthChangeEvent extends UhcMatchEvent {
 	public UhcHealthChangeEvent(UhcMatch match, Location location, Player player, int health) {
 		super(match, location);
 		this.health = health;
+		this.logData.put("health", String.valueOf(health));
 		this.player = player;
+		this.logData.put("player", player.getName());
 	}
 
 

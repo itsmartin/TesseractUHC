@@ -14,8 +14,11 @@ public class UhcDeathEvent extends UhcMatchEvent {
 	public UhcDeathEvent(UhcMatch match, Location location, String deathMessage, Player player, Player killer) {
 		super(match, location);
 		this.deathMessage = deathMessage;
+		this.logData.put("deathMessage", deathMessage);
 		this.player = player;
+		this.logData.put("player", player.getName());
 		this.killer = killer;
+		this.logData.put("killer", (killer != null ? killer.getName() : ""));
 	}
 
 	public String getDeathMessage() {

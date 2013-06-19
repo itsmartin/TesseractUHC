@@ -13,7 +13,9 @@ public class UhcArmorChangeEvent extends UhcMatchEvent {
 	public UhcArmorChangeEvent(UhcMatch match, Location location, Player player, int armorPoints) {
 		super(match, location);
 		this.armorPoints = armorPoints;
+		this.logData.put("armorPoints", String.valueOf(armorPoints));
 		this.player = player;
+		this.logData.put("player", player.getName());
 	}
 
 	public int getArmorPoints() {

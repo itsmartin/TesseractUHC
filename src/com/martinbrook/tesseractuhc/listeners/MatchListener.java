@@ -285,7 +285,7 @@ public class MatchListener implements Listener {
 	public void onWorldChange(PlayerChangedWorldEvent e) {
 		UhcPlayer pl = m.getPlayer(e.getPlayer());
 		if (pl.isActiveParticipant() && m.getMatchPhase() == MatchPhase.MATCH)
-			m.getServer().getPluginManager().callEvent(new UhcDimensionChangeEvent(m, e.getPlayer().getLocation(), e.getPlayer().getWorld().getEnvironment()));
+			m.getServer().getPluginManager().callEvent(new UhcDimensionChangeEvent(m, e.getPlayer().getLocation(), e.getPlayer(), e.getPlayer().getWorld().getEnvironment()));
 		
 	}
 	

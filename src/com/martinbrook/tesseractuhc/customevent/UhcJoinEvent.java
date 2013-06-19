@@ -12,6 +12,7 @@ public class UhcJoinEvent extends UhcMatchEvent {
 	public UhcJoinEvent(UhcMatch match, Location location, Player player) {
 		super(match, location);
 		this.player = player;
+		this.logData.put("player", player.getName());
 	}
 	
 	public Player getPlayer() { return player; }
