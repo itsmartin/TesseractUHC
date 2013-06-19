@@ -19,6 +19,7 @@ import org.bukkit.event.entity.EntityRegainHealthEvent.RegainReason;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
@@ -33,6 +34,7 @@ import com.martinbrook.tesseractuhc.UhcMatch;
 import com.martinbrook.tesseractuhc.UhcParticipant;
 import com.martinbrook.tesseractuhc.UhcPlayer;
 import com.martinbrook.tesseractuhc.customevent.UhcDeathEvent;
+import com.martinbrook.tesseractuhc.customevent.UhcDimensionChangeEvent;
 import com.martinbrook.tesseractuhc.notification.DamageNotification;
 import com.martinbrook.tesseractuhc.notification.HealingNotification;
 
@@ -277,6 +279,14 @@ public class MatchListener implements Listener {
 		
 		// Cancel spawn
 		e.setCancelled(true);
+	}
+	
+	@EventHandler(ignoreCancelled = true)
+	public void onWorldChange(PlayerChangedWorldEvent e) {
+		UhcPlayer pl = m.getPlayer(e.getPlayer());
+		if (pl.isActiveParticipant() && m.getMatchPhase() == MatchPhase.MATCH)
+			m.getServer().getPluginManager().callEvent(new UhcDimensionChangeEvent(m, e.getPlayer().getLocation(), e.getPlayer().getWorld().getEnvironment()));
+		
 	}
 	
 	class HealthChangeTask implements Runnable
