@@ -593,11 +593,8 @@ public class UhcMatch {
 		start.setTeam(team);
 		teamsInMatch.add(team);
 		
-		start.makeSign();
-		start.fillChest(config.getBonusChest());
-
 		// Send update to the spectators
-		if (!getConfig().isFFA()){
+		if (getConfig() != null && !getConfig().isFFA()){
 			PluginChannelUtils.messageSpectators("team", name, "init");
 			PluginChannelUtils.messageSpectators("team", name, "color", team.getColor().toString());
 		}
@@ -651,7 +648,8 @@ public class UhcMatch {
 		if (up == null) return false;
 		
 		// Message client mod that player joined team
-		PluginChannelUtils.messageSpectators("team", team.getName(), "player", "+" + up.getName());
+		if (getConfig() != null) // Don't do this if we are still busy constructing match and config
+			PluginChannelUtils.messageSpectators("team", team.getName(), "player", "+" + up.getName());
 		
 		participantsInMatch.add(up);
 		return true;
@@ -832,6 +830,12 @@ public class UhcMatch {
 		setVanish(); // Update vanish status
 		butcherHostile();
 		sortParticipantsInMatch();
+		
+		// Fill bonus chests
+		for (UhcTeam team : getTeams()) {
+			team.getStartPoint().makeSign();
+			team.getStartPoint().fillChest(config.getBonusChest());
+		}
 
 		// Add all players to the launch queue
 		for(UhcParticipant up : getUhcParticipants())
