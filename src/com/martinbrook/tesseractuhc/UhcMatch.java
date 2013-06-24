@@ -349,6 +349,7 @@ public class UhcMatch {
 		enableLocationChecker();
 		enableBorderChecker();
 		enableMatchTimer();
+		updatePlayerListCompletely();
 		server.getPluginManager().callEvent(new UhcMatchStartEvent(this, startingWorld.getSpawnLocation()));
 
 	}
@@ -887,6 +888,12 @@ public class UhcMatch {
 				pl.updatePlayerListName();
 			}
 		});
+	}
+	
+	public void updatePlayerListCompletely() {
+		for (UhcPlayer pl : this.getOnlinePlayers()) {
+			pl.updatePlayerListName();
+		}
 	}
 	
 
