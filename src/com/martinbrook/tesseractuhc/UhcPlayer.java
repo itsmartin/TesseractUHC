@@ -111,6 +111,13 @@ public class UhcPlayer {
 		Player p = getPlayer();
 		if (p==null) return false;
 		p.setHealth(20);
+		
+		// Update health for spectators
+		if (isActiveParticipant()) getParticipant().updateHealth();
+		
+		// Update player list health
+		updatePlayerListName();
+		
 		return true;
 	}
 
@@ -162,6 +169,9 @@ public class UhcPlayer {
 		i.setChestplate(null);
 		i.setLeggings(null);
 		i.setBoots(null);
+		
+		// Update armor for spectators
+		if (isActiveParticipant()) getParticipant().updateArmor();
 		
 		p.getEnderChest().clear();
 		return true;
