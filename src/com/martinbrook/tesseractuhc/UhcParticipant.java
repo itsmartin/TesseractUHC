@@ -42,8 +42,10 @@ public class UhcParticipant implements PlayerTarget {
 	public UhcParticipant(UhcPlayer pl, UhcTeam team) {
 		this.player = pl;
 		this.team = team;
-		this.currentHealth = pl.getPlayer().getHealth();
-		this.currentArmor = ArmorPoints.fromPlayerInventory(pl.getPlayer().getInventory());
+		if (pl.isOnline()) {
+			this.currentHealth = pl.getPlayer().getHealth();
+			this.currentArmor = ArmorPoints.fromPlayerInventory(pl.getPlayer().getInventory());
+		}
 	}
 		
 	public String getName() {
@@ -249,6 +251,13 @@ public class UhcParticipant implements PlayerTarget {
 	
 	public void setIsOnline(boolean online){
 		PluginChannelUtils.messageSpectators("player", getName(), online ? "login" : "logout");
+	}
+	
+	public void updateAll() {
+		updateHealth();
+		updateArmor();
+		updateDimension();
+		updateInventory();
 	}
 	
 	public void updateHealth(){

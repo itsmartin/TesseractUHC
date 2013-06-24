@@ -71,8 +71,9 @@ public class LoginListener implements Listener {
 		}
 		
 		// If player is a participant. Make sure he is marked as online in the mod
-		if (pl.isParticipant()){
+		if (pl.isParticipant()) {
 			pl.getParticipant().setIsOnline(true);
+			pl.getParticipant().updateAll();
 		}
 
 	}
