@@ -213,11 +213,15 @@ public class MatchListener implements Listener {
 		
 		// Announce health change (UHC only)
 		if (m.getConfig().isUHC()) {
-			HealingNotification n = new HealingNotification(pl.getParticipant(), e.getAmount(), e.getRegainReason());
-			if (m.getConfig().isDamageAlerts())
-				m.sendNotification(n, e.getEntity().getLocation());
-			else 
-				m.sendSpectatorNotification(n,  e.getEntity().getLocation());
+			UhcParticipant pa = pl.getParticipant();
+			if (!pa.isRecentlyHealed()) {
+				HealingNotification n = new HealingNotification(pl.getParticipant(), e.getRegainReason());
+				if (m.getConfig().isDamageAlerts())
+					m.sendNotification(n, e.getEntity().getLocation());
+				else 
+					m.sendSpectatorNotification(n,  e.getEntity().getLocation());
+			}
+			pa.setHealTimer();
 		}
 		
 		// Send update to client mod

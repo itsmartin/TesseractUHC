@@ -29,6 +29,7 @@ public class UhcParticipant implements PlayerTarget {
 	private boolean miningFatigueAlerted = false;
 	private int miningFatigueGrace = 20;
 	private long lastDamageTime = 0;
+	private long lastHealTime = 0;
 	private boolean warnedHardStone = false;
 	private boolean worldEdgeWarningActive = false;
 	
@@ -197,6 +198,21 @@ public class UhcParticipant implements PlayerTarget {
 	 */
 	public boolean isRecentlyDamaged() {
 		return (player.getMatch().getStartingWorld().getFullTime() - lastDamageTime < UhcMatch.PLAYER_DAMAGE_ALERT_TICKS);
+	}
+	
+	
+	/**
+	 * Mark the player as having healed
+	 */
+	public void setHealTimer() {
+		lastHealTime = player.getMatch().getStartingWorld().getFullTime();
+	}
+	
+	/**
+	 * @return whether the player has healed recently
+	 */
+	public boolean isRecentlyHealed() {
+		return (player.getMatch().getStartingWorld().getFullTime() - lastHealTime < UhcMatch.PLAYER_HEAL_ALERT_TICKS);
 	}
 
 	public void doWorldEdgeWarning() {
