@@ -78,7 +78,7 @@ public class UhcPlayer {
 	}
 	
 	public boolean makeSpectator() {
-		if (isActiveParticipant()) return false;
+		if (m.getMatchPhase() != MatchPhase.POST_MATCH && isActiveParticipant()) return false;
 		if (spectator == null) spectator = new UhcSpectator(this);
 		setVanish();
 		setGameMode(GameMode.CREATIVE);

@@ -1285,12 +1285,14 @@ public class UhcMatch {
 	private void processVictory(UhcTeam winner) {
 		broadcast(ChatColor.GOLD + "The winner is: " + winner.getName() + "!");
 		endMatch();
-		
+		for (UhcParticipant up : winner.getMembers())
+			if (up.getPlayer().isActiveParticipant()) up.getPlayer().makeSpectator();
 	}
 
 	private void processVictory(UhcParticipant winner) {
 		broadcast(ChatColor.GOLD + "The winner is: " + winner.getName() + "!");
 		endMatch();
+		winner.getPlayer().makeSpectator();
 		
 	}
 
