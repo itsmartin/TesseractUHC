@@ -1,6 +1,6 @@
 name: TesseractUHC
 main: com.martinbrook.tesseractuhc.TesseractUHC
-version: 0.10.2
+version: 0.10.3
 description: Useful commands for UHC matches
 commands:
  tp:
