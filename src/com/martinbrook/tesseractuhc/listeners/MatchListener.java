@@ -185,6 +185,12 @@ public class MatchListener implements Listener {
 				m.sendSpectatorNotification(n, e.getEntity().getLocation());
 		}
 		pa.setDamageTimer();
+		
+		// Update the client mod
+		updateHealth(pl.getPlayer());
+
+		// Update the tab list
+		m.schedulePlayerListUpdate(pl);
 	}
 
 	@EventHandler(ignoreCancelled = true)
