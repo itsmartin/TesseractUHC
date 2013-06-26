@@ -49,6 +49,7 @@ public class TesseractUHC extends JavaPlugin {
 		getServer().getPluginManager().registerEvents(new SpectateListener(match), this);
 		getServer().getPluginManager().registerEvents(new ClientMessageChannelListener(match), this);
 
+		getCommand("butcher").setExecutor(new ButcherCommand(this));
 		getCommand("tp").setExecutor(new TpCommand(this));
 		getCommand("heal").setExecutor(new HealCommand(this));
 		getCommand("feed").setExecutor(new FeedCommand(this));
