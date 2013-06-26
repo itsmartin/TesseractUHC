@@ -745,14 +745,14 @@ public class UhcMatch {
 			UhcTeam team = pl.getParticipant().getTeam();
 			team.removeMember(pl.getParticipant());
 						
+			// Remove them from the match
+			participantsInMatch.remove(pl.getParticipant());
+			
 			// Mark them as a non participant
 			getPlayer(name).setParticipant(null);
 			
 			// Message client mod that player left team
 			PluginChannelUtils.messageSpectators("team", team.getName(), "player", "-" + pl.getName());
-			
-			// Remove them from the match
-			participantsInMatch.remove(pl.getParticipant());
 			
 			// Remove team if empty
 			if(team.getMembers().size() == 0){
