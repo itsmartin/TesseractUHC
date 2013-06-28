@@ -19,11 +19,11 @@ public class ChatListener implements Listener {
 		if (m.isChatMuted() && !pl.isAdmin())
 			e.setCancelled(true);
 		
-		// Admins get gold names, spectators get gray
+		// Admins get gold stars before their names, spectators get gray stars
 		if (pl.isAdmin()) {
-			e.setFormat("<" + ChatColor.GOLD + "%s" + ChatColor.RESET + "> %s");
+			e.setFormat("<" + ChatColor.GOLD + "*" + ChatColor.RESET + "%s> %s");
 		} else if (pl.isSpectator()) {
-			e.setFormat("<" + ChatColor.GRAY + "%s" + ChatColor.RESET + "> %s");
+			e.setFormat("<" + ChatColor.GRAY + "*" + ChatColor.RESET + "%s> %s");
 		}
 		
 	}
