@@ -35,7 +35,7 @@ public class CdwbCommand extends UhcCommandExecutor {
 			return (ERROR_COLOR + "World radius must be specified as an integer");
 		}
 		
-		int countLength = 300;
+		int countLength = 180;
 		
 		if (args.length == 2)
 			try {
