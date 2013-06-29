@@ -91,14 +91,16 @@ public class PluginChannelUtils {
 
 		messageSpectator(spec, "player", up.getName(), up.getPlayer().isOnline() ? "login" : "logout");
 		
-		Environment env = pl.getWorld().getEnvironment();
-		String envString = "overworld";
-		if (env == Environment.NETHER)
-			envString = "nether";
-		else if (env == Environment.THE_END)
-			envString = "end";
-		PluginChannelUtils.messageSpectators("player", pl.getName(), "dimension", envString);
-		
+		if (pl != null)
+		{
+			Environment env = pl.getWorld().getEnvironment();
+			String envString = "overworld";
+			if (env == Environment.NETHER)
+				envString = "nether";
+			else if (env == Environment.THE_END)
+				envString = "end";
+			PluginChannelUtils.messageSpectators("player", pl.getName(), "dimension", envString);
+		}
 		up.updateSpectatorOnInventory(spec);
 		
 		//TODO add cape support
