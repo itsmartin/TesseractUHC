@@ -1034,17 +1034,22 @@ public class UhcMatch {
 		}
 	}
 	
+	private boolean locationsAreClose(Location l1, Location l2) {
+		if (!l1.getWorld().equals(l2.getWorld())) return false;
+		return (l1.distanceSquared(l2) < (PROXIMITY_THRESHOLD_SQUARED));
+	}
+	
 	private boolean checkProximity(UhcParticipant player, UhcParticipant enemy) {
 		Player p1 = server.getPlayerExact(player.getName());
 		Player p2 = server.getPlayerExact(enemy.getName());
 		if (p1 == null || p2 == null) return false;
 		
 		if (player.isNearTo(enemy)) {
-			if (p1.getLocation().distanceSquared(p2.getLocation()) >= (PROXIMITY_THRESHOLD_SQUARED))
+			if (!locationsAreClose(p1.getLocation(), p2.getLocation()))
 				player.setNearTo(enemy, false);
 			return false;
 		} else {
-			if (p1.getLocation().distanceSquared(p2.getLocation()) < (PROXIMITY_THRESHOLD_SQUARED)) {
+			if (locationsAreClose(p1.getLocation(),p2.getLocation())) {
 				player.setNearTo(enemy, true);
 				return true;
 			}
@@ -1057,11 +1062,11 @@ public class UhcMatch {
 		if (p1 == null) return false;
 		
 		if (player.isNearTo(poi)) {
-			if (p1.getLocation().distanceSquared(poi.getLocation()) >= (PROXIMITY_THRESHOLD_SQUARED))
+			if (!locationsAreClose(p1.getLocation(), poi.getLocation()))
 				player.setNearTo(poi, false);
 			return false;
 		} else {
-			if (p1.getLocation().distanceSquared(poi.getLocation()) < (PROXIMITY_THRESHOLD_SQUARED)) {
+			if (locationsAreClose(p1.getLocation(), poi.getLocation())) {
 				player.setNearTo(poi, true);
 				return true;
 			}
