@@ -82,10 +82,12 @@ public class MatchListener implements Listener {
 		
 		// Handle the death
 		if (pl.isActiveParticipant() && m.getMatchPhase() == MatchPhase.MATCH) {
-			m.handleParticipantDeath(pl.getParticipant());
-			
 			// Trigger death event
 			m.getServer().getPluginManager().callEvent(new UhcDeathEvent(m, p.getLocation(), deathMessage, p, p.getKiller()));
+			
+			m.handleParticipantDeath(pl.getParticipant());
+			
+			
 		}
 
 		// Update the tab list

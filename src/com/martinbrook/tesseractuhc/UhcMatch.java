@@ -35,6 +35,7 @@ import com.martinbrook.tesseractuhc.countdown.BorderCountdown;
 import com.martinbrook.tesseractuhc.countdown.MatchCountdown;
 import com.martinbrook.tesseractuhc.countdown.PVPCountdown;
 import com.martinbrook.tesseractuhc.countdown.PermadayCountdown;
+import com.martinbrook.tesseractuhc.customevent.UhcEliminationEvent;
 import com.martinbrook.tesseractuhc.customevent.UhcJoinEvent;
 import com.martinbrook.tesseractuhc.customevent.UhcMatchEndEvent;
 import com.martinbrook.tesseractuhc.customevent.UhcMatchStartEvent;
@@ -1256,14 +1257,16 @@ public class UhcMatch {
 		// Reduce survivor counts
 		participantsInMatch.remove(up);
 
+		// Trigger a UhcEliminationEvent
+		UhcTeam team = up.getTeam();
+		if (team.aliveCount() == 0)
+			server.getPluginManager().callEvent(new UhcEliminationEvent(this, up.getPlayer().getLocation(), team.getIdentifier(), team.getName(), countTeamsInMatch() - 1));
+					
 		if (!config.isDragonMode() && config.isFFA() && countParticipantsInMatch() == 1) {
 			processVictory(participantsInMatch.get(0));
 			return;
 		}
 			
-			
-		UhcTeam team = up.getTeam();
-		
 		if (team != null && team.aliveCount()<1) {
 			teamsInMatch.remove(team);
 			if (!config.isDragonMode() && !config.isFFA() && countTeamsInMatch() == 1) {
