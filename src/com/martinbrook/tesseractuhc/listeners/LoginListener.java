@@ -28,8 +28,9 @@ public class LoginListener implements Listener {
 			pl.sendMessage(ChatColor.AQUA + "Welcome to " + ChatColor.ITALIC + m.getConfig().getMatchTitle() 
 					+ ChatColor.RESET + ChatColor.AQUA + "!");
 
-		// If player is op, set them as a spectator
+		// If player is op, set them as a spectator and hide their join message
 		if (e.getPlayer().isOp()) {
+			e.setJoinMessage(null);
 			pl.makeSpectator();
 			return;
 		} else {
@@ -88,6 +89,9 @@ public class LoginListener implements Listener {
 		if (up.isParticipant()){
 			up.getParticipant().setIsOnline(false);
 		}
+		
+		// If player is an admin, hide their quit message
+		if (up.isAdmin()) e.setQuitMessage(null);
 	}
 	
 
