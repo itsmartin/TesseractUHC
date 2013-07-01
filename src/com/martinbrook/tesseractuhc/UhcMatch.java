@@ -382,7 +382,7 @@ public class UhcMatch {
 		
 		worldRadiusFinal = nextRadius;
 		if (worldRadiusFinal >= 100) {
-			worldRadius = worldRadiusFinal-25;
+			worldRadius = worldRadiusFinal-15;
 		} else {
 			worldRadius = (int) (worldRadiusFinal * 0.9);
 		}
@@ -932,7 +932,22 @@ public class UhcMatch {
 					up.getPlayer().teleport(l2);
 					up.clearWorldEdgeWarning();
 				} else {
-					up.doWorldEdgeWarning();
+					// Player is outside the inner world border in the overworld.
+					// Calculate the nearest point on the border, and play the noteblock sound from there.
+					Location l = up.getPlayer().getLocation();
+
+					double newX = l.getX();
+					double newZ = l.getZ();
+					if (newX > worldRadius) newX = worldRadiusFinal;
+					if (newZ > worldRadius) newZ = worldRadiusFinal;
+					if (newX < -worldRadius) newX = -worldRadiusFinal;
+					if (newZ < -worldRadius) newZ = -worldRadiusFinal;
+					
+					Location l2 = l.clone();
+					l2.setX(newX);
+					l2.setZ(newZ);
+					
+					up.doWorldEdgeWarning(l2);
 				}
 			} else {
 				up.clearWorldEdgeWarning();

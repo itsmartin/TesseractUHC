@@ -6,6 +6,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.World.Environment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -32,6 +33,8 @@ public class UhcParticipant implements PlayerTarget {
 	private long lastHealTime = 0;
 	private boolean warnedHardStone = false;
 	private boolean worldEdgeWarningActive = false;
+	private static int WORLD_EDGE_WARNING_SOUND_COUNTDOWN_LENGTH = 1;
+	private int worldEdgeWarningSoundCountdown = WORLD_EDGE_WARNING_SOUND_COUNTDOWN_LENGTH;
 	
 	private int kills = 0;
 	private int shotsFired = 0;
@@ -215,20 +218,22 @@ public class UhcParticipant implements PlayerTarget {
 		return (player.getMatch().getStartingWorld().getFullTime() - lastHealTime < UhcMatch.PLAYER_HEAL_ALERT_TICKS);
 	}
 
-	public void doWorldEdgeWarning() {
+	public void doWorldEdgeWarning(Location borderPoint) {
+		if (this.worldEdgeWarningSoundCountdown-- == 0) {
+			player.getPlayer().playSound(borderPoint, Sound.NOTE_PIANO, 10, 1);
+			this.worldEdgeWarningSoundCountdown = WORLD_EDGE_WARNING_SOUND_COUNTDOWN_LENGTH;
+		}
 		if (worldEdgeWarningActive) return;
 		worldEdgeWarningActive=true;
 		sendMessage("You are close to the edge of the world!");
-		player.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, Integer.MAX_VALUE, 0));
-		player.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.SLOW, Integer.MAX_VALUE, 1));
+		player.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.SLOW, Integer.MAX_VALUE, 0));
 		
 	}
 
 	public void clearWorldEdgeWarning() {
 		if (!worldEdgeWarningActive) return;
 		worldEdgeWarningActive=false;
-		player.getPlayer().removePotionEffect(PotionEffectType.BLINDNESS);
-		player.getPlayer().removePotionEffect(PotionEffectType.SLOW);
+		this.worldEdgeWarningSoundCountdown = 0;
 		
 	}
 
