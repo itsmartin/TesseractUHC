@@ -110,6 +110,9 @@ public abstract class UhcStartPoint {
 		Block b = getSignBlock();
 		b.setType(Material.SIGN_POST);
 		
+		Block b1 = b.getRelative(0, -1, 0);
+		b1.setType(Material.GLASS);
+		
 		BlockState bs = b.getState();
 		if (!(bs instanceof Sign)) return;
 		
