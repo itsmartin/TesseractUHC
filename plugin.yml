@@ -60,12 +60,6 @@ commands:
  cdc:
   description: Cancels a running countdown
   usage: /cdc
- chatscript:
-  description: Plays a chat script from a file, one line per second
-  usage: /chatscript filename
- muteall:
-  description: Mutes the chat so that nobody can talk except ops
-  usage: /muteall on | off
  kill:
   description: Command disabled
   usage: /kill

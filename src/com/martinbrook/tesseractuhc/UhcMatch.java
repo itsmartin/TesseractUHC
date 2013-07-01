@@ -47,7 +47,6 @@ import com.martinbrook.tesseractuhc.notification.UhcNotification;
 import com.martinbrook.tesseractuhc.startpoint.LargeGlassStartPoint;
 import com.martinbrook.tesseractuhc.startpoint.SmallGlassStartPoint;
 import com.martinbrook.tesseractuhc.startpoint.UhcStartPoint;
-import com.martinbrook.tesseractuhc.util.FileUtils;
 import com.martinbrook.tesseractuhc.util.MatchUtils;
 import com.martinbrook.tesseractuhc.util.PluginChannelUtils;
 
@@ -60,8 +59,6 @@ public class UhcMatch {
 	private Location lastEventLocation;
 	private Location lastLogoutLocation;
 
-	private ArrayList<String> chatScript;
-	private Boolean chatMuted = false;
 	private Boolean permaday = false;
 	private int permadayTaskId;
 	
@@ -454,38 +451,6 @@ public class UhcMatch {
 		}
 	}
 
-
-	/**
-	 * Plays a chat script
-	 * 
-	 * @param filename The file to read the chat script from
-	 * @param muteChat Whether other chat should be muted
-	 */
-	public void playChatScript(String filename, boolean muteChat) {
-		if (muteChat) this.setChatMuted(true);
-		chatScript = FileUtils.readFile(filename);
-		if (chatScript != null)
-			continueChatScript();
-	}
-	
-	/**
-	 * Output next line of current chat script, unmuting the chat if it's finished.
-	 */
-	private void continueChatScript() {
-		broadcast(ChatColor.GREEN + chatScript.get(0));
-		chatScript.remove(0);
-		if (chatScript.size() > 0) {
-			server.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
-				public void run() {
-					continueChatScript();
-				}
-			}, 30L);
-		} else {
-			this.setChatMuted(false);
-			chatScript = null;
-		}
-		
-	}
 	
 	/**
 	 * Get all participants currently registered with the game
@@ -1164,24 +1129,6 @@ public class UhcMatch {
 	}
 	
 
-	
-
-	
-	/**
-	 * @return Whether chat is currently muted
-	 */
-	public boolean isChatMuted() {
-		return chatMuted;
-	}
-	
-	/**
-	 * Mute or unmute chat
-	 * 
-	 * @param muted Status to be set
-	 */
-	public void setChatMuted(Boolean muted) {
-		chatMuted = muted;
-	}
 
 
 	/**

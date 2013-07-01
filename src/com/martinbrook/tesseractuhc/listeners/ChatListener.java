@@ -4,8 +4,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
-import org.bukkit.event.player.PlayerCommandPreprocessEvent;
-
 import com.martinbrook.tesseractuhc.UhcMatch;
 import com.martinbrook.tesseractuhc.UhcPlayer;
 
@@ -16,8 +14,6 @@ public class ChatListener implements Listener {
 	@EventHandler
 	public void onPlayerChatEvent(AsyncPlayerChatEvent e) {
 		UhcPlayer pl = m.getPlayer(e.getPlayer());
-		if (m.isChatMuted() && !pl.isAdmin())
-			e.setCancelled(true);
 		
 		// Admins get gold stars before their names, spectators get gray stars
 		if (pl.isAdmin()) {
@@ -26,12 +22,6 @@ public class ChatListener implements Listener {
 			e.setFormat("<" + ChatColor.GRAY + "*" + ChatColor.RESET + "%s> %s");
 		}
 		
-	}
-	
-	@EventHandler
-	public void onPlayerComandPreprocessEvent(PlayerCommandPreprocessEvent e) {
-		if (m.isChatMuted() && !m.getPlayer(e.getPlayer()).isAdmin() && e.getMessage().toLowerCase().startsWith("/me"))
-			e.setCancelled(true);
 	}
 
 }
