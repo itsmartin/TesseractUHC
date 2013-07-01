@@ -40,6 +40,7 @@ import com.martinbrook.tesseractuhc.customevent.UhcJoinEvent;
 import com.martinbrook.tesseractuhc.customevent.UhcMatchEndEvent;
 import com.martinbrook.tesseractuhc.customevent.UhcMatchStartEvent;
 import com.martinbrook.tesseractuhc.customevent.UhcPlayerLocationUpdateEvent;
+import com.martinbrook.tesseractuhc.customevent.UhcVictoryEvent;
 import com.martinbrook.tesseractuhc.event.UhcEvent;
 import com.martinbrook.tesseractuhc.notification.ProximityNotification;
 import com.martinbrook.tesseractuhc.notification.UhcNotification;
@@ -1295,13 +1296,14 @@ public class UhcMatch {
 		endMatch();
 		for (UhcParticipant up : winner.getMembers())
 			if (up.getPlayer().isActiveParticipant()) up.getPlayer().makeSpectator();
+		server.getPluginManager().callEvent(new UhcVictoryEvent(this, this.getStartingWorld().getSpawnLocation(), winner.getIdentifier(), winner.getName()));
 	}
 
 	private void processVictory(UhcParticipant winner) {
 		broadcast(ChatColor.GOLD + "The winner is: " + winner.getName() + "!");
 		endMatch();
 		winner.getPlayer().makeSpectator();
-		
+		server.getPluginManager().callEvent(new UhcVictoryEvent(this, this.getStartingWorld().getSpawnLocation(), winner.getTeam().getName(), winner.getTeam().getName()));
 	}
 
 	/**
