@@ -19,6 +19,7 @@ public class LoginListener implements Listener {
 	@EventHandler
 	public void onJoin(PlayerJoinEvent e) {
 		UhcPlayer pl = m.getPlayer(e.getPlayer());
+		pl.setSeen();
 
 		// Update the tab list
 		m.schedulePlayerListUpdate(pl);
