@@ -61,7 +61,6 @@ public class TesseractUHC extends JavaPlugin {
 		getCommand("permaday").setExecutor(new PermadayCommand(this));
 		getCommand("uhc").setExecutor(new UhcCommand(this));
 		getCommand("launch").setExecutor(new LaunchCommand(this));
-		getCommand("relaunch").setExecutor(new RelaunchCommand(this));
 		getCommand("calcstarts").setExecutor(new CalcstartsCommand(this));
 		getCommand("setvanish").setExecutor(new SetvanishCommand(this));
 		getCommand("players").setExecutor(new PlayersCommand(this));

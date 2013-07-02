@@ -76,9 +76,6 @@ commands:
  launch:
   description: Launch any players who haven't yet been launched
   usage: /launch
- relaunch:
-  description: Relaunch a player
-  usage: /relaunch player
  calcstarts:
   description: Calculate potential start points
   usage: /calcstarts type param1 param2
