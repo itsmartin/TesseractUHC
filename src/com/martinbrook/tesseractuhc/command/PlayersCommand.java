@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import org.bukkit.command.ConsoleCommandSender;
 
+import com.martinbrook.tesseractuhc.MatchPhase;
 import com.martinbrook.tesseractuhc.TesseractUHC;
 import com.martinbrook.tesseractuhc.UhcParticipant;
 import com.martinbrook.tesseractuhc.UhcPlayer;
@@ -40,6 +41,9 @@ public class PlayersCommand extends UhcCommandExecutor {
 		if (args[0].equalsIgnoreCase("add")) {
 			if (args.length < 2)
 				return ERROR_COLOR + "Specify player to add!";
+			
+			if (match.getMatchPhase() != MatchPhase.PRE_MATCH)
+				return ERROR_COLOR + "You cannot add players once the match has begun!";
 			
 			String response = "";
 			
