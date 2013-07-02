@@ -787,9 +787,9 @@ public class UhcMatch {
 	/**
 	 * Start the launching phase, and launch all players who have been added to the game
 	 */
-	public void launchAll() {
+	public boolean launchAll() {
 		// If already launched, do nothing.
-		if (matchPhase != MatchPhase.PRE_MATCH) return;
+		if (matchPhase != MatchPhase.PRE_MATCH) return false;
 		
 		matchPhase = MatchPhase.LAUNCHING;
 		disableSpawnKeeper();
@@ -816,6 +816,7 @@ public class UhcMatch {
 
 		// Begin launching
 		launchNext();
+		return true;
 	}
 	
 
