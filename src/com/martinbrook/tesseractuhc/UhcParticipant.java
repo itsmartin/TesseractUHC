@@ -6,12 +6,19 @@ import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Sound;
+import org.bukkit.World.Environment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
+import com.martinbrook.tesseractuhc.customevent.UhcArmorChangeEvent;
+import com.martinbrook.tesseractuhc.customevent.UhcHealthChangeEvent;
 import com.martinbrook.tesseractuhc.startpoint.UhcStartPoint;
+import com.martinbrook.tesseractuhc.util.ArmorPoints;
+import com.martinbrook.tesseractuhc.util.PluginChannelUtils;
 
 public class UhcParticipant implements PlayerTarget {
 	private boolean launched = false;
@@ -23,12 +30,26 @@ public class UhcParticipant implements PlayerTarget {
 	private boolean miningFatigueAlerted = false;
 	private int miningFatigueGrace = 20;
 	private long lastDamageTime = 0;
+	private long lastHealTime = 0;
 	private boolean warnedHardStone = false;
 	private boolean worldEdgeWarningActive = false;
+	private static int WORLD_EDGE_WARNING_SOUND_COUNTDOWN_LENGTH = 1;
+	private int worldEdgeWarningSoundCountdown = WORLD_EDGE_WARNING_SOUND_COUNTDOWN_LENGTH;
+	
+	private int kills = 0;
+	private int shotsFired = 0;
+	private int shotsHit = 0;
+	
+	private int currentHealth;
+	private int currentArmor;
 	
 	public UhcParticipant(UhcPlayer pl, UhcTeam team) {
 		this.player = pl;
 		this.team = team;
+		if (pl.isOnline()) {
+			this.currentHealth = pl.getPlayer().getHealth();
+			this.currentArmor = ArmorPoints.fromPlayerInventory(pl.getPlayer().getInventory());
+		}
 	}
 		
 	public String getName() {
@@ -181,21 +202,38 @@ public class UhcParticipant implements PlayerTarget {
 	public boolean isRecentlyDamaged() {
 		return (player.getMatch().getStartingWorld().getFullTime() - lastDamageTime < UhcMatch.PLAYER_DAMAGE_ALERT_TICKS);
 	}
+	
+	
+	/**
+	 * Mark the player as having healed
+	 */
+	public void setHealTimer() {
+		lastHealTime = player.getMatch().getStartingWorld().getFullTime();
+	}
+	
+	/**
+	 * @return whether the player has healed recently
+	 */
+	public boolean isRecentlyHealed() {
+		return (player.getMatch().getStartingWorld().getFullTime() - lastHealTime < UhcMatch.PLAYER_HEAL_ALERT_TICKS);
+	}
 
-	public void doWorldEdgeWarning() {
+	public void doWorldEdgeWarning(Location borderPoint) {
+		if (this.worldEdgeWarningSoundCountdown-- == 0) {
+			player.getPlayer().playSound(borderPoint, Sound.NOTE_PIANO, 10, 1);
+			this.worldEdgeWarningSoundCountdown = WORLD_EDGE_WARNING_SOUND_COUNTDOWN_LENGTH;
+		}
 		if (worldEdgeWarningActive) return;
 		worldEdgeWarningActive=true;
 		sendMessage("You are close to the edge of the world!");
-		player.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, Integer.MAX_VALUE, 0));
-		player.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.SLOW, Integer.MAX_VALUE, 1));
+		player.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.SLOW, Integer.MAX_VALUE, 0));
 		
 	}
 
 	public void clearWorldEdgeWarning() {
 		if (!worldEdgeWarningActive) return;
 		worldEdgeWarningActive=false;
-		player.getPlayer().removePotionEffect(PotionEffectType.BLINDNESS);
-		player.getPlayer().removePotionEffect(PotionEffectType.SLOW);
+		this.worldEdgeWarningSoundCountdown = 0;
 		
 	}
 
@@ -204,6 +242,121 @@ public class UhcParticipant implements PlayerTarget {
 		return l.getBlockX() > border || l.getBlockZ() > border
 				|| l.getBlockX() < -border || l.getBlockZ() < -border;
 	}
+	
+	public int getKills(){
+		return kills;
+	}
 
+	public void addKill(){
+		++kills;
+		PluginChannelUtils.messageSpectators("player", this.getName(), "kills", Integer.toString(getKills()));
+	}
+	
+	public int getDeaths(){
+		return isDead() ? 1 : 0;
+	}
+	
+	public void incrementShotsFired(){
+		++shotsFired;
+		PluginChannelUtils.messageSpectators("player", getName(), "accuracy", getAccuracy());
+	}
+	
+	public void incrementShotsHit(){
+		++shotsHit;
+		PluginChannelUtils.messageSpectators("player", getName(), "accuracy", getAccuracy());
+	}
+	
+	public String getAccuracy(){
+		return Integer.toString(shotsFired == 0 ? 0 : (100 * shotsHit / shotsFired));
+	}
+	
+	public void setIsOnline(boolean online){
+		PluginChannelUtils.messageSpectators("player", getName(), online ? "login" : "logout");
+	}
+	
+	public void updateAll() {
+		updateHealth();
+		updateArmor();
+		updateDimension();
+		updateInventory();
+	}
+	
+	public void updateHealth(){
+		Player player = getPlayer().getPlayer();
+		if (player == null) return;
+
+		int newHealth = Math.max(0, player.getHealth());
+
+		if (newHealth != currentHealth){
+			PluginChannelUtils.messageSpectators("player", getName(), "hp", Integer.toString(newHealth));
+			this.player.getMatch().getServer().getPluginManager().callEvent(new UhcHealthChangeEvent(this.player.getMatch(), this.player.getLocation(), player, newHealth));
+			currentHealth = newHealth;
+		}
+	}
+	
+	public void updateArmor(){
+		Player player = getPlayer().getPlayer();
+		if (player == null) return;
+
+		int newArmor = ArmorPoints.fromPlayerInventory(player.getInventory());
+
+		if (newArmor != currentArmor){
+			PluginChannelUtils.messageSpectators("player", getName(), "armor", Integer.toString(newArmor));
+			this.player.getMatch().getServer().getPluginManager().callEvent(new UhcArmorChangeEvent(this.player.getMatch(), this.player.getLocation(), player, newArmor));
+			currentArmor = newArmor;
+		}
+	}
+
+	public void updateDimension() {
+		Player player = getPlayer().getPlayer();
+		if (player == null) return;
+
+		Environment env = player.getWorld().getEnvironment();
+		String envString = "overworld";
+		if (env == Environment.NETHER)
+			envString = "nether";
+		else if (env == Environment.THE_END)
+			envString = "end";
+		
+		PluginChannelUtils.messageSpectators("player", getName(), "dimension", envString);
+	}
+	
+	public void updateInventory(){
+		for(UhcPlayer up : TesseractUHC.getInstance().getMatch().getOnlinePlayers()) {
+			if (up.isSpectator())
+				updateSpectatorOnInventory(up.getPlayer());
+		}
+	}
+	
+	public void updateSpectatorOnInventory(Player spec){
+		Player player = getPlayer().getPlayer();
+		if (player == null) return;
+		
+		PlayerInventory inv = player.getInventory();
+		int goldIngots = 0;
+		int goldenApples = 0;
+		int notchApples = 0;
+		for (ItemStack is : inv.getContents()){
+			if (is != null){
+				if (is.getType() == Material.GOLD_INGOT)
+					goldIngots += is.getAmount();
+				if (is.getType() == Material.GOLD_BLOCK)
+					goldIngots += is.getAmount() * 9;
+				if (is.getType() == Material.GOLD_NUGGET)
+					goldIngots += is.getAmount() / 9;
+				
+				if (is.getType() == Material.GOLDEN_APPLE){
+					if (is.getDurability() == 0)
+						goldenApples += is.getAmount();
+					if (is.getDurability() == 1)
+						notchApples += is.getAmount();
+				}
+			}
+		}
+		
+		PluginChannelUtils.messageSpectator(spec,"player", getName(), "itemcount", "266", Integer.toString(goldIngots));
+		PluginChannelUtils.messageSpectator(spec,"player", getName(), "itemcount", "322,0", Integer.toString(goldenApples));
+		PluginChannelUtils.messageSpectator(spec,"player", getName(), "itemcount", "322,1", Integer.toString(notchApples));
+	}
 
 }

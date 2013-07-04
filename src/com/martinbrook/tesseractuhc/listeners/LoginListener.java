@@ -19,16 +19,25 @@ public class LoginListener implements Listener {
 	@EventHandler
 	public void onJoin(PlayerJoinEvent e) {
 		UhcPlayer pl = m.getPlayer(e.getPlayer());
-		
+		pl.setSeen();
+
+		// Update the tab list
+		m.schedulePlayerListUpdate(pl);
+
 		// Send a welcome message if pre-game
 		if (m.getMatchPhase() == MatchPhase.PRE_MATCH)
 			pl.sendMessage(ChatColor.AQUA + "Welcome to " + ChatColor.ITALIC + m.getConfig().getMatchTitle() 
 					+ ChatColor.RESET + ChatColor.AQUA + "!");
 
-		// If player is op, set them as a spectator
+		// If player is op, set them as a spectator and hide their join message
 		if (e.getPlayer().isOp()) {
+			e.setJoinMessage(null);
 			pl.makeSpectator();
 			return;
+		} else {
+			// Player is not op. If it's pre-game, reset their spectator status
+			if (m.getMatchPhase() == MatchPhase.PRE_MATCH)
+				pl.makeNotSpectator();
 		}
 
 		// Normal player. Set their vanish correctly
@@ -62,6 +71,12 @@ public class LoginListener implements Listener {
 			pl.setGameMode(GameMode.CREATIVE);
 			return;
 		}
+		
+		// If player is a participant. Make sure he is marked as online in the mod
+		if (pl.isParticipant()) {
+			pl.getParticipant().setIsOnline(true);
+			pl.getParticipant().updateAll();
+		}
 
 	}
 
@@ -69,6 +84,15 @@ public class LoginListener implements Listener {
 	@EventHandler
 	public void onQuit(PlayerQuitEvent e) {
 		m.setLastLogoutLocation(e.getPlayer().getLocation());
+		
+		// If player is a participant. Make sure he is marked as offline
+		UhcPlayer up = m.getPlayer(e.getPlayer());
+		if (up.isParticipant()){
+			up.getParticipant().setIsOnline(false);
+		}
+		
+		// If player is an admin, hide their quit message
+		if (up.isAdmin()) e.setQuitMessage(null);
 	}
 	
 

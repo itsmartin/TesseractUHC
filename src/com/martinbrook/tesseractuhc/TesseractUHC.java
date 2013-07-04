@@ -3,9 +3,11 @@ package com.martinbrook.tesseractuhc;
 import org.bukkit.ChatColor;
 
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.plugin.messaging.Messenger;
 
 import com.martinbrook.tesseractuhc.command.*;
 import com.martinbrook.tesseractuhc.listeners.ChatListener;
+import com.martinbrook.tesseractuhc.listeners.ClientMessageChannelListener;
 import com.martinbrook.tesseractuhc.listeners.LoginListener;
 import com.martinbrook.tesseractuhc.listeners.MatchListener;
 import com.martinbrook.tesseractuhc.listeners.SpectateListener;
@@ -15,6 +17,12 @@ public class TesseractUHC extends JavaPlugin {
 	public static final ChatColor MAIN_COLOR = ChatColor.GREEN, SIDE_COLOR = ChatColor.GOLD, OK_COLOR = ChatColor.GREEN, WARN_COLOR = ChatColor.LIGHT_PURPLE, ERROR_COLOR = ChatColor.RED,
 			DECISION_COLOR = ChatColor.GOLD, ALERT_COLOR = ChatColor.GREEN;
 	private UhcMatch match;
+	
+	//Plugin messages (to the autoreferee-client) constants
+	public static final String PLUGIN_CHANNEL = "autoref:referee";
+	public static final String PLUGIN_CHANNEL_ENC = "UTF-8";
+	public static final String PLUGIN_CHANNEL_WORLD = "UHCworld";
+	public static final char PLUGIN_CHANNEL_DELIMITER = '|';
 	
 	/**
 	 * Get the singleton instance of UhcTools
@@ -32,12 +40,16 @@ public class TesseractUHC extends JavaPlugin {
 
 		saveDefaultConfig();
 		match = new UhcMatch(this, getServer().getWorlds().get(0), getConfig());
+		
+		setupPluginChannels();
 	
 		getServer().getPluginManager().registerEvents(new ChatListener(match), this);
 		getServer().getPluginManager().registerEvents(new LoginListener(match), this);
 		getServer().getPluginManager().registerEvents(new MatchListener(match), this);
 		getServer().getPluginManager().registerEvents(new SpectateListener(match), this);
+		getServer().getPluginManager().registerEvents(new ClientMessageChannelListener(match), this);
 
+		getCommand("butcher").setExecutor(new ButcherCommand(this));
 		getCommand("tp").setExecutor(new TpCommand(this));
 		getCommand("heal").setExecutor(new HealCommand(this));
 		getCommand("feed").setExecutor(new FeedCommand(this));
@@ -46,12 +58,9 @@ public class TesseractUHC extends JavaPlugin {
 		getCommand("ready").setExecutor(new ReadyCommand(this));
 		getCommand("cdwb").setExecutor(new CdwbCommand(this));
 		getCommand("cdc").setExecutor(new CdcCommand(this));
-		getCommand("chatscript").setExecutor(new ChatscriptCommand(this));
-		getCommand("muteall").setExecutor(new MuteallCommand(this));
 		getCommand("permaday").setExecutor(new PermadayCommand(this));
 		getCommand("uhc").setExecutor(new UhcCommand(this));
 		getCommand("launch").setExecutor(new LaunchCommand(this));
-		getCommand("relaunch").setExecutor(new RelaunchCommand(this));
 		getCommand("calcstarts").setExecutor(new CalcstartsCommand(this));
 		getCommand("setvanish").setExecutor(new SetvanishCommand(this));
 		getCommand("players").setExecutor(new PlayersCommand(this));
@@ -87,6 +96,18 @@ public class TesseractUHC extends JavaPlugin {
 		match.getConfig().saveMatchParameters();
 		this.match = null;
 		getServer().getScheduler().cancelTasks(this);
+	}
+	
+	/**
+	 * Registers the plugin channels for messages to the autoreferee-client
+	 */
+	public void setupPluginChannels()
+	{
+		Messenger m = getServer().getMessenger();
+
+		// setup referee plugin channels
+		m.registerOutgoingPluginChannel(this, PLUGIN_CHANNEL);
+		m.registerIncomingPluginChannel(this, PLUGIN_CHANNEL, new ClientMessageChannelListener(match));
 	}
 	
 

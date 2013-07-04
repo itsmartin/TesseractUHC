@@ -4,6 +4,7 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.Material;
@@ -16,14 +17,24 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.bukkit.event.entity.EntityRegainHealthEvent.RegainReason;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.inventory.CraftItemEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.player.PlayerChangedWorldEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerItemConsumeEvent;
+import org.bukkit.event.player.PlayerPickupItemEvent;
+import org.bukkit.event.player.PlayerPortalEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.ChatColor;
 
 import com.martinbrook.tesseractuhc.MatchPhase;
+import com.martinbrook.tesseractuhc.TesseractUHC;
 import com.martinbrook.tesseractuhc.UhcMatch;
 import com.martinbrook.tesseractuhc.UhcParticipant;
 import com.martinbrook.tesseractuhc.UhcPlayer;
+import com.martinbrook.tesseractuhc.customevent.UhcDeathEvent;
+import com.martinbrook.tesseractuhc.customevent.UhcDimensionChangeEvent;
 import com.martinbrook.tesseractuhc.notification.DamageNotification;
 import com.martinbrook.tesseractuhc.notification.HealingNotification;
 
@@ -51,26 +62,37 @@ public class MatchListener implements Listener {
 				if (bonus != null)
 					e.getDrops().add(bonus);
 			}
+			if (pl.isParticipant() && killer.isParticipant()){
+				killer.getParticipant().addKill();
+			}
 		}
 		
 		// If dropheads is enabled, drop a skull
 		if (m.getConfig().isDropHeads()) {
 			m.placeHeadDelayed(p.getLocation(), p.getName());
 
-			
-
 		}
         
 		// Make death message red
-		String msg = e.getDeathMessage();
-		e.setDeathMessage(ChatColor.GOLD + msg);
+		String deathMessage = e.getDeathMessage();
+		e.setDeathMessage(ChatColor.GOLD + deathMessage);
 		
 		// Save death point
 		m.setLastDeathLocation(p.getLocation());
 		
 		// Handle the death
-		if (pl.isActiveParticipant() && m.getMatchPhase() == MatchPhase.MATCH)
+		if (pl.isActiveParticipant() && m.getMatchPhase() == MatchPhase.MATCH) {
+			// Trigger death event
+			m.getServer().getPluginManager().callEvent(new UhcDeathEvent(m, p.getLocation(), deathMessage, p, p.getKiller()));
+			
 			m.handleParticipantDeath(pl.getParticipant());
+			
+			
+		}
+
+		// Update the tab list
+		m.schedulePlayerListUpdate(pl);
+		
 
 	}
 
@@ -90,7 +112,6 @@ public class MatchListener implements Listener {
 			// Make the player a spectator
 			m.handleEliminatedPlayer(pl);
 		}
-		
 	}
 	
 
@@ -129,6 +150,11 @@ public class MatchListener implements Listener {
 		}
 		pa.setDamageTimer();
 		
+		// Update the client mod
+		updateHealth(pl.getPlayer());
+
+		// Update the tab list
+		m.schedulePlayerListUpdate(pl);
 	}
 	
 	
@@ -161,6 +187,12 @@ public class MatchListener implements Listener {
 				m.sendSpectatorNotification(n, e.getEntity().getLocation());
 		}
 		pa.setDamageTimer();
+		
+		// Update the client mod
+		updateHealth(pl.getPlayer());
+
+		// Update the tab list
+		m.schedulePlayerListUpdate(pl);
 	}
 
 	@EventHandler(ignoreCancelled = true)
@@ -183,15 +215,22 @@ public class MatchListener implements Listener {
 		
 		// Announce health change (UHC only)
 		if (m.getConfig().isUHC()) {
-			HealingNotification n = new HealingNotification(pl.getParticipant(), e.getAmount(), e.getRegainReason());
-			if (m.getConfig().isDamageAlerts())
-				m.sendNotification(n, e.getEntity().getLocation());
-			else 
-				m.sendSpectatorNotification(n,  e.getEntity().getLocation());
+			UhcParticipant pa = pl.getParticipant();
+			if (!pa.isRecentlyHealed()) {
+				HealingNotification n = new HealingNotification(pl.getParticipant(), e.getRegainReason());
+				if (m.getConfig().isDamageAlerts())
+					m.sendNotification(n, e.getEntity().getLocation());
+				else 
+					m.sendSpectatorNotification(n,  e.getEntity().getLocation());
+			}
+			pa.setHealTimer();
 		}
 		
+		// Send update to client mod
+		updateHealth(pl.getPlayer());	
 
-		
+		// Update the tab list
+		m.schedulePlayerListUpdate(pl);
 	}
 	
 	@EventHandler(ignoreCancelled = true)
@@ -213,11 +252,6 @@ public class MatchListener implements Listener {
 	@EventHandler(ignoreCancelled = true)
 	public void onBlockBreak(BlockBreakEvent e) {
 		UhcPlayer pl = m.getPlayer(e.getPlayer());
-		// If match hasn't started, and not op, cancel the event.
-		if ((m.getMatchPhase() == MatchPhase.PRE_MATCH || m.getMatchPhase() == MatchPhase.LAUNCHING) && !pl.isAdmin()) {
-			e.setCancelled(true);
-			return;
-		}
 		
 		// Apply penalties for mining stone
 		if (e.getBlock().getType() == Material.STONE && pl.isActiveParticipant()) {
@@ -259,5 +293,115 @@ public class MatchListener implements Listener {
 		e.setCancelled(true);
 	}
 	
+	@EventHandler(ignoreCancelled = true)
+	public void onWorldChange(PlayerChangedWorldEvent e) {
+		UhcPlayer pl = m.getPlayer(e.getPlayer());
+		if (pl.isActiveParticipant() && m.getMatchPhase() == MatchPhase.MATCH)
+			m.getServer().getPluginManager().callEvent(new UhcDimensionChangeEvent(m, e.getPlayer().getLocation(), e.getPlayer(), e.getPlayer().getWorld().getEnvironment()));
+		
+	}
 	
+	class HealthChangeTask implements Runnable
+	{
+		UhcParticipant pl = null;
+
+		public HealthChangeTask(UhcParticipant pl)
+		{ this.pl = pl; }
+
+		public void run()
+		{ if (pl != null) pl.updateHealth(); }
+	}
+	
+	public void updateHealth(Player pl){
+		if (pl != null && m.getPlayer(pl).isActiveParticipant()){
+			TesseractUHC.getInstance().getServer().getScheduler().runTask(TesseractUHC.getInstance(), new HealthChangeTask(m.getPlayer(pl).getParticipant()));
+		}
+	}
+	
+	class ArmorChangeTask implements Runnable
+	{
+		UhcParticipant pl = null;
+
+		public ArmorChangeTask(UhcParticipant pl)
+		{ this.pl = pl; }
+
+		public void run()
+		{ if (pl != null) pl.updateArmor(); }
+	}
+	
+	public void updateArmor(Player pl){
+		if (pl != null && m.getPlayer(pl).isActiveParticipant()){
+			TesseractUHC.getInstance().getServer().getScheduler().runTask(TesseractUHC.getInstance(), new ArmorChangeTask(m.getPlayer(pl).getParticipant()));
+		}
+	}
+	
+	class DimensionChangeTask implements Runnable
+	{
+		UhcParticipant pl = null;
+
+		public DimensionChangeTask(UhcParticipant pl)
+		{ this.pl = pl; }
+
+		public void run()
+		{ if (pl != null) pl.updateDimension(); }
+	}
+	
+	public void updateDimension(Player pl){
+		if (pl != null && m.getPlayer(pl).isActiveParticipant()){
+			TesseractUHC.getInstance().getServer().getScheduler().runTask(TesseractUHC.getInstance(), new DimensionChangeTask(m.getPlayer(pl).getParticipant()));
+		}
+	}
+	
+	class InventoryChangeTask implements Runnable
+	{
+		UhcParticipant pl = null;
+
+		public InventoryChangeTask(UhcParticipant pl)
+		{ this.pl = pl; }
+
+		public void run()
+		{ if (pl != null) pl.updateInventory(); }
+	}
+	
+	public void updateInventory(Player pl){
+		if (pl != null && m.getPlayer(pl).isActiveParticipant()){
+			TesseractUHC.getInstance().getServer().getScheduler().runTask(TesseractUHC.getInstance(), new InventoryChangeTask(m.getPlayer(pl).getParticipant()));
+		}
+	}
+	
+	@EventHandler(priority=EventPriority.MONITOR, ignoreCancelled=true)
+	public void onInventoryClick(InventoryClickEvent event){
+		updateArmor((Player) event.getWhoClicked());
+		updateInventory((Player) event.getWhoClicked());
+	}
+
+	@EventHandler(priority=EventPriority.MONITOR, ignoreCancelled=true)
+	public void onPlayerDropItem(PlayerDropItemEvent event){
+		updateArmor(event.getPlayer());
+	}
+	
+	@EventHandler(priority=EventPriority.MONITOR, ignoreCancelled=true)
+	public void onPlayerDimensionChange(PlayerPortalEvent event){
+		updateDimension(event.getPlayer());
+	}	
+
+	@EventHandler(priority=EventPriority.MONITOR, ignoreCancelled=true)
+	public void onItemDrop(PlayerDropItemEvent event){ 
+		updateInventory(event.getPlayer());
+	}
+
+	@EventHandler(priority=EventPriority.MONITOR, ignoreCancelled=true)
+	public void onItemPickup(PlayerPickupItemEvent event){ 
+		updateInventory(event.getPlayer());
+	}
+	
+	@EventHandler(priority=EventPriority.MONITOR, ignoreCancelled=true)
+	public void onItemUse(PlayerItemConsumeEvent event){ 
+		updateInventory(event.getPlayer());
+	}
+	
+	@EventHandler(priority=EventPriority.MONITOR, ignoreCancelled=true)
+	public void itemCraft(CraftItemEvent event){ 
+		updateInventory((Player) event.getWhoClicked());
+	}
 }

@@ -27,6 +27,13 @@ public class CdcCommand extends UhcCommandExecutor {
 		
 		if (match.cancelBorderCountdown())
 			return OK_COLOR + "Border countdown cancelled!";
+		
+		if (match.cancelPVPCountdown())
+			return OK_COLOR + "PVP countdown cancelled!";
+		
+		if (match.cancelPermadayCountdown())
+			return OK_COLOR + "Permaday countdown cancelled!";
+		
 
 		return ERROR_COLOR + "No countdown is in progress";
 	}

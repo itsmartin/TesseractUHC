@@ -2,6 +2,8 @@ package com.martinbrook.tesseractuhc;
 
 import java.util.HashSet;
 
+import org.bukkit.ChatColor;
+
 import com.martinbrook.tesseractuhc.startpoint.UhcStartPoint;
 
 public class UhcTeam {
@@ -9,6 +11,7 @@ public class UhcTeam {
 	private String name;
 	private UhcStartPoint startPoint;
 	private HashSet<UhcParticipant> players = new HashSet<UhcParticipant>();
+	private ChatColor color;
 	
 	
 	/**
@@ -18,11 +21,12 @@ public class UhcTeam {
 	 * @param name Full name for the team
 	 * @param startPoint Start point of this team
 	 */
-	public UhcTeam(String identifier, String name, UhcStartPoint startPoint) {
+	public UhcTeam(String identifier, String name, UhcStartPoint startPoint, ChatColor color) {
 		super();
 		this.identifier = identifier;
 		this.name = name;
 		this.startPoint = startPoint;
+		this.color = color;
 	}
 	
 	/**
@@ -83,6 +87,10 @@ public class UhcTeam {
 	
 	public HashSet<UhcParticipant> getMembers() {
 		return players;
+	}
+	
+	public ChatColor getColor(){
+		return color;
 	}
 
 }

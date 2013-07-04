@@ -7,15 +7,13 @@ import com.martinbrook.tesseractuhc.UhcParticipant;
 
 public class HealingNotification extends UhcNotification {
 	private UhcParticipant player;
-	private int healAmount;
 	private RegainReason cause;
 
 
 
-	public HealingNotification(UhcParticipant player, int healAmount, RegainReason cause) {
+	public HealingNotification(UhcParticipant player, RegainReason cause) {
 		super();
 		this.player = player;
-		this.healAmount = healAmount;
 		this.cause = cause;
 	}
 
@@ -23,9 +21,9 @@ public class HealingNotification extends UhcNotification {
 	@Override
 	public String formatForPlayers() {
 		if (cause == RegainReason.MAGIC)
-			return ChatColor.AQUA + player.getName() + " gained " + (healAmount / 2.0) + " hearts through magic";
+			return ChatColor.AQUA + player.getName() + " gained health through magic";
 		if (cause == RegainReason.MAGIC_REGEN)
-			return ChatColor.AQUA + player.getName() + " regenerated " + (healAmount / 2.0) + " hearts through magic";
+			return ChatColor.AQUA + player.getName() + " regenerated health through magic";
 
 		return ChatColor.AQUA + player.getName() + " mysteriously regained health";
 	}

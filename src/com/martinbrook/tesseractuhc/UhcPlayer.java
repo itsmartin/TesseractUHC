@@ -11,6 +11,7 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.potion.PotionEffect;
 
 import com.martinbrook.tesseractuhc.util.MatchUtils;
+import com.martinbrook.tesseractuhc.util.PluginChannelUtils;
 
 /**
  * Represents a player who is, or has ever been, on the server.
@@ -21,6 +22,10 @@ public class UhcPlayer {
 	private UhcParticipant participant;
 	private UhcSpectator spectator;
 	private UhcMatch m;
+	private boolean seen = false;
+	
+	//Does the player have the autoreferee-client on?
+	private boolean autoRefereeClientEnabled = false; 
 	
 
 	public UhcPlayer(String name, UhcMatch match) {
@@ -34,6 +39,8 @@ public class UhcPlayer {
 	private boolean isOp() { return getOfflinePlayer().isOp(); }
 	public Player getPlayer() { return m.getServer().getPlayerExact(name); }
 	public OfflinePlayer getOfflinePlayer() { return m.getServer().getOfflinePlayer(name); }
+	public void setSeen() { this.seen = true; }
+	public boolean isSeen() { return this.seen; }
 	
 	public void setParticipant(UhcParticipant participant) { this.participant = participant; }
 	
@@ -74,20 +81,25 @@ public class UhcPlayer {
 	}
 	
 	public boolean makeSpectator() {
-		if (isActiveParticipant()) return false;
+		if (m.getMatchPhase() != MatchPhase.POST_MATCH && isActiveParticipant()) return false;
 		if (spectator == null) spectator = new UhcSpectator(this);
 		setVanish();
 		setGameMode(GameMode.CREATIVE);
 		spectator.sendMessage(ChatColor.GREEN+"You are now a spectator.");
+		
+		// If the player has the client mod enabled, give him an update of the match.
+		if(getAutoRefereeClientEnabled())
+			PluginChannelUtils.updateSpectator(getPlayer(), m);
+		
 		return true;
 	}
 
 	public void makeNotSpectator() {
+		if (spectator==null) return;
 		spectator.setNightVision(false);
 		spectator=null;
 		setGameMode(GameMode.SURVIVAL);
 		setVanish();
-		
 	}
 	
 
@@ -102,6 +114,13 @@ public class UhcPlayer {
 		Player p = getPlayer();
 		if (p==null) return false;
 		p.setHealth(20);
+		
+		// Update health for spectators
+		if (isActiveParticipant()) getParticipant().updateHealth();
+		
+		// Update player list health
+		updatePlayerListName();
+		
 		return true;
 	}
 
@@ -153,6 +172,9 @@ public class UhcPlayer {
 		i.setChestplate(null);
 		i.setLeggings(null);
 		i.setBoots(null);
+		
+		// Update armor for spectators
+		if (isActiveParticipant()) getParticipant().updateArmor();
 		
 		p.getEnderChest().clear();
 		return true;
@@ -279,6 +301,24 @@ public class UhcPlayer {
 			p.setPlayerListName(ChatColor.DARK_GRAY + name);
 		}
 
+	}
+
+	/**
+	 * Set the status whether this player has the autoref mod on or not.
+	 * 
+	 * @param on Whether this player has the autoreferee-client mod enabled or not
+	 */
+	public void setAutoRefereeClientEnabled(boolean on) {
+		this.autoRefereeClientEnabled = on;
+	}
+	
+	/**
+	 * get the status whether this player has the autoref mod on or not.
+	 * 
+	 * @return Whether this player has the autoreferee-client mod enabled or not
+	 */
+	public boolean getAutoRefereeClientEnabled(){
+		return autoRefereeClientEnabled;
 	}
 
 	

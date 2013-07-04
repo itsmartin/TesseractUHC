@@ -11,9 +11,12 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
 
+import com.martinbrook.tesseractuhc.event.UhcEvent;
+import com.martinbrook.tesseractuhc.event.UhcEventFactory;
 import com.martinbrook.tesseractuhc.startpoint.UhcStartPoint;
 import com.martinbrook.tesseractuhc.util.FileUtils;
 import com.martinbrook.tesseractuhc.util.MatchUtils;
+import com.martinbrook.tesseractuhc.util.PluginChannelUtils;
 
 public class UhcConfiguration {
 
@@ -95,6 +98,20 @@ public class UhcConfiguration {
 			}
 		}
 		
+		// Load match events
+		
+		m.clearEvents();
+		
+		List<String> eventData = md.getStringList("events");
+		for (String eventDataEntry: eventData) {
+			UhcEvent event = UhcEventFactory.newEvent(eventDataEntry, m);
+			if (event != null) {
+				m.addEvent(event);
+			} else {
+				m.adminBroadcast("Bad event definition in match data file: " + eventDataEntry);
+			}
+		}
+		
 		setDefaultMatchParameters();
 		
 		// Convert saved bonus chest into an ItemStack array
@@ -150,6 +167,13 @@ public class UhcConfiguration {
 		
 		md.set("pois",poiData);
 		
+		ArrayList<String> eventData = new ArrayList<String>();
+		for (UhcEvent event : m.getEvents()) {
+			eventData.add(event.toConfigString());
+		}
+		
+		md.set("events", eventData);
+		
 		try {
 			md.save(FileUtils.getDataFile(m.getStartingWorld().getWorldFolder(), DEFAULT_MATCHDATA_FILE, false));
 		} catch (IOException e) {
@@ -164,6 +188,7 @@ public class UhcConfiguration {
 	public void resetMatchParameters() {
 		m.clearStartPoints();
 		m.clearPOIs();
+		m.clearEvents();
 		md = new YamlConfiguration();
 		this.setDefaultMatchParameters();
 	}
@@ -269,6 +294,16 @@ public class UhcConfiguration {
 		return md.getInt("nopvp");
 	}
 
+	public void setAnnouncementinterval(int nopvp) {
+		md.set("announcementinterval", nopvp);
+		saveMatchParameters();
+	}
+	
+	public int getAnnouncementinterval() {
+		return md.getInt("announcementinterval");
+	}
+	
+	
 	/**
 	 * Set the mining fatigue penalties.
 	 * 
@@ -531,7 +566,14 @@ public class UhcConfiguration {
 						+ desc +  "Period at the start of the match during which PvP is\n      disabled";
 			else 
 				response += "None" + desc + "PvP will be enabled from the start";
-			
+		} else if ("announcementinterval".equalsIgnoreCase(parameter)) {
+			response = param + "Match time announcement interval: " + value;
+			int n = this.getAnnouncementinterval();
+			if (n > 0)
+				response += n + " minute(s)" 
+						+ desc +  "Number of minutes between match time announcements";
+			else 
+				response += "None" + desc + "No match time announcements";
 		} else if ("worldborder".equalsIgnoreCase(parameter)) {
 			response = param + "Initial world border: " + value;
 			int n = this.getWorldBorder();
@@ -658,6 +700,13 @@ public class UhcConfiguration {
 			} catch (NumberFormatException e) {
 				return false;
 			}
+		} else if ("announcementinterval".equalsIgnoreCase(parameter)) {
+			try {
+				this.setAnnouncementinterval(Integer.parseInt(value));
+				return true;
+			} catch (NumberFormatException e) {
+				return false;
+			}
 		} else if ("worldborder".equalsIgnoreCase(parameter)) {
 			try {
 				this.setWorldBorder(Integer.parseInt(value));
@@ -669,6 +718,7 @@ public class UhcConfiguration {
 			Boolean v = MatchUtils.stringToBoolean(value);
 			if (v == null) return false;
 			this.setFFA(v);
+			PluginChannelUtils.messageSpectators("match", "gamerule","FFA",v ? "on" : "off");
 			return true;
 		} else if ("hardstone".equalsIgnoreCase(parameter)) {
 			Boolean v = MatchUtils.stringToBoolean(value);

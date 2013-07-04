@@ -1,8 +1,12 @@
 package com.martinbrook.tesseractuhc.command;
 
+import java.util.ArrayList;
+
 import org.bukkit.command.ConsoleCommandSender;
 
+import com.martinbrook.tesseractuhc.MatchPhase;
 import com.martinbrook.tesseractuhc.TesseractUHC;
+import com.martinbrook.tesseractuhc.UhcParticipant;
 import com.martinbrook.tesseractuhc.UhcPlayer;
 import com.martinbrook.tesseractuhc.UhcSpectator;
 
@@ -37,6 +41,9 @@ public class PlayersCommand extends UhcCommandExecutor {
 		if (args[0].equalsIgnoreCase("add")) {
 			if (args.length < 2)
 				return ERROR_COLOR + "Specify player to add!";
+			
+			if (match.getMatchPhase() != MatchPhase.PRE_MATCH)
+				return ERROR_COLOR + "You cannot add players once the match has begun!";
 			
 			String response = "";
 			
@@ -83,6 +90,25 @@ public class PlayersCommand extends UhcCommandExecutor {
 				return ERROR_COLOR + "Player could not be removed!";
 
 			return OK_COLOR + "Player removed";
+		} else if (args[0].equalsIgnoreCase("removeunseen") || args[0].equalsIgnoreCase("rmu")) {
+			if (!config.isFFA())
+				return ERROR_COLOR + "Cannot auto-remove players in a team match";
+			
+			ArrayList<String> playersToRemove = new ArrayList<String>();
+			for (UhcParticipant up : match.getParticipants()) {
+				if (!up.getPlayer().isSeen()) playersToRemove.add(up.getName());
+			}
+			
+			if (playersToRemove.size() > 0) {
+				String response = OK_COLOR + "Unseen players removed: ";
+				for (String name : playersToRemove) {
+					match.removeParticipant(name);
+					response += name + " ";
+				}
+				return response;
+			} else {
+				return ERROR_COLOR + "No players to remove";
+			}
 		}
 		return null;
 	}

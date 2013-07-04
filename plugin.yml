@@ -1,6 +1,6 @@
 name: TesseractUHC
 main: com.martinbrook.tesseractuhc.TesseractUHC
-version: 0.8.4
+version: 0.10.4
 description: Useful commands for UHC matches
 commands:
  tp:
@@ -60,12 +60,6 @@ commands:
  cdc:
   description: Cancels a running countdown
   usage: /cdc
- chatscript:
-  description: Plays a chat script from a file, one line per second
-  usage: /chatscript filename
- muteall:
-  description: Mutes the chat so that nobody can talk except ops
-  usage: /muteall on | off
  kill:
   description: Command disabled
   usage: /kill
@@ -82,9 +76,6 @@ commands:
  launch:
   description: Launch any players who haven't yet been launched
   usage: /launch
- relaunch:
-  description: Relaunch a player
-  usage: /relaunch player
  calcstarts:
   description: Calculate potential start points
   usage: /calcstarts type param1 param2

@@ -11,12 +11,14 @@ public abstract class UhcCountdown {
 	protected int task = -1;
 	private Plugin plugin;
 	protected UhcMatch match;
+	private Boolean active;
 
 	
 	public UhcCountdown(int countdownLength, Plugin plugin, UhcMatch match) {
 		this.remainingSeconds = countdownLength;
 		this.plugin = plugin;
 		this.match = match;
+		this.active = true;
 		this.task = plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
 			public void run() {
 				tick();
@@ -29,15 +31,19 @@ public abstract class UhcCountdown {
 	protected abstract void complete();
 	protected abstract String getDescription();
 	
-	public void cancel() {
+	public Boolean cancel() {
+		if (!this.active) return false; 
 		plugin.getServer().getScheduler().cancelTask(task);
 		remainingSeconds = -1;
+		this.active=false;
+		return true;
 	}
 	
 	private void tick() {
 		if (remainingSeconds < 0) return;
 		
 		if (remainingSeconds == 0) {
+			this.active=false;
 			this.complete();
 			return;
 		}
@@ -70,5 +76,10 @@ public abstract class UhcCountdown {
 	private void broadcast(String message) {
 		plugin.getServer().broadcastMessage(message);
 	}
+	
+	public Boolean isActive() {
+		return this.active;
+	}
+
 
 }
