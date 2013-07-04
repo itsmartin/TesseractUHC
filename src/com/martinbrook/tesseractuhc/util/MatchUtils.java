@@ -125,17 +125,73 @@ public class MatchUtils {
 	}
 	
 	/**
-	 * Generate a list of radial start points
+	 * Generate a list of grid start points, in concentric rings
 	 * 
 	 * @param count Number of starts to generate
-	 * @param radius Radius of circle
+	 * @param radius Radius of grid
 	 * @return List of starts
 	 */
 	private static ArrayList<Location> calculateGridStarts(int count, int radius) {
 		ArrayList<Location> locations = new ArrayList<Location>();
 		
-		// TODO
+		World w = TesseractUHC.getInstance().getMatch().getStartingWorld();
 		
+		// Calculate the number of segments on each side of the grid
+		int gridSegments = (2 * (int)(Math.ceil(Math.sqrt(count)/2))) - 1;
+		
+		// Calculate the segment size
+		double gridSize = 2 * radius / gridSegments;
+		
+		for(int i = 0; i < count; i++) {
+			// Which ring are we on?
+			// Ring 0 = 0-3
+			// Ring 1 = 4-15
+			// Ring 2 = 16-35
+			// etc
+			int ringNumber = (int) Math.floor(Math.sqrt(i)/2);
+			
+			// Where are we in our ring?
+			int ringPos = i - 4 * ringNumber * ringNumber;
+			
+			// Which 8-sized subsection of the points in our ring are we in?
+			int ringSection = (int) Math.floor(ringPos / 8);
+			
+			// Where are we in that subsection?
+			int ringSectionPos = ringPos - ringSection * 8;
+			
+			// Get a coordinate pair for our ringSection
+			// For each coordinate pair, there are 8 different ways it can be converted to x and z:
+			// x = c1, z = c2
+			// x = -c1, z = c2
+			// x = c1, z = -c2
+			// x = -c1, z = -c2
+			// x = c2, z = c1
+			// x = -c2, z = c1
+			// x = c2, z = -c1
+			// x = -c2, z = -c1
+			
+			double c1 = gridSize * (ringNumber + 0.5);
+			double c2 = gridSize * (ringSection + 0.5);
+			int x,z;
+			
+			// Map c1 and c2 into x and z
+			if (ringSectionPos < 4) {
+				x = (int) c1;
+				z = (int) c2;
+			} else {
+				x = (int) c2;
+				z = (int) c1;
+				ringSectionPos-=4;
+			}
+
+			// Negate accordingly
+			if (ringSectionPos == 1 || ringSectionPos == 3)	x = -x;
+			if (ringSectionPos == 2 || ringSectionPos == 3) z = -z;
+			
+			// Find y position
+			int y = w.getHighestBlockYAt(x, z);
+			locations.add(new Location(w,x,y,z));
+		}
 		return locations;
 	
 	}
