@@ -35,14 +35,28 @@ public class ParamsCommand extends UhcCommandExecutor {
 	
 	private String run() {
 		String response = ChatColor.GOLD + "Match details:\n";
-		response += "   " + config.formatParameter("uhc") + "\n";
+		if (config.isUHC())
+			response += "   " + config.formatParameter("uhc") + "\n";
+		
 		response += "   " + config.formatParameter("ffa") + "\n";
-		response += "   " + config.formatParameter("nopvp") + "\n";
-		response += "   " + config.formatParameter("worldborder") + "\n";
-		response += "   " + config.formatParameter("killerbonus") + "\n";
-		response += "   " + config.formatParameter("miningfatigue") + "\n";
-		response += "   " + config.formatParameter("hardstone") + "\n";
-		response += "   " + config.formatParameter("dropheads") + "\n";
+		
+		if (config.getNopvp() > 0)
+			response += "   " + config.formatParameter("nopvp") + "\n";
+		
+		if (config.getWorldBorder() > 0)
+			response += "   " + config.formatParameter("worldborder") + "\n";
+		
+		if (config.getKillerBonus() != null)
+			response += "   " + config.formatParameter("killerbonus") + "\n";
+		
+		if (config.getMiningFatigueDiamond() > 0 || config.getMiningFatigueGold() > 0)
+			response += "   " + config.formatParameter("miningfatigue") + "\n";
+		
+		if (config.isHardStone())
+			response += "   " + config.formatParameter("hardstone") + "\n";
+		
+		if (config.isDropHeads())
+			response += "   " + config.formatParameter("dropheads") + "\n";
 		
 		return response;
 
