@@ -24,20 +24,25 @@ public class TpcsCommand extends UhcCommandExecutor {
 		if (starts == null)
 			return ERROR_COLOR + "Start points have not been calculated";
 		
-		if (args.length != 1)
-			return ERROR_COLOR + "Please give the start number";
+		int startNumber;
 		
-		
+		if (args.length < 1) {
+			startNumber = match.getStartPoints().size() + 1;
+		} else {
+			try {
+				startNumber = Integer.parseInt(args[0]);
+			} catch (NumberFormatException e) {
+				return ERROR_COLOR + args[0] + " is not a valid number";
+			}
+		}	
+
 		try {
-			int startNumber = Integer.parseInt(args[0]);
 			sender.teleport(starts.get(startNumber - 1));
-		} catch (NumberFormatException e) {
-			return ERROR_COLOR + "Please give the start number";
 		} catch (IndexOutOfBoundsException e) {
 			return ERROR_COLOR + "That start does not exist";
 		}
 		
-		return null;
+		return OK_COLOR + "Teleported to start point " + startNumber;
 
 	}
 
