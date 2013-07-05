@@ -14,6 +14,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.potion.Potion;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionType;
+
 import com.martinbrook.tesseractuhc.TesseractUHC;
 
 public class MatchUtils {
@@ -274,8 +279,21 @@ public class MatchUtils {
 		newContents[oldContents.length + 2] = pInventory.getLeggings();
 		newContents[oldContents.length + 3] = pInventory.getBoots();
 		
+		if (player.getActivePotionEffects().size() == 0)
+			newContents[oldContents.length + 5] = new Potion(PotionType.WATER).toItemStack(1);
+		else {
+			ItemStack potion = new Potion(PotionType.INVISIBILITY).toItemStack(1);
+			PotionMeta pm = (PotionMeta) potion.getItemMeta();
+			for (PotionEffect e : player.getActivePotionEffects())
+				pm.addCustomEffect(e, true);
+			
+			potion.setItemMeta(pm);
+			
+			newContents[oldContents.length + 5] = potion;
+		}
+
 		if (player.getLevel() > 0)
-			newContents[oldContents.length + 4] = new ItemStack(Material.EXP_BOTTLE, player.getLevel());
+			newContents[oldContents.length + 6] = new ItemStack(Material.EXP_BOTTLE, player.getLevel());
 
 		newContents[oldContents.length + 7] = new ItemStack(Material.APPLE, player.getHealth());
 		newContents[oldContents.length + 8] = new ItemStack(Material.COOKED_BEEF, player.getFoodLevel());
