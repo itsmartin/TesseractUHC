@@ -534,7 +534,10 @@ public class UhcMatch {
 	
 
 	public UhcParticipant getParticipantByIndex(int index) {
-		return participantsInMatch.get(index);
+		if (index < participantsInMatch.size())
+			return participantsInMatch.get(index);
+		else
+			return null;
 	}
 	
 	/**
