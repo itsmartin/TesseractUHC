@@ -47,7 +47,26 @@ public class SpectateListener implements Listener {
 				pl.getSpectator().showInventory((Player) clicked);
 		}
 
-		if (m.getPlayer(e.getPlayer()).isNonInteractingSpectator() && m.getMatchPhase() == MatchPhase.MATCH) e.setCancelled(true);
+		// Cancel any interactions by spectators during the match
+		if (m.getPlayer(e.getPlayer()).isNonInteractingSpectator() && m.getMatchPhase() == MatchPhase.MATCH) {
+			// If entity is a minecart chest, show its inventory
+			if (clicked.getType() == EntityType.MINECART_CHEST) {
+				
+				 InventoryHolder invh = (InventoryHolder) clicked;
+				 Inventory inv = invh.getInventory();
+
+				 ItemStack[] contents = inv.getContents();
+				 for (int i = 0; i < contents.length; ++i)
+					 if (contents[i] != null) contents[i] = contents[i].clone();
+
+				 Inventory newinv;
+				 newinv = Bukkit.getServer().createInventory(null, inv.getType());
+				 newinv.setContents(contents);
+
+				 e.getPlayer().openInventory(newinv);
+			}
+			e.setCancelled(true);
+		}
 	}
 
 	@EventHandler(ignoreCancelled = true)
