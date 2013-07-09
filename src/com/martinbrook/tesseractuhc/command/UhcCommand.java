@@ -213,7 +213,7 @@ public class UhcCommand extends UhcCommandExecutor {
 		String name = "";
 		for(int i = 1; i < args.length; i++) name += args[i] + " ";
 		name = name.substring(0, name.length()-1);
-		match.addPOI(sender.getLocation(), name);
+		match.createNewPOI(sender.getLocation(), name);
 		return OK_COLOR + "POI added at your current location";
 	}
 

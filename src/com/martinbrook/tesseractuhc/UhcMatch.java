@@ -1523,10 +1523,15 @@ public class UhcMatch {
 		server.addRecipe(glisteringMelonRecipe);
 	}
 
-	public void addPOI(Location location, String name) {
-		uhcPOIs.add(new UhcPOI(location, name));
+	public void createNewPOI(Location location, String name) {
+		addPOI(location, name);
 		config.saveMatchParameters();
 	}
+	
+	public void addPOI(Location location, String name) {
+		uhcPOIs.add(new UhcPOI(location, name));
+	}
+	
 	public void addPOI(String world, double x, double y, double z, String name) {
 		addPOI(new Location(server.getWorld(world), x, y, z), name);
 	}
