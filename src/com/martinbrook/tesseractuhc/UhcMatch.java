@@ -1217,7 +1217,7 @@ public class UhcMatch {
 	 * 
 	 * @param up The player who died
 	 */
-	private void processParticipantDeath(UhcParticipant up) {
+	private void processParticipantDeath(final UhcParticipant up) {
 		// Set them as dead
 		up.setDead(true);
 		
@@ -1245,8 +1245,20 @@ public class UhcMatch {
 		if (countParticipantsInMatch() == 0) endMatch();
 		
 		broadcastMatchStatus();
+		
+		// Set a timer to remove them from the server after 90 seconds, if deathban is enabled
+		if (config.getDeathban()) {
+			server.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
+				public void run() {
+					if (matchPhase == MatchPhase.MATCH) {
+						Player p = up.getPlayer().getPlayer();
+						if (p != null) p.kickPlayer("Thanks for playing!");
+					}
+				}
+			},2400L);
+		}
 	}
-
+	
 	private void processDragonKill(UhcParticipant winner) {
 		if (config.isFFA()) {
 			broadcast(ChatColor.GOLD + "The winner is: " + winner.getName() + "!");
