@@ -234,6 +234,7 @@ public class UhcParticipant implements PlayerTarget {
 		if (!worldEdgeWarningActive) return;
 		worldEdgeWarningActive=false;
 		this.worldEdgeWarningSoundCountdown = 0;
+		player.getPlayer().removePotionEffect(PotionEffectType.SLOW);
 		
 	}
 
