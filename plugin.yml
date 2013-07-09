@@ -51,6 +51,9 @@ commands:
  renew:
   description: Feeds, heals and clearinvs a player
   usage: /renew player | *
+ clearpots:
+  description: Removes potion effects for a player
+  usage: /clearpots player | *
  ready:
   description: Starts the match countdown
   usage: /ready seconds

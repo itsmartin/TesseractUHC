@@ -55,6 +55,7 @@ public class TesseractUHC extends JavaPlugin {
 		getCommand("feed").setExecutor(new FeedCommand(this));
 		getCommand("clearinv").setExecutor(new ClearinvCommand(this));
 		getCommand("renew").setExecutor(new RenewCommand(this));
+		getCommand("clearpots").setExecutor(new ClearpotsCommand(this));
 		getCommand("ready").setExecutor(new ReadyCommand(this));
 		getCommand("cdwb").setExecutor(new CdwbCommand(this));
 		getCommand("cdc").setExecutor(new CdcCommand(this));
