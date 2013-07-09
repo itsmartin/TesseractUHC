@@ -1175,6 +1175,13 @@ public class UhcMatch {
 	
 	public void placeHead(Location l, String name) {
 		Block b = l.getBlock();
+		
+		while(b != null && b.getType() != Material.AIR) {
+			// If we have reached the top of the world, give up and don't place it anywhere.
+			if (b.getY() == b.getWorld().getMaxHeight() - 1) return;
+			b = b.getRelative(0, 1, 0);
+		}
+		
 		b.setTypeIdAndData(Material.SKULL.getId(), (byte) 1, true);
 		
 		Skull s = (Skull) b.getState();
