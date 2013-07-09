@@ -501,6 +501,16 @@ public class UhcConfiguration {
 		return md.getBoolean("dropheads");
 	}
 	
+	public void setNoSkeletons(Boolean d) {
+		md.set("noskeletons", d);
+		this.saveMatchParameters();
+		m.adminBroadcast(TesseractUHC.OK_COLOR + "No skeletons has been " + (d ? "enabled" : "disabled") + "!");
+	}
+	
+	public boolean isNoSkeletons() {
+		return md.getBoolean("noskeletons");
+	}
+	
 	public void setDamageAlerts(Boolean d) {
 		md.set("damagealerts", d);
 		this.saveMatchParameters();
@@ -628,6 +638,12 @@ public class UhcConfiguration {
 				response += "Enabled" + desc + "Players will drop their heads upon death";
 			else
 				response += "Disabled" + desc + "Players will not drop their heads upon death";
+		} else if ("noskeletons".equalsIgnoreCase(parameter)) {
+			response = param + "No skeletons: " + value;
+			if (this.isNoSkeletons())
+				response += "Enabled" + desc + "Skeletons will not spawn naturally in the overworld";
+			else
+				response += "Disabled" + desc + "Skeletons will spawn as normal";
 		}
 		
 		
@@ -749,6 +765,11 @@ public class UhcConfiguration {
 			Boolean v = MatchUtils.stringToBoolean(value);
 			if (v == null) return false;
 			this.setDropHeads(v);
+			return true;
+		} else if ("noskeletons".equalsIgnoreCase(parameter)) {
+			Boolean v = MatchUtils.stringToBoolean(value);
+			if (v == null) return false;
+			this.setNoSkeletons(v);
 			return true;
 		} else {
 			return false;

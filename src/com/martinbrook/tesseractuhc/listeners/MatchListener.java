@@ -270,6 +270,14 @@ public class MatchListener implements Listener {
 
 	@EventHandler(ignoreCancelled = true)
 	public void onCreatureSpawn(CreatureSpawnEvent e) {
+		// If match is in progress, follow rules for natural spawns
+		if (m.getMatchPhase() == MatchPhase.MATCH && e.getSpawnReason() == SpawnReason.NATURAL) {
+			// Prevent naturally-spawning skeletons in the overworld, if noSkeletons is enabled.
+			if (m.getConfig().isNoSkeletons() && e.getEntityType() == EntityType.SKELETON && e.getLocation().getWorld().equals(m.getStartingWorld())) {
+				e.setCancelled(true);
+			}
+		}
+		
 		// If match is in progress or ended, do nothing
 		if (m.getMatchPhase() == MatchPhase.MATCH || m.getMatchPhase() == MatchPhase.POST_MATCH) return;
 		
@@ -300,6 +308,7 @@ public class MatchListener implements Listener {
 			m.getServer().getPluginManager().callEvent(new UhcDimensionChangeEvent(m, e.getPlayer().getLocation(), e.getPlayer(), e.getPlayer().getWorld().getEnvironment()));
 		
 	}
+
 	
 	class HealthChangeTask implements Runnable
 	{

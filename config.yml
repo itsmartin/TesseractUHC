@@ -8,6 +8,7 @@ nolatecomers: false
 dragonmode: false
 damagealerts: true
 dropheads: true
+noskeletons: false
 killerbonus:
  id: 266
  quantity: 4

@@ -58,6 +58,9 @@ public class ParamsCommand extends UhcCommandExecutor {
 		if (config.isDropHeads())
 			response += "   " + config.formatParameter("dropheads") + "\n";
 		
+		if (config.isNoSkeletons())
+			response += "   " + config.formatParameter("noskeletons") + "\n";
+		
 		return response;
 
 	}
