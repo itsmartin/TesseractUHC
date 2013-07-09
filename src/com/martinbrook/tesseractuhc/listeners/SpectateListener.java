@@ -1,6 +1,8 @@
 package com.martinbrook.tesseractuhc.listeners;
 
 import org.bukkit.Bukkit;
+import org.bukkit.block.Jukebox;
+import org.bukkit.block.NoteBlock;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -97,7 +99,10 @@ public class SpectateListener implements Listener {
 	 */
 	 @EventHandler(priority=EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onPlayerInteract(PlayerInteractEvent e) {
-		 if (m.getPlayer(e.getPlayer()).isNonInteractingSpectator() && m.getMatchPhase() == MatchPhase.MATCH) {
+		 UhcPlayer pl = m.getPlayer(e.getPlayer());
+
+		 // Handle interactions for spectators during the game
+		 if (pl.isNonInteractingSpectator() && m.getMatchPhase() == MatchPhase.MATCH) {
 
 			 // Handle right-clicks on inventory blocks
 			 if (e.getAction() == Action.RIGHT_CLICK_BLOCK && e.getClickedBlock().getState() instanceof InventoryHolder) {
@@ -122,6 +127,20 @@ public class SpectateListener implements Listener {
 			 // Cancel all other actions
 			 e.setCancelled(true);
 		 }
+		 
+		 // Handle interactions for non-admins pre-game
+		 if (!pl.isAdmin() && (m.getMatchPhase() == MatchPhase.LAUNCHING || m.getMatchPhase() == MatchPhase.PRE_MATCH)) {
+			 // Allow inventory blocks to be opened (e.g. chests)
+			 if (e.getAction() == Action.RIGHT_CLICK_BLOCK && (
+					 e.getClickedBlock().getState() instanceof InventoryHolder
+					 || e.getClickedBlock().getState() instanceof Jukebox
+					 || e.getClickedBlock().getState() instanceof NoteBlock)) {
+				 return;
+			 }
+			 // Cancel all other actions
+			 e.setCancelled(true);
+		 }
+		 
 	 }
 
 	 @EventHandler(ignoreCancelled = true)
