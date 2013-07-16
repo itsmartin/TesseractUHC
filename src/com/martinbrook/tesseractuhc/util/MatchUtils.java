@@ -295,7 +295,7 @@ public class MatchUtils {
 		if (player.getLevel() > 0)
 			newContents[oldContents.length + 6] = new ItemStack(Material.EXP_BOTTLE, player.getLevel());
 
-		newContents[oldContents.length + 7] = new ItemStack(Material.APPLE, (int) player.getHealth());
+		newContents[oldContents.length + 7] = new ItemStack(Material.APPLE, player.getHealth());
 		newContents[oldContents.length + 8] = new ItemStack(Material.COOKED_BEEF, player.getFoodLevel());
 
 		for (int i = 0; i < oldContents.length; ++i)
