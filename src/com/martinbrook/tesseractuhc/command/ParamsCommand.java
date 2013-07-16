@@ -15,26 +15,26 @@ public class ParamsCommand extends UhcCommandExecutor {
 
 	@Override
 	protected String runAsConsole(ConsoleCommandSender sender, String[] args) {
-		return this.run();
+		return this.run(true);
 	}
 
 	@Override
 	protected String runAsAdmin(UhcSpectator sender, String[] args) {
-		return this.run();
+		return this.run(true);
 	}
 	
 	@Override
 	protected String runAsSpectator(UhcSpectator sender, String[] args) {
-		return this.run();
+		return this.run(false);
 	}
 
 	@Override
 	protected String runAsPlayer(UhcPlayer sender, String[] args) {
-		return this.run();
+		return this.run(false);
 	}
 	
-	private String run() {
-		String response = ChatColor.GOLD + "Match details:\n";
+	private String run(boolean adminInfo) {
+		String response = ChatColor.GOLD + "Gameplay summary:\n";
 		if (config.isUHC())
 			response += "   " + config.formatParameter("uhc") + "\n";
 		
@@ -63,6 +63,9 @@ public class ParamsCommand extends UhcCommandExecutor {
 		
 		if (!config.isWeather())
 			response += "   " + config.formatParameter("weather") + "\n";
+		
+		if (adminInfo)
+			response += ChatColor.AQUA + "For a full list of parameters, use " + ChatColor.GOLD + "/uhc params";
 		
 		return response;
 
