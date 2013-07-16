@@ -511,6 +511,16 @@ public class UhcConfiguration {
 		return md.getBoolean("noskeletons");
 	}
 	
+	public void setWeather(Boolean d) {
+		md.set("weather", d);
+		this.saveMatchParameters();
+		m.adminBroadcast(TesseractUHC.OK_COLOR + "Weather has been " + (d ? "enabled" : "disabled") + "!");
+	}
+	
+	public boolean isWeather() {
+		return md.getBoolean("weather");
+	}
+	
 	public void setDamageAlerts(Boolean d) {
 		md.set("damagealerts", d);
 		this.saveMatchParameters();
@@ -644,6 +654,12 @@ public class UhcConfiguration {
 				response += "Enabled" + desc + "Skeletons will not spawn naturally in the overworld";
 			else
 				response += "Disabled" + desc + "Skeletons will spawn as normal";
+		} else if ("weather".equalsIgnoreCase(parameter)) {
+			response = param + "Weather: " + value;
+			if (this.isWeather())
+				response += "Enabled" + desc + "Rain and snow may occur";
+			else
+				response += "Disabled" + desc + "Rain and snow will not occur";
 		}
 		
 		
@@ -770,6 +786,11 @@ public class UhcConfiguration {
 			Boolean v = MatchUtils.stringToBoolean(value);
 			if (v == null) return false;
 			this.setNoSkeletons(v);
+			return true;
+		} else if ("weather".equalsIgnoreCase(parameter)) {
+			Boolean v = MatchUtils.stringToBoolean(value);
+			if (v == null) return false;
+			this.setWeather(v);
 			return true;
 		} else {
 			return false;

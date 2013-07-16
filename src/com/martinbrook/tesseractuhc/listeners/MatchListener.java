@@ -25,6 +25,7 @@ import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.event.player.PlayerPortalEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.event.weather.WeatherChangeEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.ChatColor;
 
@@ -309,6 +310,14 @@ public class MatchListener implements Listener {
 		
 	}
 
+	@EventHandler(ignoreCancelled = true)
+	public void onWeatherChange(WeatherChangeEvent e) {
+		// Do nothing if we are in a match and weather is enabled
+		if (m.getMatchPhase() == MatchPhase.MATCH && m.getConfig().isWeather()) return;
+		
+		// Otherwise, cancel weather changes
+		if (e.toWeatherState()) e.setCancelled(true);
+	}
 	
 	class HealthChangeTask implements Runnable
 	{

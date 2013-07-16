@@ -61,6 +61,9 @@ public class ParamsCommand extends UhcCommandExecutor {
 		if (config.isNoSkeletons())
 			response += "   " + config.formatParameter("noskeletons") + "\n";
 		
+		if (!config.isWeather())
+			response += "   " + config.formatParameter("weather") + "\n";
+		
 		return response;
 
 	}

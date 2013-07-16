@@ -9,6 +9,7 @@ dragonmode: false
 damagealerts: true
 dropheads: true
 noskeletons: false
+weather: false 
 killerbonus:
  id: 266
  quantity: 4
