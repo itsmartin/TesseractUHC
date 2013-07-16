@@ -144,11 +144,7 @@ public class MatchListener implements Listener {
 			Entity damager = null;
 			if (e instanceof EntityDamageByEntityEvent) damager = ((EntityDamageByEntityEvent) e).getDamager();
 			
-			DamageNotification n = new DamageNotification(pa, e.getCause(), damager);
-			if (m.getConfig().isDamageAlerts()) 
-				m.sendNotification(n, e.getEntity().getLocation());
-			else 
-				m.sendSpectatorNotification(n, e.getEntity().getLocation());
+			m.scheduleDamageNotification(new DamageNotification(pa, e.getCause(), damager), e.getEntity().getLocation());
 		}
 		pa.setDamageTimer();
 		

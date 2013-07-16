@@ -42,6 +42,7 @@ import com.martinbrook.tesseractuhc.customevent.UhcMatchStartEvent;
 import com.martinbrook.tesseractuhc.customevent.UhcPlayerLocationUpdateEvent;
 import com.martinbrook.tesseractuhc.customevent.UhcVictoryEvent;
 import com.martinbrook.tesseractuhc.event.UhcEvent;
+import com.martinbrook.tesseractuhc.notification.DamageNotification;
 import com.martinbrook.tesseractuhc.notification.ProximityNotification;
 import com.martinbrook.tesseractuhc.notification.UhcNotification;
 import com.martinbrook.tesseractuhc.startpoint.LargeGlassStartPoint;
@@ -857,6 +858,24 @@ public class UhcMatch {
 		this.launchQueue.add(up.getName().toLowerCase());
 	}
 	
+	public void scheduleDamageNotification(final DamageNotification n, final Location l) {
+		server.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
+			public void run() {
+				performDamageNotification(n, l);
+			}
+		});
+	}
+	
+	private void performDamageNotification(DamageNotification n, Location l) {
+		// Don't notify if health hasn't changed (due to armor, resistance, etc)
+		if (!n.healthChanged()) return;
+		
+		if (config.isDamageAlerts())
+			sendNotification(n, l);
+		else 
+			sendSpectatorNotification(n, l);
+
+	}
 	
 	public void schedulePlayerListUpdate(final UhcPlayer pl) {
 		server.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
