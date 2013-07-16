@@ -49,7 +49,10 @@ public class MatchUtils {
 			return String.format("%02d:%02d:%02d", hours, minutes, seconds);
 		} else {
 			long minutes = d / 60;
-			return minutes + " minute" + (minutes != 1 ? "s" : "");
+			if (minutes > 0)
+				return minutes + " minute" + (minutes != 1 ? "s" : "");
+			else
+				return d + " second" + (d != 1 ? "s" : "");
 			
 		}
 		
