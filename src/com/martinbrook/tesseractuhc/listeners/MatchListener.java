@@ -1,5 +1,6 @@
 package com.martinbrook.tesseractuhc.listeners;
 
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -128,11 +129,7 @@ public class MatchListener implements Listener {
 			e.setCancelled(true);
 			return;
 		}
-		
-		// If damage caused by another entity, ignore it here (it will be handled by onEntityDamageByEntity)
-		if (e.getCause() == DamageCause.ENTITY_ATTACK || e.getCause() == DamageCause.ENTITY_EXPLOSION
-				|| e.getCause() == DamageCause.PROJECTILE) return;
-		
+				
 		// If damage ticks not exceeded, the damage won't happen, so return
 		if(((LivingEntity)e.getEntity()).getNoDamageTicks() > ((LivingEntity)e.getEntity()).getMaximumNoDamageTicks()/2.0F)	return;
 		
@@ -143,7 +140,12 @@ public class MatchListener implements Listener {
 		UhcParticipant pa = pl.getParticipant();
 		
 		if (!pa.isRecentlyDamaged()) {
-			DamageNotification n = new DamageNotification(pa, e.getCause());
+			
+			// If damage caused by an entity, find out which
+			Entity damager = null;
+			if (e instanceof EntityDamageByEntityEvent) damager = ((EntityDamageByEntityEvent) e).getDamager();
+			
+			DamageNotification n = new DamageNotification(pa, e.getCause(), damager);
 			if (m.getConfig().isDamageAlerts()) 
 				m.sendNotification(n, e.getEntity().getLocation());
 			else 
@@ -170,30 +172,6 @@ public class MatchListener implements Listener {
 				return;
 			}
 		}
-		
-		// Only interested in players taking damage
-		if (e.getEntityType() != EntityType.PLAYER) return;
-		
-		// Only interested in registered, active participants
-		UhcPlayer pl = m.getPlayer((Player) e.getEntity());
-		if (!pl.isActiveParticipant()) return;
-
-		UhcParticipant pa = pl.getParticipant();
-		
-		if (!pa.isRecentlyDamaged()) {
-			DamageNotification n = new DamageNotification(pl.getParticipant(), e.getCause(), e.getDamager());
-			if (m.getConfig().isDamageAlerts()) 
-				m.sendNotification(n, e.getEntity().getLocation());
-			else 
-				m.sendSpectatorNotification(n, e.getEntity().getLocation());
-		}
-		pa.setDamageTimer();
-		
-		// Update the client mod
-		updateHealth(pl.getPlayer());
-
-		// Update the tab list
-		m.schedulePlayerListUpdate(pl);
 	}
 
 	@EventHandler(ignoreCancelled = true)
