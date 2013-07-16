@@ -35,7 +35,7 @@ public class MatchinfoCommand extends UhcCommandExecutor {
 
 	private String run() {
 		return ChatColor.AQUA + "This is " + ChatColor.ITALIC + match.getConfig().getMatchTitle() + "\n" 
-				+ ChatColor.RESET + match.matchTimeAnnouncement(true) + "\n" + match.getPlayerStatusReport(); 
+				+ ChatColor.RESET + match.matchTimeAnnouncement(true); 
 
 	}
 
