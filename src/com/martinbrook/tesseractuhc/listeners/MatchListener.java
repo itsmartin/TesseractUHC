@@ -118,7 +118,7 @@ public class MatchListener implements Listener {
 
 
 	
-	@EventHandler(ignoreCancelled = true)
+	@EventHandler(ignoreCancelled = true, priority = EventPriority.LOW)
 	public void onEntityDamage(EntityDamageEvent e) {
 		// Only interested in players taking damage
 		if (e.getEntityType() != EntityType.PLAYER) return;
