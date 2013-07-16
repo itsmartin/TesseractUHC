@@ -113,7 +113,7 @@ public class UhcPlayer {
 	public boolean heal() {
 		Player p = getPlayer();
 		if (p==null) return false;
-		p.setHealth(20);
+		p.setHealth(p.getMaxHealth());
 		
 		// Update health for spectators
 		if (isActiveParticipant()) getParticipant().updateHealth();

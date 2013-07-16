@@ -85,7 +85,7 @@ public class PluginChannelUtils {
 		Player pl = up.getPlayer().getPlayer();
 		if (pl != null)
 		{
-			messageSpectator(spec, "player", up.getName(), "hp", Integer.toString(pl.getHealth()));
+			messageSpectator(spec, "player", up.getName(), "hp", Integer.toString((int) pl.getHealth()));
 			messageSpectator(spec, "player", up.getName(), "armor", Integer.toString(ArmorPoints.fromPlayer(pl)));
 		}
 

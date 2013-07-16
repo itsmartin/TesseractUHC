@@ -47,7 +47,7 @@ public class UhcParticipant implements PlayerTarget {
 		this.player = pl;
 		this.team = team;
 		if (pl.isOnline()) {
-			this.currentHealth = pl.getPlayer().getHealth();
+			this.currentHealth = (int) pl.getPlayer().getHealth();
 			this.currentArmor = ArmorPoints.fromPlayerInventory(pl.getPlayer().getInventory());
 		}
 	}
@@ -286,7 +286,7 @@ public class UhcParticipant implements PlayerTarget {
 		Player player = getPlayer().getPlayer();
 		if (player == null) return;
 
-		int newHealth = Math.max(0, player.getHealth());
+		int newHealth = Math.max(0, (int) player.getHealth());
 
 		if (newHealth != currentHealth){
 			PluginChannelUtils.messageSpectators("player", getName(), "hp", Integer.toString(newHealth));
