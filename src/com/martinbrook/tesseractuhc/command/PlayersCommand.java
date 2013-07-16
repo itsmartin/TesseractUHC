@@ -1,9 +1,11 @@
 package com.martinbrook.tesseractuhc.command;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.bukkit.command.ConsoleCommandSender;
-
 import com.martinbrook.tesseractuhc.MatchPhase;
 import com.martinbrook.tesseractuhc.TesseractUHC;
 import com.martinbrook.tesseractuhc.UhcParticipant;
@@ -109,6 +111,34 @@ public class PlayersCommand extends UhcCommandExecutor {
 			} else {
 				return ERROR_COLOR + "No players to remove";
 			}
+		} else if (args[0].equalsIgnoreCase("list") || args[0].equalsIgnoreCase("ls")) {
+			Map<String, ArrayList<String>> players = new HashMap<String, ArrayList<String>>();
+			
+			players.put("Active participants", new ArrayList<String>());
+			players.put("Inactive participants", new ArrayList<String>());
+			players.put("Administrators", new ArrayList<String>());
+			players.put("Spectators", new ArrayList<String>());
+			players.put("Others", new ArrayList<String>());
+			
+			for (UhcPlayer p : match.getOnlinePlayers()) {
+				if (p.isActiveParticipant()) players.get("Active participants").add(p.getDisplayName());
+				else if (p.isParticipant()) players.get("Inactive participants").add(p.getDisplayName());
+				else if (p.isAdmin()) players.get("Administrators").add(p.getDisplayName());
+				else if (p.isSpectator()) players.get("Spectators").add(p.getDisplayName());
+				else players.get("Others").add(p.getDisplayName());
+			}
+			
+			String response = match.getOnlinePlayers().size() + " players online:\n";
+			for (Entry<String, ArrayList<String>> e : players.entrySet()) {
+				if (e.getValue().size() > 0) {
+					response += OK_COLOR + "  " + e.getKey() + "(" + e.getValue().size() + "):" + SIDE_COLOR;
+					for (String name : e.getValue())
+						response += " " + name;
+					response += "\n";
+				}
+			}
+			return response;
+
 		}
 		return null;
 	}
