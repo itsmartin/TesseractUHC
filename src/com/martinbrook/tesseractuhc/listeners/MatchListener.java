@@ -1,5 +1,6 @@
 package com.martinbrook.tesseractuhc.listeners;
 
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -12,18 +13,19 @@ import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.bukkit.event.entity.EntityRegainHealthEvent.RegainReason;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.event.player.PlayerPortalEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.event.weather.WeatherChangeEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.ChatColor;
 
@@ -32,6 +34,8 @@ import com.martinbrook.tesseractuhc.TesseractUHC;
 import com.martinbrook.tesseractuhc.UhcMatch;
 import com.martinbrook.tesseractuhc.UhcParticipant;
 import com.martinbrook.tesseractuhc.UhcPlayer;
+import com.martinbrook.tesseractuhc.customevent.UhcDeathEvent;
+import com.martinbrook.tesseractuhc.customevent.UhcDimensionChangeEvent;
 import com.martinbrook.tesseractuhc.notification.DamageNotification;
 import com.martinbrook.tesseractuhc.notification.HealingNotification;
 
@@ -71,19 +75,25 @@ public class MatchListener implements Listener {
 		}
         
 		// Make death message red
-		String msg = e.getDeathMessage();
-		e.setDeathMessage(ChatColor.GOLD + msg);
+		String deathMessage = e.getDeathMessage();
+		e.setDeathMessage(ChatColor.GOLD + deathMessage);
 		
 		// Save death point
 		m.setLastDeathLocation(p.getLocation());
 		
 		// Handle the death
-		if (pl.isActiveParticipant() && m.getMatchPhase() == MatchPhase.MATCH)
+		if (pl.isActiveParticipant() && m.getMatchPhase() == MatchPhase.MATCH) {
+			// Trigger death event
+			m.getServer().getPluginManager().callEvent(new UhcDeathEvent(m, p.getLocation(), deathMessage, p, p.getKiller()));
+			
 			m.handleParticipantDeath(pl.getParticipant());
-		
+			
+			
+		}
 
 		// Update the tab list
 		m.schedulePlayerListUpdate(pl);
+		
 
 	}
 
@@ -108,7 +118,7 @@ public class MatchListener implements Listener {
 
 
 	
-	@EventHandler(ignoreCancelled = true)
+	@EventHandler(ignoreCancelled = true, priority = EventPriority.LOW)
 	public void onEntityDamage(EntityDamageEvent e) {
 		// Only interested in players taking damage
 		if (e.getEntityType() != EntityType.PLAYER) return;
@@ -118,11 +128,7 @@ public class MatchListener implements Listener {
 			e.setCancelled(true);
 			return;
 		}
-		
-		// If damage caused by another entity, ignore it here (it will be handled by onEntityDamageByEntity)
-		if (e.getCause() == DamageCause.ENTITY_ATTACK || e.getCause() == DamageCause.ENTITY_EXPLOSION
-				|| e.getCause() == DamageCause.PROJECTILE) return;
-		
+				
 		// If damage ticks not exceeded, the damage won't happen, so return
 		if(((LivingEntity)e.getEntity()).getNoDamageTicks() > ((LivingEntity)e.getEntity()).getMaximumNoDamageTicks()/2.0F)	return;
 		
@@ -133,11 +139,12 @@ public class MatchListener implements Listener {
 		UhcParticipant pa = pl.getParticipant();
 		
 		if (!pa.isRecentlyDamaged()) {
-			DamageNotification n = new DamageNotification(pa, e.getCause());
-			if (m.getConfig().isDamageAlerts()) 
-				m.sendNotification(n, e.getEntity().getLocation());
-			else 
-				m.sendSpectatorNotification(n, e.getEntity().getLocation());
+			
+			// If damage caused by an entity, find out which
+			Entity damager = null;
+			if (e instanceof EntityDamageByEntityEvent) damager = ((EntityDamageByEntityEvent) e).getDamager();
+			
+			m.scheduleDamageNotification(new DamageNotification(pa, e.getCause(), damager), e.getEntity().getLocation());
 		}
 		pa.setDamageTimer();
 		
@@ -160,24 +167,6 @@ public class MatchListener implements Listener {
 				return;
 			}
 		}
-		
-		// Only interested in players taking damage
-		if (e.getEntityType() != EntityType.PLAYER) return;
-		
-		// Only interested in registered, active participants
-		UhcPlayer pl = m.getPlayer((Player) e.getEntity());
-		if (!pl.isActiveParticipant()) return;
-
-		UhcParticipant pa = pl.getParticipant();
-		
-		if (!pa.isRecentlyDamaged()) {
-			DamageNotification n = new DamageNotification(pl.getParticipant(), e.getCause(), e.getDamager());
-			if (m.getConfig().isDamageAlerts()) 
-				m.sendNotification(n, e.getEntity().getLocation());
-			else 
-				m.sendSpectatorNotification(n, e.getEntity().getLocation());
-		}
-		pa.setDamageTimer();
 	}
 
 	@EventHandler(ignoreCancelled = true)
@@ -200,11 +189,15 @@ public class MatchListener implements Listener {
 		
 		// Announce health change (UHC only)
 		if (m.getConfig().isUHC()) {
-			HealingNotification n = new HealingNotification(pl.getParticipant(), e.getAmount(), e.getRegainReason());
-			if (m.getConfig().isDamageAlerts())
-				m.sendNotification(n, e.getEntity().getLocation());
-			else 
-				m.sendSpectatorNotification(n,  e.getEntity().getLocation());
+			UhcParticipant pa = pl.getParticipant();
+			if (!pa.isRecentlyHealed()) {
+				HealingNotification n = new HealingNotification(pl.getParticipant(), e.getRegainReason());
+				if (m.getConfig().isDamageAlerts())
+					m.sendNotification(n, e.getEntity().getLocation());
+				else 
+					m.sendSpectatorNotification(n,  e.getEntity().getLocation());
+			}
+			pa.setHealTimer();
 		}
 		
 		// Send update to client mod
@@ -251,6 +244,14 @@ public class MatchListener implements Listener {
 
 	@EventHandler(ignoreCancelled = true)
 	public void onCreatureSpawn(CreatureSpawnEvent e) {
+		// If match is in progress, follow rules for natural spawns
+		if (m.getMatchPhase() == MatchPhase.MATCH && e.getSpawnReason() == SpawnReason.NATURAL) {
+			// Prevent naturally-spawning skeletons in the overworld, if noSkeletons is enabled.
+			if (m.getConfig().isNoSkeletons() && e.getEntityType() == EntityType.SKELETON && e.getLocation().getWorld().equals(m.getStartingWorld())) {
+				e.setCancelled(true);
+			}
+		}
+		
 		// If match is in progress or ended, do nothing
 		if (m.getMatchPhase() == MatchPhase.MATCH || m.getMatchPhase() == MatchPhase.POST_MATCH) return;
 		
@@ -272,6 +273,23 @@ public class MatchListener implements Listener {
 		
 		// Cancel spawn
 		e.setCancelled(true);
+	}
+	
+	@EventHandler(ignoreCancelled = true)
+	public void onWorldChange(PlayerChangedWorldEvent e) {
+		UhcPlayer pl = m.getPlayer(e.getPlayer());
+		if (pl.isActiveParticipant() && m.getMatchPhase() == MatchPhase.MATCH)
+			m.getServer().getPluginManager().callEvent(new UhcDimensionChangeEvent(m, e.getPlayer().getLocation(), e.getPlayer(), e.getPlayer().getWorld().getEnvironment()));
+		
+	}
+
+	@EventHandler(ignoreCancelled = true)
+	public void onWeatherChange(WeatherChangeEvent e) {
+		// Do nothing if we are in a match and weather is enabled
+		if (m.getMatchPhase() == MatchPhase.MATCH && m.getConfig().isWeather()) return;
+		
+		// Otherwise, cancel weather changes
+		if (e.toWeatherState()) e.setCancelled(true);
 	}
 	
 	class HealthChangeTask implements Runnable

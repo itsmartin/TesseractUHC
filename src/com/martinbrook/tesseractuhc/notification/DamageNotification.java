@@ -18,6 +18,7 @@ public class DamageNotification extends UhcNotification {
 	private UhcParticipant damaged;
 	private DamageCause cause;
 	private Entity damager;
+	private int priorHealth;
 
 
 
@@ -26,16 +27,14 @@ public class DamageNotification extends UhcNotification {
 		this.damaged = damaged;
 		this.cause = cause;
 		this.damager = damager;
+		this.priorHealth = damaged.getPlayer().getPlayer().getHealth();
 	}
 
-
-	public DamageNotification(UhcParticipant damaged, DamageCause cause) {
-		super();
-		this.damaged = damaged;
-		this.cause = cause;
-		this.damager = null;
+	public boolean healthChanged() {
+		Player p = damaged.getPlayer().getPlayer();
+		if (p == null) return false;
+		return p.getHealth() < priorHealth;
 	}
-
 
 	@Override
 	public String formatForPlayers() {

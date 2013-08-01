@@ -99,12 +99,14 @@ public class UhcSpectator {
 		return player;
 	}
 	
-	public void setNightVision(boolean b){
-		if(b){
-			this.getPlayer().getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, Integer.MAX_VALUE, 0,false));
-		}else{
-			this.getPlayer().getPlayer().removePotionEffect(PotionEffectType.NIGHT_VISION);
-		}
+	public void setNightVision(boolean enable){
+		Player p = this.getPlayer().getPlayer();
+		if (p == null) return;
+		if (enable)
+			p.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, Integer.MAX_VALUE, 0,false));
+		else
+			p.removePotionEffect(PotionEffectType.NIGHT_VISION);
+		
 	}
 	
 }

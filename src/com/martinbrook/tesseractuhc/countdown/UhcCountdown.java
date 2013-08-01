@@ -1,29 +1,61 @@
 package com.martinbrook.tesseractuhc.countdown;
 
+import java.util.ArrayList;
+import java.util.Calendar;
+
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.Plugin;
 
 import com.martinbrook.tesseractuhc.UhcMatch;
+import com.martinbrook.tesseractuhc.util.MatchUtils;
 
 public abstract class UhcCountdown {
 
-	protected int remainingSeconds = 0;
+	protected long countdownLength;
 	protected int task = -1;
 	private Plugin plugin;
 	protected UhcMatch match;
 	private Boolean active;
+	private Calendar startTime;
+	private ArrayList<Long> announcements = new ArrayList<Long>();
+	private int preWarnTime;
+	private boolean preWarnDone = false;
+	private int nearingTime;
+	private boolean nearingDone = false;
+	private boolean firstAnnouncementDone = false;
+	private static long REFRESH_RATE = 5L;
 
 	
-	public UhcCountdown(int countdownLength, Plugin plugin, UhcMatch match) {
-		this.remainingSeconds = countdownLength;
+	public UhcCountdown(long countdownLength, Plugin plugin, UhcMatch match) {
+		this.startTime = Calendar.getInstance();
+		this.countdownLength = countdownLength;
 		this.plugin = plugin;
 		this.match = match;
 		this.active = true;
-		this.task = plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
+		
+		// Build a list of announcements
+		for (long i = (countdownLength - 1) / 60; i > 0; i--)
+			announcements.add(i * 60);
+		
+		if (countdownLength > 45) announcements.add(45L);
+		if (countdownLength > 30) announcements.add(30L);
+		if (countdownLength > 15) announcements.add(15L);
+		if (countdownLength > 5) announcements.add(5L);
+		if (countdownLength > 4) announcements.add(4L);
+		if (countdownLength > 3) announcements.add(3L);
+		if (countdownLength > 2) announcements.add(2L);
+		if (countdownLength > 1) announcements.add(1L);
+		
+		this.preWarnTime = 120;
+		
+		this.nearingTime = 90;
+		
+	
+		this.task = plugin.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
 			public void run() {
 				tick();
 			}
-		});
+		}, REFRESH_RATE, REFRESH_RATE);
 	}
 	
 	protected abstract void preWarn();
@@ -34,43 +66,61 @@ public abstract class UhcCountdown {
 	public Boolean cancel() {
 		if (!this.active) return false; 
 		plugin.getServer().getScheduler().cancelTask(task);
-		remainingSeconds = -1;
 		this.active=false;
 		return true;
 	}
 	
+	private long getRemainingSeconds() {
+		long remaining = countdownLength - MatchUtils.getDuration(startTime, Calendar.getInstance());
+		return (remaining > 0? remaining : 0);
+	}
+	
 	private void tick() {
-		if (remainingSeconds < 0) return;
+		if (!this.active) return;
 		
-		if (remainingSeconds == 0) {
+		long remainingSeconds = this.getRemainingSeconds();
+
+		if (!firstAnnouncementDone) {
+			firstAnnouncementDone = true;
+			this.announce(countdownLength);
+		}
+		
+		if (remainingSeconds <= 0) {
 			this.active=false;
 			this.complete();
 			return;
 		}
 		
-		if (remainingSeconds == 120)
+
+		if (!preWarnDone && remainingSeconds <= preWarnTime) {
+			this.preWarnDone = true;
 			this.preWarn();
-		
-		if (remainingSeconds == 90)
-			this.nearing();
-		
-		if (remainingSeconds >= 60) {
-			if (remainingSeconds % 60 == 0) {
-				int minutes = remainingSeconds / 60;
-				broadcast(ChatColor.LIGHT_PURPLE + this.getDescription() + " in " + minutes + " minute" + (minutes == 1? "":"s"));
-			}
-		} else if (remainingSeconds % 15 == 0) {
-			broadcast(ChatColor.LIGHT_PURPLE + this.getDescription()  + " in " + remainingSeconds + " seconds");
-		} else if (remainingSeconds <= 5) { 
-			broadcast(ChatColor.LIGHT_PURPLE + "" + remainingSeconds + "...");
 		}
 		
-		remainingSeconds--;
-		this.task = plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
-			public void run() {
-				tick();
-			}
-		}, 20L);
+		if (!nearingDone && remainingSeconds <= nearingTime) {
+			this.nearingDone = true;
+			this.nearing();
+		}
+		
+		while (announcements.size() > 0 && remainingSeconds <= announcements.get(0))
+			this.announce(announcements.remove(0));
+		
+	}
+	
+	private void announce(long timeRemaining) {
+		if (timeRemaining == 0) return;
+		if (timeRemaining > 5) {
+			long minutes = timeRemaining / 60;
+			long seconds = timeRemaining % 60;
+			
+			broadcast(ChatColor.LIGHT_PURPLE + this.getDescription() + " in "
+					 + (minutes > 0 ? minutes + " minute" + (minutes == 1? "":"s") : "")
+					 + (minutes > 0 && seconds > 0 ? " and " : "")
+					 + (seconds > 0 ? seconds + " second" + (seconds == 1? "":"s") : "")
+					 );
+		} else { 
+			broadcast(ChatColor.LIGHT_PURPLE + "" + timeRemaining + "...");
+		}
 	}
 	
 	private void broadcast(String message) {

@@ -1,8 +1,14 @@
 package com.martinbrook.tesseractuhc.command;
 
-import org.bukkit.command.ConsoleCommandSender;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 
+import org.bukkit.command.ConsoleCommandSender;
+import com.martinbrook.tesseractuhc.MatchPhase;
 import com.martinbrook.tesseractuhc.TesseractUHC;
+import com.martinbrook.tesseractuhc.UhcParticipant;
 import com.martinbrook.tesseractuhc.UhcPlayer;
 import com.martinbrook.tesseractuhc.UhcSpectator;
 
@@ -37,6 +43,9 @@ public class PlayersCommand extends UhcCommandExecutor {
 		if (args[0].equalsIgnoreCase("add")) {
 			if (args.length < 2)
 				return ERROR_COLOR + "Specify player to add!";
+			
+			if (match.getMatchPhase() != MatchPhase.PRE_MATCH)
+				return ERROR_COLOR + "You cannot add players once the match has begun!";
 			
 			String response = "";
 			
@@ -83,6 +92,53 @@ public class PlayersCommand extends UhcCommandExecutor {
 				return ERROR_COLOR + "Player could not be removed!";
 
 			return OK_COLOR + "Player removed";
+		} else if (args[0].equalsIgnoreCase("removeunseen") || args[0].equalsIgnoreCase("rmu")) {
+			if (!config.isFFA())
+				return ERROR_COLOR + "Cannot auto-remove players in a team match";
+			
+			ArrayList<String> playersToRemove = new ArrayList<String>();
+			for (UhcParticipant up : match.getParticipants()) {
+				if (!up.getPlayer().isSeen()) playersToRemove.add(up.getName());
+			}
+			
+			if (playersToRemove.size() > 0) {
+				String response = OK_COLOR + "Unseen players removed: ";
+				for (String name : playersToRemove) {
+					match.removeParticipant(name);
+					response += name + " ";
+				}
+				return response;
+			} else {
+				return ERROR_COLOR + "No players to remove";
+			}
+		} else if (args[0].equalsIgnoreCase("list") || args[0].equalsIgnoreCase("ls")) {
+			Map<String, ArrayList<String>> players = new HashMap<String, ArrayList<String>>();
+			
+			players.put("Active participants", new ArrayList<String>());
+			players.put("Inactive participants", new ArrayList<String>());
+			players.put("Administrators", new ArrayList<String>());
+			players.put("Spectators", new ArrayList<String>());
+			players.put("Others", new ArrayList<String>());
+			
+			for (UhcPlayer p : match.getOnlinePlayers()) {
+				if (p.isActiveParticipant()) players.get("Active participants").add(p.getDisplayName());
+				else if (p.isParticipant()) players.get("Inactive participants").add(p.getDisplayName());
+				else if (p.isAdmin()) players.get("Administrators").add(p.getDisplayName());
+				else if (p.isSpectator()) players.get("Spectators").add(p.getDisplayName());
+				else players.get("Others").add(p.getDisplayName());
+			}
+			
+			String response = match.getOnlinePlayers().size() + " players online:\n";
+			for (Entry<String, ArrayList<String>> e : players.entrySet()) {
+				if (e.getValue().size() > 0) {
+					response += OK_COLOR + "  " + e.getKey() + "(" + e.getValue().size() + "):" + SIDE_COLOR;
+					for (String name : e.getValue())
+						response += " " + name;
+					response += "\n";
+				}
+			}
+			return response;
+
 		}
 		return null;
 	}

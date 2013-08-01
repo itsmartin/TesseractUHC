@@ -213,7 +213,7 @@ public class UhcCommand extends UhcCommandExecutor {
 		String name = "";
 		for(int i = 1; i < args.length; i++) name += args[i] + " ";
 		name = name.substring(0, name.length()-1);
-		match.addPOI(sender.getLocation(), name);
+		match.createNewPOI(sender.getLocation(), name);
 		return OK_COLOR + "POI added at your current location";
 	}
 
@@ -250,6 +250,8 @@ public class UhcCommand extends UhcCommandExecutor {
 		response += ChatColor.RESET + "[dragonmode]           " + config.formatParameter("dragonmode") + "\n";
 		response += ChatColor.RESET + "[damagealerts]         " + config.formatParameter("damagealerts") + "\n";
 		response += ChatColor.RESET + "[dropheads]            " + config.formatParameter("dropheads") + "\n";
+		response += ChatColor.RESET + "[noskeletons]          " + config.formatParameter("noskeletons") + "\n";
+		response += ChatColor.RESET + "[weather]              " + config.formatParameter("weather") + "\n";
 		
 		return response;
 	}

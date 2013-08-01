@@ -14,6 +14,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.potion.Potion;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionType;
+
 import com.martinbrook.tesseractuhc.TesseractUHC;
 
 public class MatchUtils {
@@ -44,7 +49,10 @@ public class MatchUtils {
 			return String.format("%02d:%02d:%02d", hours, minutes, seconds);
 		} else {
 			long minutes = d / 60;
-			return minutes + " minute" + (minutes != 1 ? "s" : "");
+			if (minutes > 0)
+				return minutes + " minute" + (minutes != 1 ? "s" : "");
+			else
+				return d + " second" + (d != 1 ? "s" : "");
 			
 		}
 		
@@ -82,6 +90,18 @@ public class MatchUtils {
 			}
 			return calculateRadialStarts(count, radius);
 			
+		} else if ("grid".equalsIgnoreCase(method)) {
+			if (args.length != 3) return null;
+			int count;
+			int radius;
+			try {
+				count = Integer.parseInt(args[1]);
+				radius = Integer.parseInt(args[2]);
+			} catch (NumberFormatException e) {
+				return null;
+			}
+			return calculateGridStarts(count, radius);
+
 		}
 		return null;
 		
@@ -105,6 +125,78 @@ public class MatchUtils {
 			int x = (int) (radius * Math.cos(i*arc));
 			int z = (int) (radius * Math.sin(i*arc));
 			
+			int y = w.getHighestBlockYAt(x, z);
+			locations.add(new Location(w,x,y,z));
+		}
+		return locations;
+	
+	}
+	
+	/**
+	 * Generate a list of grid start points, in concentric rings
+	 * 
+	 * @param count Number of starts to generate
+	 * @param radius Radius of grid
+	 * @return List of starts
+	 */
+	private static ArrayList<Location> calculateGridStarts(int count, int radius) {
+		ArrayList<Location> locations = new ArrayList<Location>();
+		
+		World w = TesseractUHC.getInstance().getMatch().getStartingWorld();
+		
+		// Calculate the number of segments on each side of the grid
+		int gridSegments = (2 * (int)(Math.ceil(Math.sqrt(count)/2))) - 1;
+		
+		// Calculate the segment size
+		double gridSize = 2 * radius / gridSegments;
+		
+		for(int i = 0; i < count; i++) {
+			// Which ring are we on?
+			// Ring 0 = 0-3
+			// Ring 1 = 4-15
+			// Ring 2 = 16-35
+			// etc
+			int ringNumber = (int) Math.floor(Math.sqrt(i)/2);
+			
+			// Where are we in our ring?
+			int ringPos = i - 4 * ringNumber * ringNumber;
+			
+			// Which 8-sized subsection of the points in our ring are we in?
+			int ringSection = (int) Math.floor(ringPos / 8);
+			
+			// Where are we in that subsection?
+			int ringSectionPos = ringPos - ringSection * 8;
+			
+			// Get a coordinate pair for our ringSection
+			// For each coordinate pair, there are 8 different ways it can be converted to x and z:
+			// x = c1, z = c2
+			// x = -c1, z = c2
+			// x = c1, z = -c2
+			// x = -c1, z = -c2
+			// x = c2, z = c1
+			// x = -c2, z = c1
+			// x = c2, z = -c1
+			// x = -c2, z = -c1
+			
+			double c1 = gridSize * (ringNumber + 0.5);
+			double c2 = gridSize * (ringSection + 0.5);
+			int x,z;
+			
+			// Map c1 and c2 into x and z
+			if (ringSectionPos < 4) {
+				x = (int) c1;
+				z = (int) c2;
+			} else {
+				x = (int) c2;
+				z = (int) c1;
+				ringSectionPos-=4;
+			}
+
+			// Negate accordingly
+			if (ringSectionPos == 1 || ringSectionPos == 3)	x = -x;
+			if (ringSectionPos == 2 || ringSectionPos == 3) z = -z;
+			
+			// Find y position
 			int y = w.getHighestBlockYAt(x, z);
 			locations.add(new Location(w,x,y,z));
 		}
@@ -189,6 +281,22 @@ public class MatchUtils {
 		newContents[oldContents.length + 1] = pInventory.getChestplate();
 		newContents[oldContents.length + 2] = pInventory.getLeggings();
 		newContents[oldContents.length + 3] = pInventory.getBoots();
+		
+		if (player.getActivePotionEffects().size() == 0)
+			newContents[oldContents.length + 5] = new Potion(PotionType.WATER).toItemStack(1);
+		else {
+			ItemStack potion = new Potion(PotionType.INVISIBILITY).toItemStack(1);
+			PotionMeta pm = (PotionMeta) potion.getItemMeta();
+			for (PotionEffect e : player.getActivePotionEffects())
+				pm.addCustomEffect(e, true);
+			
+			potion.setItemMeta(pm);
+			
+			newContents[oldContents.length + 5] = potion;
+		}
+
+		if (player.getLevel() > 0)
+			newContents[oldContents.length + 6] = new ItemStack(Material.EXP_BOTTLE, player.getLevel());
 
 		newContents[oldContents.length + 7] = new ItemStack(Material.APPLE, player.getHealth());
 		newContents[oldContents.length + 8] = new ItemStack(Material.COOKED_BEEF, player.getFoodLevel());

@@ -24,8 +24,11 @@ public class LaunchCommand extends UhcCommandExecutor {
 	
 	private String run(String[] args) {
 		// launch all players
-		match.launchAll();
-		return OK_COLOR + "Player launching has begun";
+		if (match.launchAll())
+			return OK_COLOR + "Player launching has begun";
+		else
+			return ERROR_COLOR + "Player launching has already been started";
+				
 	}
 
 }

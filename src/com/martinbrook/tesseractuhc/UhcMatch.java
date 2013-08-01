@@ -35,13 +35,19 @@ import com.martinbrook.tesseractuhc.countdown.BorderCountdown;
 import com.martinbrook.tesseractuhc.countdown.MatchCountdown;
 import com.martinbrook.tesseractuhc.countdown.PVPCountdown;
 import com.martinbrook.tesseractuhc.countdown.PermadayCountdown;
+import com.martinbrook.tesseractuhc.customevent.UhcEliminationEvent;
+import com.martinbrook.tesseractuhc.customevent.UhcJoinEvent;
+import com.martinbrook.tesseractuhc.customevent.UhcMatchEndEvent;
+import com.martinbrook.tesseractuhc.customevent.UhcMatchStartEvent;
+import com.martinbrook.tesseractuhc.customevent.UhcPlayerLocationUpdateEvent;
+import com.martinbrook.tesseractuhc.customevent.UhcVictoryEvent;
 import com.martinbrook.tesseractuhc.event.UhcEvent;
+import com.martinbrook.tesseractuhc.notification.DamageNotification;
 import com.martinbrook.tesseractuhc.notification.ProximityNotification;
 import com.martinbrook.tesseractuhc.notification.UhcNotification;
 import com.martinbrook.tesseractuhc.startpoint.LargeGlassStartPoint;
 import com.martinbrook.tesseractuhc.startpoint.SmallGlassStartPoint;
 import com.martinbrook.tesseractuhc.startpoint.UhcStartPoint;
-import com.martinbrook.tesseractuhc.util.FileUtils;
 import com.martinbrook.tesseractuhc.util.MatchUtils;
 import com.martinbrook.tesseractuhc.util.PluginChannelUtils;
 
@@ -54,8 +60,6 @@ public class UhcMatch {
 	private Location lastEventLocation;
 	private Location lastLogoutLocation;
 
-	private ArrayList<String> chatScript;
-	private Boolean chatMuted = false;
 	private Boolean permaday = false;
 	private int permadayTaskId;
 	
@@ -67,7 +71,7 @@ public class UhcMatch {
 	public static int DIAMOND_LAYER = 16;
 	private ArrayList<UhcParticipant> participantsInMatch = new ArrayList<UhcParticipant>();
 	private ArrayList<UhcTeam> teamsInMatch = new ArrayList<UhcTeam>();
-	private Calendar matchStartTime;
+	private Calendar matchStartTime = null;
 	private int matchTimer = -1;
 	private long lastMatchTimeAnnouncement = 0;
 	private ArrayList<Location> calculatedStarts = null;
@@ -82,9 +86,10 @@ public class UhcMatch {
 	private PVPCountdown pvpCountdown;
 	private ArrayList<UhcPOI> uhcPOIs = new ArrayList<UhcPOI>();
 	private ArrayList<UhcEvent> uhcEvents = new ArrayList<UhcEvent>();
-	private int proximityCheckerTask;
+	private int locationCheckerTask;
 	private static int PROXIMITY_THRESHOLD_SQUARED = 10000;
 	protected static int PLAYER_DAMAGE_ALERT_TICKS = 80; // 4 seconds
+	protected static int PLAYER_HEAL_ALERT_TICKS = 80; // 4 seconds
 	public static short DURABILITY_PENALTY_GOLD = 1;
 	public static short DURABILITY_PENALTY_WOOD = 2;
 	public static short DURABILITY_PENALTY_STONE = 3;
@@ -342,9 +347,11 @@ public class UhcMatch {
 		} else {
 			setPVP(true);
 		}
-		enableProximityChecker();
+		enableLocationChecker();
 		enableBorderChecker();
 		enableMatchTimer();
+		updatePlayerListCompletely();
+		server.getPluginManager().callEvent(new UhcMatchStartEvent(this, startingWorld.getSpawnLocation()));
 
 	}
 	
@@ -354,13 +361,14 @@ public class UhcMatch {
 	 * Announce the total match duration
 	 */
 	public void endMatch() {
+		server.getPluginManager().callEvent(new UhcMatchEndEvent(this, startingWorld.getSpawnLocation()));
 		broadcast(matchTimeAnnouncement(true));
 		disableMatchTimer();
 		matchPhase = MatchPhase.POST_MATCH;
 		// Put all players into creative
 		for (UhcPlayer pl : getOnlinePlayers()) pl.setGameMode(GameMode.CREATIVE);
 		setVanish();
-		disableProximityChecker();
+		disableLocationChecker();
 		disableBorderChecker();
 
 	}
@@ -375,7 +383,7 @@ public class UhcMatch {
 		
 		worldRadiusFinal = nextRadius;
 		if (worldRadiusFinal >= 100) {
-			worldRadius = worldRadiusFinal-25;
+			worldRadius = worldRadiusFinal-15;
 		} else {
 			worldRadius = (int) (worldRadiusFinal * 0.9);
 		}
@@ -411,11 +419,21 @@ public class UhcMatch {
 	}
 	
 	/**
+	 * Get the current match time in seconds
+	 * 
+	 * @return Time since the match started, in seconds
+	 */
+	public long getMatchTime() {
+		if (matchStartTime == null) return 0;
+		return MatchUtils.getDuration(matchStartTime, Calendar.getInstance());
+	}
+	
+	/**
 	 * Display the current match time if it is a multiple of 30.
 	 */
 	private void doScheduledTasks() {
 		// Get current match time
-		long matchTime = MatchUtils.getDuration(matchStartTime, Calendar.getInstance()) / 60;
+		long matchTime = getMatchTime() / 60;
 		
 		// Make a match time announcement if necessary
 		if (config.getAnnouncementinterval() > 0) {
@@ -434,38 +452,6 @@ public class UhcMatch {
 		}
 	}
 
-
-	/**
-	 * Plays a chat script
-	 * 
-	 * @param filename The file to read the chat script from
-	 * @param muteChat Whether other chat should be muted
-	 */
-	public void playChatScript(String filename, boolean muteChat) {
-		if (muteChat) this.setChatMuted(true);
-		chatScript = FileUtils.readFile(filename);
-		if (chatScript != null)
-			continueChatScript();
-	}
-	
-	/**
-	 * Output next line of current chat script, unmuting the chat if it's finished.
-	 */
-	private void continueChatScript() {
-		broadcast(ChatColor.GREEN + chatScript.get(0));
-		chatScript.remove(0);
-		if (chatScript.size() > 0) {
-			server.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
-				public void run() {
-					continueChatScript();
-				}
-			}, 30L);
-		} else {
-			this.setChatMuted(false);
-			chatScript = null;
-		}
-		
-	}
 	
 	/**
 	 * Get all participants currently registered with the game
@@ -549,7 +535,10 @@ public class UhcMatch {
 	
 
 	public UhcParticipant getParticipantByIndex(int index) {
-		return participantsInMatch.get(index);
+		if (index < participantsInMatch.size())
+			return participantsInMatch.get(index);
+		else
+			return null;
 	}
 	
 	/**
@@ -575,11 +564,8 @@ public class UhcMatch {
 		start.setTeam(team);
 		teamsInMatch.add(team);
 		
-		start.makeSign();
-		start.fillChest(config.getBonusChest());
-
 		// Send update to the spectators
-		if (!getConfig().isFFA()){
+		if (getConfig() != null && !getConfig().isFFA()){
 			PluginChannelUtils.messageSpectators("team", name, "init");
 			PluginChannelUtils.messageSpectators("team", name, "color", team.getColor().toString());
 		}
@@ -633,7 +619,8 @@ public class UhcMatch {
 		if (up == null) return false;
 		
 		// Message client mod that player joined team
-		PluginChannelUtils.messageSpectators("team", team.getName(), "player", "+" + up.getName());
+		if (getConfig() != null) // Don't do this if we are still busy constructing match and config
+			PluginChannelUtils.messageSpectators("team", team.getName(), "player", "+" + up.getName());
 		
 		participantsInMatch.add(up);
 		return true;
@@ -701,6 +688,9 @@ public class UhcMatch {
 				+ ChatColor.RESET + ChatColor.AQUA + "To find out the parameters for this game, type " + ChatColor.GOLD + "/params" + "\n"
 				+ ChatColor.AQUA + "To view the match status at any time, type " + ChatColor.GOLD + "/match");
 
+		// Trigger a join event
+		server.getPluginManager().callEvent(new UhcJoinEvent(this, up.getStartPoint().getLocation(), p));
+
 		return true;
 
 
@@ -726,14 +716,14 @@ public class UhcMatch {
 			UhcTeam team = pl.getParticipant().getTeam();
 			team.removeMember(pl.getParticipant());
 						
+			// Remove them from the match
+			participantsInMatch.remove(pl.getParticipant());
+			
 			// Mark them as a non participant
 			getPlayer(name).setParticipant(null);
 			
 			// Message client mod that player left team
 			PluginChannelUtils.messageSpectators("team", team.getName(), "player", "-" + pl.getName());
-			
-			// Remove them from the match
-			participantsInMatch.remove(pl.getParticipant());
 			
 			// Remove team if empty
 			if(team.getMembers().size() == 0){
@@ -801,9 +791,9 @@ public class UhcMatch {
 	/**
 	 * Start the launching phase, and launch all players who have been added to the game
 	 */
-	public void launchAll() {
+	public boolean launchAll() {
 		// If already launched, do nothing.
-		if (matchPhase != MatchPhase.PRE_MATCH) return;
+		if (matchPhase != MatchPhase.PRE_MATCH) return false;
 		
 		matchPhase = MatchPhase.LAUNCHING;
 		disableSpawnKeeper();
@@ -811,6 +801,12 @@ public class UhcMatch {
 		setVanish(); // Update vanish status
 		butcherHostile();
 		sortParticipantsInMatch();
+		
+		// Fill bonus chests
+		for (UhcTeam team : getTeams()) {
+			team.getStartPoint().makeSign();
+			team.getStartPoint().fillChest(config.getBonusChest());
+		}
 
 		// Add all players to the launch queue
 		for(UhcParticipant up : getUhcParticipants())
@@ -824,6 +820,7 @@ public class UhcMatch {
 
 		// Begin launching
 		launchNext();
+		return true;
 	}
 	
 
@@ -861,6 +858,24 @@ public class UhcMatch {
 		this.launchQueue.add(up.getName().toLowerCase());
 	}
 	
+	public void scheduleDamageNotification(final DamageNotification n, final Location l) {
+		server.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
+			public void run() {
+				performDamageNotification(n, l);
+			}
+		});
+	}
+	
+	private void performDamageNotification(DamageNotification n, Location l) {
+		// Don't notify if health hasn't changed (due to armor, resistance, etc)
+		if (!n.healthChanged()) return;
+		
+		if (config.isDamageAlerts())
+			sendNotification(n, l);
+		else 
+			sendSpectatorNotification(n, l);
+
+	}
 	
 	public void schedulePlayerListUpdate(final UhcPlayer pl) {
 		server.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
@@ -868,6 +883,12 @@ public class UhcMatch {
 				pl.updatePlayerListName();
 			}
 		});
+	}
+	
+	public void updatePlayerListCompletely() {
+		for (UhcPlayer pl : this.getOnlinePlayers()) {
+			pl.updatePlayerListName();
+		}
 	}
 	
 
@@ -934,7 +955,22 @@ public class UhcMatch {
 					up.getPlayer().teleport(l2);
 					up.clearWorldEdgeWarning();
 				} else {
-					up.doWorldEdgeWarning();
+					// Player is outside the inner world border in the overworld.
+					// Calculate the nearest point on the border, and play the noteblock sound from there.
+					Location l = up.getPlayer().getLocation();
+
+					double newX = l.getX();
+					double newZ = l.getZ();
+					if (newX > worldRadius) newX = worldRadiusFinal;
+					if (newZ > worldRadius) newZ = worldRadiusFinal;
+					if (newX < -worldRadius) newX = -worldRadiusFinal;
+					if (newZ < -worldRadius) newZ = -worldRadiusFinal;
+					
+					Location l2 = l.clone();
+					l2.setX(newX);
+					l2.setZ(newZ);
+					
+					up.doWorldEdgeWarning(l2);
 				}
 			} else {
 				up.clearWorldEdgeWarning();
@@ -960,19 +996,19 @@ public class UhcMatch {
 		}
 	}
 	
-	private void enableProximityChecker() {
-		proximityCheckerTask = server.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
+	private void enableLocationChecker() {
+		locationCheckerTask = server.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
 			public void run() {
-				runProximityChecker();
+				runLocationChecker();
 			}
 		}, 200L, 600L);
 	}
 
-	private void disableProximityChecker() {
-		server.getScheduler().cancelTask(proximityCheckerTask);
+	private void disableLocationChecker() {
+		server.getScheduler().cancelTask(locationCheckerTask);
 	}
 	
-	private void runProximityChecker() {
+	private void runLocationChecker() {
 		// Cycle through all UhcPlayers
 		for (int i = 0; i < participantsInMatch.size(); i++) {
 			UhcParticipant up = participantsInMatch.get(i);
@@ -997,7 +1033,15 @@ public class UhcMatch {
 				}
 			}
 			
+			// Trigger a location event
+			Location l = up.getPlayer().getLocation();
+			if (l != null) server.getPluginManager().callEvent(new UhcPlayerLocationUpdateEvent(this, l, up.getPlayer().getPlayer()));
 		}
+	}
+	
+	private boolean locationsAreClose(Location l1, Location l2) {
+		if (!l1.getWorld().equals(l2.getWorld())) return false;
+		return (l1.distanceSquared(l2) < (PROXIMITY_THRESHOLD_SQUARED));
 	}
 	
 	private boolean checkProximity(UhcParticipant player, UhcParticipant enemy) {
@@ -1006,11 +1050,11 @@ public class UhcMatch {
 		if (p1 == null || p2 == null) return false;
 		
 		if (player.isNearTo(enemy)) {
-			if (p1.getLocation().distanceSquared(p2.getLocation()) >= (PROXIMITY_THRESHOLD_SQUARED))
+			if (!locationsAreClose(p1.getLocation(), p2.getLocation()))
 				player.setNearTo(enemy, false);
 			return false;
 		} else {
-			if (p1.getLocation().distanceSquared(p2.getLocation()) < (PROXIMITY_THRESHOLD_SQUARED)) {
+			if (locationsAreClose(p1.getLocation(),p2.getLocation())) {
 				player.setNearTo(enemy, true);
 				return true;
 			}
@@ -1023,11 +1067,11 @@ public class UhcMatch {
 		if (p1 == null) return false;
 		
 		if (player.isNearTo(poi)) {
-			if (p1.getLocation().distanceSquared(poi.getLocation()) >= (PROXIMITY_THRESHOLD_SQUARED))
+			if (!locationsAreClose(p1.getLocation(), poi.getLocation()))
 				player.setNearTo(poi, false);
 			return false;
 		} else {
-			if (p1.getLocation().distanceSquared(poi.getLocation()) < (PROXIMITY_THRESHOLD_SQUARED)) {
+			if (locationsAreClose(p1.getLocation(), poi.getLocation())) {
 				player.setNearTo(poi, true);
 				return true;
 			}
@@ -1123,24 +1167,6 @@ public class UhcMatch {
 	}
 	
 
-	
-
-	
-	/**
-	 * @return Whether chat is currently muted
-	 */
-	public boolean isChatMuted() {
-		return chatMuted;
-	}
-	
-	/**
-	 * Mute or unmute chat
-	 * 
-	 * @param muted Status to be set
-	 */
-	public void setChatMuted(Boolean muted) {
-		chatMuted = muted;
-	}
 
 
 	/**
@@ -1168,6 +1194,13 @@ public class UhcMatch {
 	
 	public void placeHead(Location l, String name) {
 		Block b = l.getBlock();
+		
+		while(b != null && b.getType() != Material.AIR) {
+			// If we have reached the top of the world, give up and don't place it anywhere.
+			if (b.getY() == b.getWorld().getMaxHeight() - 1) return;
+			b = b.getRelative(0, 1, 0);
+		}
+		
 		b.setTypeIdAndData(Material.SKULL.getId(), (byte) 1, true);
 		
 		Skull s = (Skull) b.getState();
@@ -1210,21 +1243,23 @@ public class UhcMatch {
 	 * 
 	 * @param up The player who died
 	 */
-	private void processParticipantDeath(UhcParticipant up) {
+	private void processParticipantDeath(final UhcParticipant up) {
 		// Set them as dead
 		up.setDead(true);
 		
 		// Reduce survivor counts
 		participantsInMatch.remove(up);
 
+		// Trigger a UhcEliminationEvent
+		UhcTeam team = up.getTeam();
+		if (team.aliveCount() == 0)
+			server.getPluginManager().callEvent(new UhcEliminationEvent(this, up.getPlayer().getLocation(), team.getIdentifier(), team.getName(), countTeamsInMatch() - 1));
+					
 		if (!config.isDragonMode() && config.isFFA() && countParticipantsInMatch() == 1) {
 			processVictory(participantsInMatch.get(0));
 			return;
 		}
 			
-			
-		UhcTeam team = up.getTeam();
-		
 		if (team != null && team.aliveCount()<1) {
 			teamsInMatch.remove(team);
 			if (!config.isDragonMode() && !config.isFFA() && countTeamsInMatch() == 1) {
@@ -1236,8 +1271,20 @@ public class UhcMatch {
 		if (countParticipantsInMatch() == 0) endMatch();
 		
 		broadcastMatchStatus();
+		
+		// Set a timer to remove them from the server after 90 seconds, if deathban is enabled
+		if (config.getDeathban()) {
+			server.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
+				public void run() {
+					if (matchPhase == MatchPhase.MATCH) {
+						Player p = up.getPlayer().getPlayer();
+						if (p != null) p.kickPlayer("Thanks for playing!");
+					}
+				}
+			},2400L);
+		}
 	}
-
+	
 	private void processDragonKill(UhcParticipant winner) {
 		if (config.isFFA()) {
 			broadcast(ChatColor.GOLD + "The winner is: " + winner.getName() + "!");
@@ -1251,13 +1298,16 @@ public class UhcMatch {
 	private void processVictory(UhcTeam winner) {
 		broadcast(ChatColor.GOLD + "The winner is: " + winner.getName() + "!");
 		endMatch();
-		
+		for (UhcParticipant up : winner.getMembers())
+			if (up.getPlayer().isActiveParticipant()) up.getPlayer().makeSpectator();
+		server.getPluginManager().callEvent(new UhcVictoryEvent(this, this.getStartingWorld().getSpawnLocation(), winner.getIdentifier(), winner.getName()));
 	}
 
 	private void processVictory(UhcParticipant winner) {
 		broadcast(ChatColor.GOLD + "The winner is: " + winner.getName() + "!");
 		endMatch();
-		
+		winner.getPlayer().makeSpectator();
+		server.getPluginManager().callEvent(new UhcVictoryEvent(this, this.getStartingWorld().getSpawnLocation(), winner.getTeam().getName(), winner.getTeam().getName()));
 	}
 
 	/**
@@ -1514,10 +1564,15 @@ public class UhcMatch {
 		server.addRecipe(glisteringMelonRecipe);
 	}
 
-	public void addPOI(Location location, String name) {
-		uhcPOIs.add(new UhcPOI(location, name));
+	public void createNewPOI(Location location, String name) {
+		addPOI(location, name);
 		config.saveMatchParameters();
 	}
+	
+	public void addPOI(Location location, String name) {
+		uhcPOIs.add(new UhcPOI(location, name));
+	}
+	
 	public void addPOI(String world, double x, double y, double z, String name) {
 		addPOI(new Location(server.getWorld(world), x, y, z), name);
 	}

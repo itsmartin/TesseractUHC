@@ -1,10 +1,13 @@
 package com.martinbrook.tesseractuhc.listeners;
 
 import org.bukkit.Bukkit;
+import org.bukkit.block.Jukebox;
+import org.bukkit.block.NoteBlock;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -44,7 +47,26 @@ public class SpectateListener implements Listener {
 				pl.getSpectator().showInventory((Player) clicked);
 		}
 
-		if (m.getPlayer(e.getPlayer()).isNonInteractingSpectator() && m.getMatchPhase() == MatchPhase.MATCH) e.setCancelled(true);
+		// Cancel any interactions by spectators during the match
+		if (m.getPlayer(e.getPlayer()).isNonInteractingSpectator() && m.getMatchPhase() == MatchPhase.MATCH) {
+			// If entity is a minecart chest, show its inventory
+			if (clicked.getType() == EntityType.MINECART_CHEST) {
+				
+				 InventoryHolder invh = (InventoryHolder) clicked;
+				 Inventory inv = invh.getInventory();
+
+				 ItemStack[] contents = inv.getContents();
+				 for (int i = 0; i < contents.length; ++i)
+					 if (contents[i] != null) contents[i] = contents[i].clone();
+
+				 Inventory newinv;
+				 newinv = Bukkit.getServer().createInventory(null, inv.getType());
+				 newinv.setContents(contents);
+
+				 e.getPlayer().openInventory(newinv);
+			}
+			e.setCancelled(true);
+		}
 	}
 
 	@EventHandler(ignoreCancelled = true)
@@ -94,9 +116,12 @@ public class SpectateListener implements Listener {
 	 * Prevent ops from interacting with anything when match is in progress.
 	 * 
 	 */
-	 @EventHandler(ignoreCancelled = true)
+	 @EventHandler(priority=EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onPlayerInteract(PlayerInteractEvent e) {
-		 if (m.getPlayer(e.getPlayer()).isNonInteractingSpectator() && m.getMatchPhase() == MatchPhase.MATCH) {
+		 UhcPlayer pl = m.getPlayer(e.getPlayer());
+
+		 // Handle interactions for spectators during the game
+		 if (pl.isNonInteractingSpectator() && m.getMatchPhase() == MatchPhase.MATCH) {
 
 			 // Handle right-clicks on inventory blocks
 			 if (e.getAction() == Action.RIGHT_CLICK_BLOCK && e.getClickedBlock().getState() instanceof InventoryHolder) {
@@ -121,6 +146,20 @@ public class SpectateListener implements Listener {
 			 // Cancel all other actions
 			 e.setCancelled(true);
 		 }
+		 
+		 // Handle interactions for non-admins pre-game
+		 if (!pl.isAdmin() && (m.getMatchPhase() == MatchPhase.LAUNCHING || m.getMatchPhase() == MatchPhase.PRE_MATCH)) {
+			 // Allow inventory blocks to be opened (e.g. chests)
+			 if (e.getAction() == Action.RIGHT_CLICK_BLOCK && (
+					 e.getClickedBlock().getState() instanceof InventoryHolder
+					 || e.getClickedBlock().getState() instanceof Jukebox
+					 || e.getClickedBlock().getState() instanceof NoteBlock)) {
+				 return;
+			 }
+			 // Cancel all other actions
+			 e.setCancelled(true);
+		 }
+		 
 	 }
 
 	 @EventHandler(ignoreCancelled = true)

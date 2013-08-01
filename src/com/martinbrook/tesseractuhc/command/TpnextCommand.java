@@ -19,12 +19,13 @@ public class TpnextCommand extends UhcCommandExecutor {
 
 	@Override
 	protected String runAsSpectator(UhcSpectator sender, String[] args) {
-		Player to;
+		Player to = null;
 		int cycleSize = match.countParticipantsInMatch();
 		int attempts = 0;
 		
 		do {
 			UhcParticipant up = match.getParticipantByIndex(sender.nextCyclePoint(cycleSize));
+			if (up == null) break;
 			to = server.getPlayerExact(up.getName());
 			attempts++;
 		} while ((to == null || !to.isOnline()) && attempts < cycleSize);

@@ -50,20 +50,19 @@ public class TesseractUHC extends JavaPlugin {
 		getServer().getPluginManager().registerEvents(new SpectateListener(match), this);
 		getServer().getPluginManager().registerEvents(new ClientMessageChannelListener(match), this);
 
+		getCommand("butcher").setExecutor(new ButcherCommand(this));
 		getCommand("tp").setExecutor(new TpCommand(this));
 		getCommand("heal").setExecutor(new HealCommand(this));
 		getCommand("feed").setExecutor(new FeedCommand(this));
 		getCommand("clearinv").setExecutor(new ClearinvCommand(this));
 		getCommand("renew").setExecutor(new RenewCommand(this));
+		getCommand("clearpots").setExecutor(new ClearpotsCommand(this));
 		getCommand("ready").setExecutor(new ReadyCommand(this));
 		getCommand("cdwb").setExecutor(new CdwbCommand(this));
 		getCommand("cdc").setExecutor(new CdcCommand(this));
-		getCommand("chatscript").setExecutor(new ChatscriptCommand(this));
-		getCommand("muteall").setExecutor(new MuteallCommand(this));
 		getCommand("permaday").setExecutor(new PermadayCommand(this));
 		getCommand("uhc").setExecutor(new UhcCommand(this));
 		getCommand("launch").setExecutor(new LaunchCommand(this));
-		getCommand("relaunch").setExecutor(new RelaunchCommand(this));
 		getCommand("calcstarts").setExecutor(new CalcstartsCommand(this));
 		getCommand("setvanish").setExecutor(new SetvanishCommand(this));
 		getCommand("players").setExecutor(new PlayersCommand(this));

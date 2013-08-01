@@ -22,6 +22,7 @@ public class UhcPlayer {
 	private UhcParticipant participant;
 	private UhcSpectator spectator;
 	private UhcMatch m;
+	private boolean seen = false;
 	
 	//Does the player have the autoreferee-client on?
 	private boolean autoRefereeClientEnabled = false; 
@@ -38,6 +39,8 @@ public class UhcPlayer {
 	private boolean isOp() { return getOfflinePlayer().isOp(); }
 	public Player getPlayer() { return m.getServer().getPlayerExact(name); }
 	public OfflinePlayer getOfflinePlayer() { return m.getServer().getOfflinePlayer(name); }
+	public void setSeen() { this.seen = true; }
+	public boolean isSeen() { return this.seen; }
 	
 	public void setParticipant(UhcParticipant participant) { this.participant = participant; }
 	
@@ -78,7 +81,7 @@ public class UhcPlayer {
 	}
 	
 	public boolean makeSpectator() {
-		if (isActiveParticipant()) return false;
+		if (m.getMatchPhase() != MatchPhase.POST_MATCH && isActiveParticipant()) return false;
 		if (spectator == null) spectator = new UhcSpectator(this);
 		setVanish();
 		setGameMode(GameMode.CREATIVE);
@@ -111,6 +114,13 @@ public class UhcPlayer {
 		Player p = getPlayer();
 		if (p==null) return false;
 		p.setHealth(20);
+		
+		// Update health for spectators
+		if (isActiveParticipant()) getParticipant().updateHealth();
+		
+		// Update player list health
+		updatePlayerListName();
+		
 		return true;
 	}
 
@@ -162,6 +172,9 @@ public class UhcPlayer {
 		i.setChestplate(null);
 		i.setLeggings(null);
 		i.setBoots(null);
+		
+		// Update armor for spectators
+		if (isActiveParticipant()) getParticipant().updateArmor();
 		
 		p.getEnderChest().clear();
 		return true;
