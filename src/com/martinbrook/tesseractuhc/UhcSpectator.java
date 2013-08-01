@@ -8,6 +8,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 import com.martinbrook.tesseractuhc.util.MatchUtils;
+import com.martinbrook.tesseractuhc.util.PluginChannelUtils;
 import com.martinbrook.tesseractuhc.util.TeleportUtils;
 
 public class UhcSpectator {
@@ -58,6 +59,8 @@ public class UhcSpectator {
 		
 		Location oldLocation = player.getLocation();
 		if (player.teleport(l, message)) {
+			// Update closest-player-view on the AutoReferee Client
+			PluginChannelUtils.messageSpectator(player.getPlayer(), "plugin",TesseractUHC.PLUGIN_CHANNEL_PLUGIN,"ucp");
 			tpBackLocation = oldLocation;
 			return true;
 		}

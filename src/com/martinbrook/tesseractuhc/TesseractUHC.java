@@ -22,6 +22,7 @@ public class TesseractUHC extends JavaPlugin {
 	public static final String PLUGIN_CHANNEL = "autoref:referee";
 	public static final String PLUGIN_CHANNEL_ENC = "UTF-8";
 	public static final String PLUGIN_CHANNEL_WORLD = "UHCworld";
+	public static final String PLUGIN_CHANNEL_PLUGIN = "TesseractUHC";
 	public static final char PLUGIN_CHANNEL_DELIMITER = '|';
 	
 	/**
