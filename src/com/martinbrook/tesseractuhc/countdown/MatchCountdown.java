@@ -33,5 +33,12 @@ public class MatchCountdown extends UhcCountdown {
 	protected void preWarn() {
 		match.preWarn();
 	}
+	
+	@Override
+	public Boolean cancel(){
+		if (!super.cancel()) return false;
+		PluginChannelUtils.messageSpectators("plugin",TesseractUHC.PLUGIN_CHANNEL_WORLD,"countdown","0");
+		return true;
+	}
 
 }
