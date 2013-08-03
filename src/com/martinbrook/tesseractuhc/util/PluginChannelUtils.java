@@ -67,7 +67,8 @@ public class PluginChannelUtils {
 			}
 			for (UhcParticipant pl : team.getMembers())
 			{
-				messageSpectator(spec, "team", teamName, "player", "+" + pl.getName());
+				if(!pl.isDead())
+					messageSpectator(spec, "team", teamName, "player", "+" + pl.getName());
 			}
 		}
 			
