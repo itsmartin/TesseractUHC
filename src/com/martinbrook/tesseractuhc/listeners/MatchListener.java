@@ -183,6 +183,10 @@ public class MatchListener implements Listener {
 
 		// Cancel event if it is a natural regen due to hunger being full, and UHC is enabled
 		if (m.getConfig().isUHC() && e.getRegainReason() == RegainReason.SATIATED) {
+			Player player = (Player) e.getEntity();
+			if (player.getFoodLevel() >= 18 && player.getHealth() > 0 && player.getHealth() < player.getMaxHealth()) {
+                        	player.setExhaustion(player.getExhaustion() - 3);
+                    	}
 			e.setCancelled(true);
 			return;
 		}
